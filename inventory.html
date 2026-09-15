@@ -11,15 +11,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #0f172a; }
-    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
-    .mini-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; }
-    .mini-btn:hover { transform: translateY(-1px); }
-    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
-    .mini-input:focus { border-color: #4f46e5 !important; outline: none !important; ring: 2px #4f46e5; }
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .sidebar-link { transition: all 0.2s; }
-    .sidebar-link.active { background-color: #4f46e5; color: #ffffff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
-    .sidebar-link:not(.active):hover { background-color: #f8fafc; color: #0f172a; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
     
     .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -30,15 +28,15 @@
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex bg-slate-100 antialiased">
+<body class="min-h-screen flex bg-slate-50 antialiased">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR NAVIGATION -->
+  <!-- 📌 SIDEBAR NAVIGATION (ตรงธีมกับอีก 2 หน้า) -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg font-bold shadow-md shadow-indigo-200">
+        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
           <i class="fa-solid fa-boxes-stacked"></i>
         </div>
         <div>
@@ -56,7 +54,7 @@
           <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
         </a>
         <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-          <i class="fa-solid fa-desktop w-4"></i> Asset Inventory
+          <i class="fa-solid fa-desktop w-4 text-indigo-400"></i> Asset Inventory
         </a>
       </div>
     </div>
@@ -82,9 +80,9 @@
       <span class="text-xs font-semibold">IT INVENTORY</span>
     </div>
     <div class="flex gap-1.5 items-center">
-      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">UPS</a>
-      <a href="inventory.html" class="bg-indigo-600 text-white text-[11px] px-2 py-1 rounded-lg">Assets</a>
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-indigo-600 text-white text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
       <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
@@ -110,30 +108,49 @@
           <button onclick="exportInventoryExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-2">
             <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
           </button>
+          <button onclick="clearAllInventory()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-trash-can text-xs"></i> ล้างข้อมูลทั้งหมด
+          </button>
           <button onclick="toggleAddItemForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-plus text-xs"></i> เพิ่มอุปกรณ์ใหม่
           </button>
         </div>
       </div>
 
-      <!-- 📝 FORM ADD / EDIT ASSET -->
-      <div id="addItemFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-inner">
-        <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-3">
+      <!-- 📝 FORM ADD / EDIT ASSET (ปรับ UI โค้งมน Soft Style ตามรูปตัวอย่าง) -->
+      <div id="addItemFormCard" class="hidden bg-slate-50/60 p-6 md:p-8 rounded-2xl border border-slate-200/80 space-y-6">
+        <h3 class="text-sm font-semibold text-indigo-950 flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-indigo-600"></i> บันทึกข้อมูลอุปกรณ์ไอที
         </h3>
-        <form id="assetForm" class="space-y-4">
+
+        <form id="assetForm" class="space-y-5">
           <input type="hidden" id="assetId">
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Name (ชื่อผู้ครองครอง)</label><input type="text" id="aName" required placeholder="เช่น Somchai K." class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Position (ตำแหน่ง)</label><input type="text" id="aPosition" placeholder="เช่น IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Department (แผนก)</label><input type="text" id="aDepartment" required placeholder="เช่น IT, FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">IP Address</label><input type="text" id="aIp" placeholder="192.168.1.100" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <!-- Row 1 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Name (ชื่อผู้ครอบครอง)</label>
+              <input type="text" id="aName" required placeholder="เช่น Anusorn Rianrom" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Position (ตำแหน่ง)</label>
+              <input type="text" id="aPosition" placeholder="เช่น Assistant Chief Engineer" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Department (แผนก)</label>
+              <input type="text" id="aDepartment" required placeholder="เช่น EN" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">IP Address</label>
+              <input type="text" id="aIp" placeholder="เช่น 10.79.34.51" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Type (ประเภท)</label>
-              <select id="aType" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          <!-- Row 2 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Type (ประเภท)</label>
+              <select id="aType" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
                 <option value="PC">PC Desktop</option>
                 <option value="Laptop">Laptop</option>
                 <option value="All-in-One">All-in-One</option>
@@ -144,17 +161,37 @@
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Model (ยี่ห้อ/รุ่น)</label><input type="text" id="aModel" placeholder="Dell OptiPlex 7090" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">CPU</label><input type="text" id="aCpu" placeholder="Intel Core i5-11500" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">RAM</label><input type="text" id="aRam" placeholder="16GB DDR4" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Model (ยี่ห้อ/รุ่น)</label>
+              <input type="text" id="aModel" placeholder="เช่น Dell Inc. Optiplex Micro 7010" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">CPU</label>
+              <input type="text" id="aCpu" placeholder="เช่น 13th Gen Intel® i5-13500T" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">RAM</label>
+              <input type="text" id="aRam" placeholder="เช่น 16GB DDR4" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Storage</label><input type="text" id="aStorage" placeholder="SSD 512GB M.2" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">OS (ระบบปฏิบัติการ)</label><input type="text" id="aOs" placeholder="Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Serial Number</label><input type="text" id="aSerial" placeholder="CN12345678" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Status (สถานะ)</label>
-              <select id="aStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          <!-- Row 3 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Storage</label>
+              <input type="text" id="aStorage" placeholder="เช่น NVMe SN740 WD 512GB" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">OS (ระบบปฏิบัติการ)</label>
+              <input type="text" id="aOs" placeholder="เช่น Windows 11 Pro/25H2" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Serial Number</label>
+              <input type="text" id="aSerial" placeholder="เช่น H369CO4" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Status (สถานะ)</label>
+              <select id="aStatus" class="w-full bg-white border border-indigo-500 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
                 <option value="In Use">In Use (กำลังใช้งาน)</option>
                 <option value="Spare">Spare (สำรอง)</option>
                 <option value="Repair">Repair (ส่งซ่อม)</option>
@@ -163,17 +200,36 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Monitor (จอภาพ)</label><input type="text" id="aMonitor" placeholder='Dell 24" P2419H' class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Adapter (อแดปเตอร์)</label><input type="text" id="aAdapter" placeholder="Dell 65W Type-C" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">UPS (เครื่องสำรองไฟ)</label><input type="text" id="aUps" placeholder="APC 800VA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Accessory (อุปกรณ์เสริม)</label><input type="text" id="aAccessory" placeholder="Mouse, KB, Headset" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <!-- Row 4 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Monitor (จอภาพ)</label>
+              <input type="text" id="aMonitor" placeholder="เช่น Dell E2724HS" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Adapter (อแดปเตอร์)</label>
+              <input type="text" id="aAdapter" placeholder="เช่น Dell 90W CN-07HRTX" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">UPS (เครื่องสำรองไฟ)</label>
+              <input type="text" id="aUps" placeholder="เช่น 9B2341A11574" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Accessory (อุปกรณ์เสริม)</label>
+              <input type="text" id="aAccessory" placeholder="เช่น Mouse Dell , Keyboard Dell" class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm">
+            </div>
           </div>
 
-          <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
-            <button type="button" onclick="toggleAddItemForm()" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูลอุปกรณ์</button>
+          <!-- Action Buttons (ชิดขวาล่าง) -->
+          <div class="flex justify-end gap-3 pt-4">
+            <button type="button" onclick="toggleAddItemForm()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-medium transition-all shadow-sm">
+              ยกเลิก
+            </button>
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl text-xs font-medium transition-all shadow-sm shadow-indigo-200">
+              บันทึกข้อมูลอุปกรณ์
+            </button>
           </div>
+
         </form>
       </div>
 
@@ -209,17 +265,30 @@
         </div>
       </div>
 
+      <!-- 👤 INDIVIDUAL ASSET SUMMARY CARDS (โชว์การถือครองรายบุคคล) -->
+      <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-users text-indigo-600"></i> สรุปอุปกรณ์แยกตามผู้ครอบครอง (Holders)
+          </h3>
+          <span id="holderCountBadge" class="text-[11px] bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium">0 คน</span>
+        </div>
+        <div id="holderCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto custom-scroll pr-1">
+          <!-- JS Render Holder Cards -->
+        </div>
+      </div>
+
       <!-- SEARCH & FILTER BAR -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
         <div>
           <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-building text-slate-400 mr-1"></i> แผนก (Department)</label>
-          <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+          <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
             <option value="">ทุกแผนก (All Departments)</option>
           </select>
         </div>
         <div>
           <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-laptop text-slate-400 mr-1"></i> ประเภท (Type)</label>
-          <select id="filterType" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+          <select id="filterType" onchange="filterInventoryRecords()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
             <option value="">ทุกประเภท (All Types)</option>
             <option value="PC">PC Desktop</option>
             <option value="Laptop">Laptop</option>
@@ -230,11 +299,11 @@
         </div>
         <div>
           <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-magnifying-glass text-slate-400 mr-1"></i> ค้นหาข้อมูล</label>
-          <input type="text" id="searchInventoryInput" onkeyup="filterInventoryRecords()" placeholder="ค้นหาชื่อ, S/N, IP, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
+          <input type="text" id="searchInventoryInput" onkeyup="filterInventoryRecords()" placeholder="ค้นหาชื่อ, S/N, IP, รุ่น..." class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
         </div>
       </div>
 
-      <!-- 📊 TABLE -->
+      <!-- 📊 MODERN ENTERPRISE TABLE -->
       <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scroll bg-white">
         <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
           <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider sticky top-0">
@@ -380,7 +449,60 @@
       document.getElementById('statSpare').innerText = filteredInventoryRecords.filter(r => r.status === 'Spare').length;
       document.getElementById('statRepair').innerText = filteredInventoryRecords.filter(r => r.status === 'Repair').length;
 
+      renderUserAssetSummary();
       renderInventoryTable();
+    }
+
+    // 🔍 แสดงสรุปการถือครองแยกตามบุคคล
+    function renderUserAssetSummary() {
+      const container = document.getElementById('holderCardsContainer');
+      if (!container) return;
+
+      const holderMap = {};
+      filteredInventoryRecords.forEach(item => {
+        const holderName = item.name ? item.name.trim() : 'Unassigned (ไม่มีผู้ถือครอง)';
+        if (!holderMap[holderName]) {
+          holderMap[holderName] = {
+            name: holderName,
+            department: item.department || '-',
+            position: item.position || '-',
+            items: []
+          };
+        }
+        holderMap[holderName].items.push(item);
+      });
+
+      const holders = Object.values(holderMap);
+      document.getElementById('holderCountBadge').innerText = `${holders.length} คน`;
+
+      if (holders.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-slate-400">ไม่พบข้อมูลผู้ถือครอง</div>`;
+        return;
+      }
+
+      container.innerHTML = holders.map(h => `
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between space-y-2">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="text-xs font-semibold text-slate-900 truncate">${h.name}</h4>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium shrink-0">${h.department}</span>
+            </div>
+            <p class="text-[11px] text-slate-500 truncate mt-0.5">${h.position}</p>
+          </div>
+          <div class="border-t border-slate-100 pt-2 flex items-center justify-between">
+            <span class="text-[11px] text-slate-600">ถือครอง: <strong class="text-indigo-600 font-semibold">${h.items.length}</strong> ชิ้น</span>
+            <button onclick="viewUserAssets('${h.name.replace(/'/g, "\\'")}')" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+              ดูเครื่อง <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function viewUserAssets(name) {
+      document.getElementById('searchInventoryInput').value = name === 'Unassigned (ไม่มีผู้ถือครอง)' ? '' : name;
+      filterInventoryRecords();
+      document.querySelector('table').scrollIntoView({ behavior: 'smooth' });
     }
 
     function renderInventoryTable() {
@@ -457,11 +579,26 @@
       }
     }
 
+    async function clearAllInventory() {
+      const confirmText = prompt("พิมพ์คำว่า 'DELETE' เพื่อยืนยันการล้างข้อมูลในตาราง Inventory ทั้งหมด:");
+      if (confirmText === 'DELETE') {
+        showToast('CLEARING...', 'กำลังล้างข้อมูลในตารางทั้งหมด...', 'info');
+        const { error } = await supabaseOps.from('inventory').delete().neq('id', 0);
+        
+        if (error) {
+          showToast('ERROR', error.message, 'error');
+        } else {
+          showToast('CLEARED', 'ล้างข้อมูลอุปกรณ์เรียบร้อยแล้ว', 'success');
+          fetchInventoryRecords();
+        }
+      }
+    }
+
     async function handleExcelImport(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      showToast('IMPORTING...', 'กำลังอ่านข้อมูลจากไฟล์ Excel...', 'info');
+      showToast('IMPORTING...', 'กำลังตรวจสอบและอ่านข้อมูลไฟล์ Excel...', 'info');
 
       try {
         const workbook = new ExcelJS.Workbook();
@@ -471,14 +608,30 @@
         const worksheet = workbook.worksheets[0];
         const importedData = [];
 
+        // 🛡️ เช็กหัวข้อตารางกัน Import ผิดไฟล์
+        const headerRow = worksheet.getRow(1);
+        const headerText = [
+          headerRow.getCell(2).value, 
+          headerRow.getCell(3).value, 
+          headerRow.getCell(4).value
+        ].join(' ').toLowerCase();
+
+        if (headerText.includes('case id') || headerText.includes('task') || headerText.includes('priority')) {
+          showToast('WRONG FILE', 'ไฟล์นี้คือ Task Report ไม่ใช่ไฟล์ Asset Inventory!', 'error');
+          event.target.value = '';
+          return;
+        }
+
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber > 1) {
             const name = row.getCell(2).value ? String(row.getCell(2).value).trim() : null;
-            if (name || row.getCell(4).value) {
+            const model = row.getCell(4).value ? String(row.getCell(4).value).trim() : null;
+            
+            if (name || model) {
               importedData.push({
-                name: name,
+                name: name || 'N/A',
                 position: row.getCell(3).value ? String(row.getCell(3).value).trim() : '',
-                model: row.getCell(4).value ? String(row.getCell(4).value).trim() : '',
+                model: model || '',
                 type: row.getCell(5).value ? String(row.getCell(5).value).trim() : 'PC',
                 department: row.getCell(6).value ? String(row.getCell(6).value).trim() : '',
                 cpu: row.getCell(7).value ? String(row.getCell(7).value).trim() : '',
@@ -507,7 +660,7 @@
         if (error) {
           showToast('ERROR', error.message, 'error');
         } else {
-          showToast('SUCCESS!', `อิมพอร์ทข้อมูลสำเร็จทั้งหมด ${importedData.length} รายการ`, 'success');
+          showToast('SUCCESS!', `อิมพอร์ทข้อมูลสำเร็จ ${importedData.length} รายการ`, 'success');
           fetchInventoryRecords();
         }
 
@@ -537,7 +690,7 @@
         { header: 'Serial number', key: 'serial_number', width: 22 },
         { header: 'Adapter', key: 'adapter', width: 18 },
         { header: 'Monitor', key: 'monitor', width: 20 },
-        { header: 'IP', key: 'ip', width: 16 },
+        { header: 'IP Address', key: 'ip', width: 16 },
         { header: 'Accessory', key: 'accessory', width: 20 },
         { header: 'UPS', key: 'ups', width: 18 },
         { header: 'Status', key: 'status', width: 12 }
