@@ -11,28 +11,35 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
-    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
+    .mini-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; }
+    .mini-btn:hover { transform: translateY(-1px); }
     .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
+    .mini-input:focus { border-color: #4f46e5 !important; outline: none !important; ring: 2px #4f46e5; }
     .sidebar-link { transition: all 0.2s; }
-    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
-    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    .sidebar-link.active { background-color: #4f46e5; color: #ffffff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
+    .sidebar-link:not(.active):hover { background-color: #f8fafc; color: #0f172a; }
     
+    /* Scrollbar ตารางสวยๆ */
+    .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex bg-slate-50 antialiased">
+<body class="min-h-screen flex bg-slate-100 antialiased">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- 📌 SIDEBAR NAVIGATION -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start">
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg font-bold shadow-md shadow-indigo-200">
           <i class="fa-solid fa-boxes-stacked"></i>
         </div>
         <div>
@@ -50,7 +57,7 @@
           <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
         </a>
         <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-          <i class="fa-solid fa-desktop w-4 text-amber-400"></i> Asset Inventory
+          <i class="fa-solid fa-desktop w-4"></i> Asset Inventory
         </a>
       </div>
     </div>
@@ -60,7 +67,7 @@
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
           <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
-          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+          <span id="userRoleBadge" class="text-[10px] text-indigo-600 bg-indigo-50 font-semibold px-2 py-0.5 rounded uppercase">STAFF</span>
         </div>
         <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -72,56 +79,57 @@
   <!-- 📱 MOBILE HEADER -->
   <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
+      <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
       <span class="text-xs font-semibold">IT INVENTORY</span>
     </div>
     <div class="flex gap-1.5 items-center">
       <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
       <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">UPS</a>
-      <a href="inventory.html" class="bg-amber-500 text-white text-[11px] px-2 py-1 rounded-lg">Assets</a>
+      <a href="inventory.html" class="bg-indigo-600 text-white text-[11px] px-2 py-1 rounded-lg">Assets</a>
       <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
   <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-7xl mx-auto space-y-6 w-full">
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full">
     
     <div class="mini-card p-6 md:p-8 space-y-6">
       
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <!-- HEADER TITLE & ACTION BUTTONS -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-desktop text-amber-500"></i> IT ASSET INVENTORY MANAGEMENT
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i class="fa-solid fa-desktop text-indigo-600"></i> IT ASSET INVENTORY MANAGEMENT
           </h2>
-          <p class="text-slate-500 text-xs mt-0.5">ระบบลงทะเบียน ตรวจสอบ และติดตามสเปกอุปกรณ์ไอที (Database: IT_Ops)</p>
+          <p class="text-slate-500 text-xs mt-1">ระบบลงทะเบียน ตรวจสอบ และติดตามสเปกอุปกรณ์ไอทีประจำองค์กร (Database: IT_Ops)</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="toggleAddItemForm()" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5">
-            <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์ใหม่
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button onclick="toggleAddItemForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus text-xs"></i> เพิ่มอุปกรณ์ใหม่
           </button>
-          <button onclick="exportInventoryExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-file-excel"></i> Export Excel
+          <button onclick="exportInventoryExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
           </button>
         </div>
       </div>
 
       <!-- 📝 FORM ADD / EDIT ASSET (Hidden by default) -->
-      <div id="addItemFormCard" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
-        <h3 class="text-xs font-semibold text-slate-700 uppercase flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-amber-500"></i> บันทึกข้อมูลอุปกรณ์ไอที
+      <div id="addItemFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-inner">
+        <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-3">
+          <i class="fa-solid fa-pen-to-square text-indigo-600"></i> บันทึกข้อมูลอุปกรณ์ไอที
         </h3>
         <form id="assetForm" class="space-y-4">
           <input type="hidden" id="assetId">
           
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Name (ชื่อผู้ครองครอง)</label><input type="text" id="aName" required placeholder="เช่น Somchai K." class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Position (ตำแหน่ง)</label><input type="text" id="aPosition" placeholder="เช่น IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Department (แผนก)</label><input type="text" id="aDepartment" required placeholder="เช่น IT, FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">IP Address</label><input type="text" id="aIp" placeholder="192.168.1.100" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Name (ชื่อผู้ครองครอง)</label><input type="text" id="aName" required placeholder="เช่น Somchai K." class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Position (ตำแหน่ง)</label><input type="text" id="aPosition" placeholder="เช่น IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Department (แผนก)</label><input type="text" id="aDepartment" required placeholder="เช่น IT, FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">IP Address</label><input type="text" id="aIp" placeholder="192.168.1.100" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Type (ประเภท)</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Type (ประเภท)</label>
               <select id="aType" class="w-full mini-input rounded-xl p-2.5 text-xs">
                 <option value="PC">PC Desktop</option>
                 <option value="Laptop">Laptop</option>
@@ -133,16 +141,16 @@
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div><label class="block text-xs font-medium mb-1">Model (ยี่ห้อ/รุ่น)</label><input type="text" id="aModel" placeholder="Dell OptiPlex 7090" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">CPU</label><input type="text" id="aCpu" placeholder="Intel Core i5-11500" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">RAM</label><input type="text" id="aRam" placeholder="16GB DDR4" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Model (ยี่ห้อ/รุ่น)</label><input type="text" id="aModel" placeholder="Dell OptiPlex 7090" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">CPU</label><input type="text" id="aCpu" placeholder="Intel Core i5-11500" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">RAM</label><input type="text" id="aRam" placeholder="16GB DDR4" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Storage</label><input type="text" id="aStorage" placeholder="SSD 512GB M.2" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">OS (ระบบปฏิบัติการ)</label><input type="text" id="aOs" placeholder="Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Serial Number</label><input type="text" id="aSerial" placeholder="CN12345678" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Status (สถานะ)</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Storage</label><input type="text" id="aStorage" placeholder="SSD 512GB M.2" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">OS (ระบบปฏิบัติการ)</label><input type="text" id="aOs" placeholder="Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Serial Number</label><input type="text" id="aSerial" placeholder="CN12345678" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Status (สถานะ)</label>
               <select id="aStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
                 <option value="In Use">In Use (กำลังใช้งาน)</option>
                 <option value="Spare">Spare (สำรอง)</option>
@@ -152,50 +160,62 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Monitor (จอภาพ)</label><input type="text" id="aMonitor" placeholder='Dell 24" P2419H' class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Adapter (อแดปเตอร์)</label><input type="text" id="aAdapter" placeholder="Dell 65W Type-C" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">UPS (เครื่องสำรองไฟ)</label><input type="text" id="aUps" placeholder="APC 800VA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Accessory (อุปกรณ์เสริม)</label><input type="text" id="aAccessory" placeholder="Mouse, KB, Headset" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Monitor (จอภาพ)</label><input type="text" id="aMonitor" placeholder='Dell 24" P2419H' class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Adapter (อแดปเตอร์)</label><input type="text" id="aAdapter" placeholder="Dell 65W Type-C" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">UPS (เครื่องสำรองไฟ)</label><input type="text" id="aUps" placeholder="APC 800VA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-600">Accessory (อุปกรณ์เสริม)</label><input type="text" id="aAccessory" placeholder="Mouse, KB, Headset" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
           </div>
 
-          <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-            <button type="button" onclick="toggleAddItemForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-            <button type="submit" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูลอุปกรณ์</button>
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            <button type="button" onclick="toggleAddItemForm()" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูลอุปกรณ์</button>
           </div>
         </form>
       </div>
 
-      <!-- OVERVIEW STAT CARDS -->
+      <!-- OVERVIEW STAT CARDS (คลีนขึ้น โทนซอฟต์สไตล์ SaaS) -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
-          <p class="text-xs font-medium text-slate-500">จำนวนอุปกรณ์ทั้งหมด</p>
-          <p id="statTotalItems" class="text-2xl font-semibold text-slate-900 mt-1">0</p>
+        <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-500">อุปกรณ์ทั้งหมด</p>
+            <p id="statTotalItems" class="text-2xl font-bold text-slate-900 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 bg-slate-200/60 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
         </div>
-        <div class="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl">
-          <p class="text-xs font-medium text-emerald-700">In Use (กำลังใช้งาน)</p>
-          <p id="statInUse" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
+        <div class="p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-emerald-700">In Use (กำลังใช้งาน)</p>
+            <p id="statInUse" class="text-2xl font-bold text-emerald-600 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 bg-emerald-100/80 text-emerald-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
         </div>
-        <div class="p-4 bg-amber-50 border border-amber-200/80 rounded-2xl">
-          <p class="text-xs font-medium text-amber-700">Spare (สำรอง)</p>
-          <p id="statSpare" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
+        <div class="p-4 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-amber-700">Spare (สำรอง)</p>
+            <p id="statSpare" class="text-2xl font-bold text-amber-600 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 bg-amber-100/80 text-amber-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-boxes-packing"></i></div>
         </div>
-        <div class="p-4 bg-rose-50 border border-rose-200/80 rounded-2xl">
-          <p class="text-xs font-medium text-rose-700">Repair (ส่งซ่อม)</p>
-          <p id="statRepair" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
+        <div class="p-4 bg-rose-50/60 border border-rose-100 rounded-2xl flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-rose-700">Repair (ส่งซ่อม)</p>
+            <p id="statRepair" class="text-2xl font-bold text-rose-600 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 bg-rose-100/80 text-rose-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-screwdriver-wrench"></i></div>
         </div>
       </div>
 
       <!-- SEARCH & FILTER BAR -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
         <div>
-          <label class="text-[11px] font-medium text-slate-500">กรองตามแผนก (Department)</label>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-building text-slate-400 mr-1"></i> แผนก (Department)</label>
           <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
             <option value="">ทุกแผนก (All Departments)</option>
           </select>
         </div>
         <div>
-          <label class="text-[11px] font-medium text-slate-500">กรองตามประเภท (Type)</label>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-laptop text-slate-400 mr-1"></i> ประเภท (Type)</label>
           <select id="filterType" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
             <option value="">ทุกประเภท (All Types)</option>
             <option value="PC">PC Desktop</option>
@@ -206,34 +226,34 @@
           </select>
         </div>
         <div>
-          <label class="text-[11px] font-medium text-slate-500">ค้นหาข้อมูล</label>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-magnifying-glass text-slate-400 mr-1"></i> ค้นหาข้อมูล</label>
           <input type="text" id="searchInventoryInput" onkeyup="filterInventoryRecords()" placeholder="ค้นหาชื่อ, S/N, IP, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
         </div>
       </div>
 
-      <!-- 📊 TABLE -->
-      <div class="overflow-x-auto rounded-xl border border-slate-200">
-        <table class="w-full text-left text-xs text-slate-700">
-          <thead class="bg-lime-600 text-white font-medium text-[11px] uppercase border-b">
+      <!-- 📊 MODERN ENTERPRISE TABLE -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scroll bg-white">
+        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider sticky top-0">
             <tr>
-              <th class="p-3">No.</th>
-              <th class="p-3">Name</th>
-              <th class="p-3">Position</th>
-              <th class="p-3">Model</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Department</th>
-              <th class="p-3">CPU</th>
-              <th class="p-3">Storage</th>
-              <th class="p-3">RAM</th>
-              <th class="p-3">OS</th>
-              <th class="p-3">Serial number</th>
-              <th class="p-3">Adapter</th>
-              <th class="p-3">Monitor</th>
-              <th class="p-3">IP</th>
-              <th class="p-3">Accessory</th>
-              <th class="p-3">UPS</th>
-              <th class="p-3">Status</th>
-              <th class="p-3 text-center">Actions</th>
+              <th class="p-3.5 text-center">No.</th>
+              <th class="p-3.5">Name</th>
+              <th class="p-3.5">Position</th>
+              <th class="p-3.5">Model</th>
+              <th class="p-3.5">Type</th>
+              <th class="p-3.5">Department</th>
+              <th class="p-3.5">CPU</th>
+              <th class="p-3.5">Storage</th>
+              <th class="p-3.5">RAM</th>
+              <th class="p-3.5">OS</th>
+              <th class="p-3.5">Serial number</th>
+              <th class="p-3.5">Adapter</th>
+              <th class="p-3.5">Monitor</th>
+              <th class="p-3.5">IP Address</th>
+              <th class="p-3.5">Accessory</th>
+              <th class="p-3.5">UPS</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 text-center">Actions</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -258,7 +278,7 @@
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-md flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
       toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3500);
@@ -363,7 +383,7 @@
     function renderInventoryTable() {
       const tbody = document.getElementById('inventoryTableBody');
       if (filteredInventoryRecords.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="18" class="p-6 text-center text-slate-400">ไม่พบรายการอุปกรณ์ไอทีในระบบ</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="18" class="p-8 text-center text-slate-400 font-light">ไม่พบรายการอุปกรณ์ไอทีในระบบ</td></tr>`;
         return;
       }
 
@@ -374,27 +394,27 @@
         if (r.status === 'Retired') statusBadge = 'bg-slate-100 text-slate-600 border-slate-200';
 
         return `
-          <tr class="hover:bg-slate-50 transition-colors">
-            <td class="p-3 font-mono font-bold text-slate-500">${index + 1}</td>
-            <td class="p-3 font-semibold text-slate-900 whitespace-nowrap">${r.name || '-'}</td>
-            <td class="p-3 text-slate-600 whitespace-nowrap">${r.position || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.model || '-'}</td>
-            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-medium">${r.type || '-'}</span></td>
-            <td class="p-3 font-medium text-slate-700 whitespace-nowrap">${r.department || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.cpu || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.storage || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.ram || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.os || '-'}</td>
-            <td class="p-3 font-mono text-[11px] whitespace-nowrap">${r.serial_number || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.adapter || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.monitor || '-'}</td>
-            <td class="p-3 font-mono text-blue-600 whitespace-nowrap">${r.ip || '-'}</td>
-            <td class="p-3 text-slate-500 whitespace-nowrap">${r.accessory || '-'}</td>
-            <td class="p-3 whitespace-nowrap">${r.ups || '-'}</td>
-            <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusBadge}">${r.status || 'In Use'}</span></td>
-            <td class="p-3 text-center whitespace-nowrap space-x-1">
-              <button onclick="editAsset(${r.id})" class="text-slate-600 hover:text-slate-900 p-1"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteAsset(${r.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button>
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="p-3.5 text-center font-mono font-medium text-slate-400 text-[11px]">${index + 1}</td>
+            <td class="p-3.5 font-semibold text-slate-900">${r.name || '-'}</td>
+            <td class="p-3.5 text-slate-600">${r.position || '-'}</td>
+            <td class="p-3.5 font-medium text-slate-800">${r.model || '-'}</td>
+            <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[10px] font-semibold border border-slate-200">${r.type || '-'}</span></td>
+            <td class="p-3.5 font-medium text-slate-700">${r.department || '-'}</td>
+            <td class="p-3.5 text-slate-600">${r.cpu || '-'}</td>
+            <td class="p-3.5 text-slate-600">${r.storage || '-'}</td>
+            <td class="p-3.5 text-slate-600">${r.ram || '-'}</td>
+            <td class="p-3.5 text-slate-600">${r.os || '-'}</td>
+            <td class="p-3.5 font-mono text-[11px] text-slate-600">${r.serial_number || '-'}</td>
+            <td class="p-3.5 text-slate-500">${r.adapter || '-'}</td>
+            <td class="p-3.5 text-slate-500">${r.monitor || '-'}</td>
+            <td class="p-3.5 font-mono text-indigo-600 font-medium">${r.ip || '-'}</td>
+            <td class="p-3.5 text-slate-500">${r.accessory || '-'}</td>
+            <td class="p-3.5 text-slate-500">${r.ups || '-'}</td>
+            <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${statusBadge}">${r.status || 'In Use'}</span></td>
+            <td class="p-3.5 text-center space-x-1">
+              <button onclick="editAsset(${r.id})" class="text-slate-400 hover:text-slate-900 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteAsset(${r.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
