@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT Asset Inventory</title>
+  <title>UPS & Battery Inspector</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,39 +11,35 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #0f172a; }
-    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
-    .mini-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 500; }
-    .mini-btn:hover { transform: translateY(-1px); }
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
-    .mini-input:focus { border-color: #4f46e5 !important; outline: none !important; ring: 2px #4f46e5; }
     .sidebar-link { transition: all 0.2s; }
-    .sidebar-link.active { background-color: #4f46e5; color: #ffffff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
-    .sidebar-link:not(.active):hover { background-color: #f8fafc; color: #0f172a; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
     
-    /* Scrollbar ตารางสวยๆ */
-    .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    input[type="date"] { position: relative; -webkit-appearance: none; min-height: 2.5rem; }
+    input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
 
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex bg-slate-100 antialiased">
+<body class="min-h-screen flex bg-slate-50 antialiased">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- 📌 SIDEBAR NAVIGATION -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg font-bold shadow-md shadow-indigo-200">
-          <i class="fa-solid fa-boxes-stacked"></i>
+        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-car-battery"></i>
         </div>
         <div>
-          <h1 class="text-sm font-semibold text-slate-900 leading-none">IT INVENTORY</h1>
+          <h1 class="text-sm font-semibold text-slate-900 leading-none">UPS INSPECTOR</h1>
           <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
         </div>
       </div>
@@ -53,12 +49,22 @@
         <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
           <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
         </a>
-        <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-          <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+        <a href="ups.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-car-battery w-4 text-emerald-400"></i> UPS Inspector
         </a>
-        <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-          <i class="fa-solid fa-desktop w-4"></i> Asset Inventory
+        <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-desktop w-4 text-indigo-600"></i> Asset Inventory
         </a>
+      </div>
+
+      <div class="space-y-1 border-t border-slate-100 pt-4">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">UPS NAVIGATION</p>
+        <button onclick="switchUpsSubTab('form')" id="sideBtnForm" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-plus w-4"></i> บันทึกผลตรวจเช็ก
+        </button>
+        <button onclick="switchUpsSubTab('list')" id="sideBtnList" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-table-list w-4"></i> ประวัติการตรวจ
+        </button>
       </div>
     </div>
 
@@ -67,7 +73,7 @@
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
           <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
-          <span id="userRoleBadge" class="text-[10px] text-indigo-600 bg-indigo-50 font-semibold px-2 py-0.5 rounded uppercase">STAFF</span>
+          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
         </div>
         <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
           <i class="fa-solid fa-right-from-bracket"></i>
@@ -79,419 +85,353 @@
   <!-- 📱 MOBILE HEADER -->
   <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
-      <span class="text-xs font-semibold">IT INVENTORY</span>
+      <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
+      <span class="text-xs font-semibold">UPS INSPECTOR</span>
     </div>
     <div class="flex gap-1.5 items-center">
-      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">UPS</a>
-      <a href="inventory.html" class="bg-indigo-600 text-white text-[11px] px-2 py-1 rounded-lg">Assets</a>
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-emerald-600 text-white text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
       <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
   <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full">
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
     
     <div class="mini-card p-6 md:p-8 space-y-6">
-      
-      <!-- HEADER TITLE & ACTION BUTTONS -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
-          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
-            <i class="fa-solid fa-desktop text-indigo-600"></i> IT ASSET INVENTORY MANAGEMENT
+          <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-car-battery text-emerald-600"></i> UPS & BATTERY INSPECTOR
           </h2>
-          <p class="text-slate-500 text-xs mt-1">ระบบลงทะเบียน ตรวจสอบ และติดตามสเปกอุปกรณ์ไอทีประจำองค์กร (Database: IT_Ops)</p>
+          <p class="text-slate-500 text-xs mt-0.5">ระบบบันทึก ตรวจสอบพารามิเตอร์ไฟฟ้า และประวัติอุปกรณ์ UPS (Database: IT_Ops)</p>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0">
-          <button onclick="toggleAddItemForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
-            <i class="fa-solid fa-plus text-xs"></i> เพิ่มอุปกรณ์ใหม่
+        <div class="flex items-center gap-2">
+          <button onclick="switchUpsSubTab('form')" id="btnTabForm" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> บันทึกผลตรวจ
           </button>
-          <button onclick="exportInventoryExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-2">
-            <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
+          <button onclick="switchUpsSubTab('list')" id="btnTabList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
           </button>
         </div>
       </div>
-
-      <!-- 📝 FORM ADD / EDIT ASSET (Hidden by default) -->
-      <div id="addItemFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-inner">
-        <h3 class="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-3">
-          <i class="fa-solid fa-pen-to-square text-indigo-600"></i> บันทึกข้อมูลอุปกรณ์ไอที
-        </h3>
-        <form id="assetForm" class="space-y-4">
-          <input type="hidden" id="assetId">
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Name (ชื่อผู้ครองครอง)</label><input type="text" id="aName" required placeholder="เช่น Somchai K." class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Position (ตำแหน่ง)</label><input type="text" id="aPosition" placeholder="เช่น IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Department (แผนก)</label><input type="text" id="aDepartment" required placeholder="เช่น IT, FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">IP Address</label><input type="text" id="aIp" placeholder="192.168.1.100" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Type (ประเภท)</label>
-              <select id="aType" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="PC">PC Desktop</option>
-                <option value="Laptop">Laptop</option>
-                <option value="All-in-One">All-in-One</option>
-                <option value="Printer">Printer</option>
-                <option value="Monitor">Monitor Only</option>
-                <option value="Server">Server</option>
-                <option value="Network">Network Device</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Model (ยี่ห้อ/รุ่น)</label><input type="text" id="aModel" placeholder="Dell OptiPlex 7090" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">CPU</label><input type="text" id="aCpu" placeholder="Intel Core i5-11500" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">RAM</label><input type="text" id="aRam" placeholder="16GB DDR4" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Storage</label><input type="text" id="aStorage" placeholder="SSD 512GB M.2" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">OS (ระบบปฏิบัติการ)</label><input type="text" id="aOs" placeholder="Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Serial Number</label><input type="text" id="aSerial" placeholder="CN12345678" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Status (สถานะ)</label>
-              <select id="aStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="In Use">In Use (กำลังใช้งาน)</option>
-                <option value="Spare">Spare (สำรอง)</option>
-                <option value="Repair">Repair (ส่งซ่อม)</option>
-                <option value="Retired">Retired (ยกเลิกใช้)</option>
-              </select>
+      
+      <!-- 📝 FORM VIEW -->
+      <div id="upsSubViewForm" class="space-y-4">
+        <form id="upsForm" class="space-y-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">1. ข้อมูลสถานที่ (Location)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Build (อาคาร)</label><input type="text" id="upsBuild" required placeholder="Main Building" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Floor (ชั้น)</label><input type="text" id="upsFloor" required placeholder="2nd Floor" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Side (ตำแหน่ง)</label><input type="text" id="upsSide" placeholder="Server Room" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Monitor (จอภาพ)</label><input type="text" id="aMonitor" placeholder='Dell 24" P2419H' class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Adapter (อแดปเตอร์)</label><input type="text" id="aAdapter" placeholder="Dell 65W Type-C" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">UPS (เครื่องสำรองไฟ)</label><input type="text" id="aUps" placeholder="APC 800VA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1 text-slate-600">Accessory (อุปกรณ์เสริม)</label><input type="text" id="aAccessory" placeholder="Mouse, KB, Headset" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xs font-semibold text-slate-500 uppercase">2. ข้อมูลอุปกรณ์</h3>
+              <button type="button" onclick="applyUpsPreset()" class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> เติมรุ่นอัตโนมัติ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><label class="block text-xs font-medium mb-1">UPS (รุ่น)</label><input type="text" id="upsModel" value="SRVPM2KRIL" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">UPS Serial No.</label><input type="text" id="upsSerial" placeholder="852221400268" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery (รุ่น)</label><input type="text" id="upsBatteryModel" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery Serial No.</label><input type="text" id="upsBatterySerial" placeholder="852203A02477" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
           </div>
 
-          <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
-            <button type="button" onclick="toggleAddItemForm()" class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูลอุปกรณ์</button>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">3. ค่าทางไฟฟ้าและสถานะ</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Capacity</label><input type="text" id="upsCapacity" placeholder="2 kVA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Input (V)</label><input type="text" id="upsInputV" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Output (V)</label><input type="text" id="upsOutputV" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Load (%)</label><input type="text" id="upsLoad" placeholder="100%" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium mb-1">Status</label>
+                <select id="upsStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                  <option value="OK">OK (ปกติ)</option>
+                  <option value="Need Replace">Need Replace (ต้องเปลี่ยน)</option>
+                  <option value="Warning">Warning (เตือน)</option>
+                  <option value="Fault">Fault (ชำรุด)</option>
+                </select>
+              </div>
+              <div><label class="block text-xs font-medium mb-1">Inspection Date</label><input type="date" id="upsDate" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Inspector</label><input type="text" id="upsInspector" required placeholder="ผู้ตรวจสอบ" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
           </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">4. รูปถ่ายประกอบ</h3>
+            <input type="file" id="upsPhoto" accept="image/*" capture="environment" onchange="previewUpsImage(event)" class="w-full mini-input rounded-xl p-2 text-xs">
+            <div id="upsImagePreviewGroup" class="hidden relative w-32 h-32 mt-2">
+              <img id="upsImagePreview" class="w-full h-full object-cover rounded-xl border">
+              <button type="button" onclick="removeUpsImage()" class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+            </div>
+          </div>
+
+          <button type="submit" id="saveUpsBtn" class="w-full bg-slate-900 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลการตรวจ UPS
+          </button>
         </form>
       </div>
 
-      <!-- OVERVIEW STAT CARDS (คลีนขึ้น โทนซอฟต์สไตล์ SaaS) -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-slate-500">อุปกรณ์ทั้งหมด</p>
-            <p id="statTotalItems" class="text-2xl font-bold text-slate-900 mt-0.5">0</p>
+      <!-- 📊 LIST VIEW -->
+      <div id="upsSubViewList" class="hidden space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 border-b pb-3">
+          <span id="upsRecordCount" class="text-xs font-semibold text-slate-600">0 รายการ</span>
+          <div class="flex gap-2">
+            <button onclick="exportUpsExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
           </div>
-          <div class="w-10 h-10 bg-slate-200/60 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
         </div>
-        <div class="p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-center justify-between">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border">
           <div>
-            <p class="text-xs font-medium text-emerald-700">In Use (กำลังใช้งาน)</p>
-            <p id="statInUse" class="text-2xl font-bold text-emerald-600 mt-0.5">0</p>
+            <label class="text-[11px] font-medium text-slate-500">กรองตามอาคาร (Build)</label>
+            <select id="filterUpsBuild" onchange="filterUpsRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">ทั้งหมดทุกอาคาร</option>
+            </select>
           </div>
-          <div class="w-10 h-10 bg-emerald-100/80 text-emerald-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
+          <div>
+            <label class="text-[11px] font-medium text-slate-500">ค้นหาข้อมูล</label>
+            <input type="text" id="searchUpsInput" onkeyup="filterUpsRecords()" placeholder="ค้นหา S/N, ผู้ตรวจ, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
+          </div>
         </div>
-        <div class="p-4 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-amber-700">Spare (สำรอง)</p>
-            <p id="statSpare" class="text-2xl font-bold text-amber-600 mt-0.5">0</p>
-          </div>
-          <div class="w-10 h-10 bg-amber-100/80 text-amber-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-boxes-packing"></i></div>
-        </div>
-        <div class="p-4 bg-rose-50/60 border border-rose-100 rounded-2xl flex items-center justify-between">
-          <div>
-            <p class="text-xs font-medium text-rose-700">Repair (ส่งซ่อม)</p>
-            <p id="statRepair" class="text-2xl font-bold text-rose-600 mt-0.5">0</p>
-          </div>
-          <div class="w-10 h-10 bg-rose-100/80 text-rose-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase border-b">
+              <tr>
+                <th class="p-3">Build/Floor</th>
+                <th class="p-3">UPS Details</th>
+                <th class="p-3">Battery</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Inspector</th>
+                <th class="p-3">Picture</th>
+                <th class="p-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="upsTableBody" class="divide-y bg-white"></tbody>
+          </table>
         </div>
       </div>
-
-      <!-- SEARCH & FILTER BAR -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-        <div>
-          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-building text-slate-400 mr-1"></i> แผนก (Department)</label>
-          <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">ทุกแผนก (All Departments)</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-laptop text-slate-400 mr-1"></i> ประเภท (Type)</label>
-          <select id="filterType" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">ทุกประเภท (All Types)</option>
-            <option value="PC">PC Desktop</option>
-            <option value="Laptop">Laptop</option>
-            <option value="All-in-One">All-in-One</option>
-            <option value="Printer">Printer</option>
-            <option value="Monitor">Monitor</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-magnifying-glass text-slate-400 mr-1"></i> ค้นหาข้อมูล</label>
-          <input type="text" id="searchInventoryInput" onkeyup="filterInventoryRecords()" placeholder="ค้นหาชื่อ, S/N, IP, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
-      </div>
-
-      <!-- 📊 MODERN ENTERPRISE TABLE -->
-      <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scroll bg-white">
-        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
-          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider sticky top-0">
-            <tr>
-              <th class="p-3.5 text-center">No.</th>
-              <th class="p-3.5">Name</th>
-              <th class="p-3.5">Position</th>
-              <th class="p-3.5">Model</th>
-              <th class="p-3.5">Type</th>
-              <th class="p-3.5">Department</th>
-              <th class="p-3.5">CPU</th>
-              <th class="p-3.5">Storage</th>
-              <th class="p-3.5">RAM</th>
-              <th class="p-3.5">OS</th>
-              <th class="p-3.5">Serial number</th>
-              <th class="p-3.5">Adapter</th>
-              <th class="p-3.5">Monitor</th>
-              <th class="p-3.5">IP Address</th>
-              <th class="p-3.5">Accessory</th>
-              <th class="p-3.5">UPS</th>
-              <th class="p-3.5">Status</th>
-              <th class="p-3.5 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-        </table>
-      </div>
-
     </div>
+
   </main>
 
   <script>
-    const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
-    const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
-    const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+    const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
 
     const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
     const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
-    const supabaseOps = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
+    const supabaseUPS = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
 
-    let rawInventoryRecords = [];
-    let filteredInventoryRecords = [];
+    let rawUpsRecords = [];
+    let filteredUpsRecords = [];
+    let currentUpsBase64Image = '';
 
-    function showToast(title, message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-md flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
-      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
-    }
+    document.getElementById('upsDate').value = new Date().toISOString().split('T')[0];
 
     async function checkAuth() {
-      const { data: { user } } = await supabaseAuth.auth.getUser();
+      const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
         document.getElementById('userEmailDisplay').innerText = user.email;
-        fetchInventoryRecords();
+        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).maybeSingle();
+        document.getElementById('userRoleBadge').innerText = profile?.role || 'staff';
       } else {
         window.location.href = 'index.html';
       }
     }
 
     async function handleLogout() {
-      await supabaseAuth.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = 'index.html';
     }
 
-    function toggleAddItemForm() {
-      const formCard = document.getElementById('addItemFormCard');
-      formCard.classList.toggle('hidden');
-      if (formCard.classList.contains('hidden')) {
-        document.getElementById('assetForm').reset();
-        document.getElementById('assetId').value = '';
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    function switchUpsSubTab(subTab) {
+      document.getElementById('upsSubViewForm').classList.toggle('hidden', subTab !== 'form');
+      document.getElementById('upsSubViewList').classList.toggle('hidden', subTab !== 'list');
+
+      document.getElementById('btnTabForm').className = subTab === 'form' ? 'bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+      document.getElementById('btnTabList').className = subTab === 'list' ? 'bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+
+      if (subTab === 'list') fetchUpsRecords();
+    }
+
+    function applyUpsPreset() {
+      document.getElementById('upsModel').value = 'SRVPM2KRIL';
+      document.getElementById('upsBatteryModel').value = 'SRV72RLBP-9A';
+    }
+
+    function previewUpsImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width, height = img.height, max_size = 500;
+            if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
+            else { if (height > max_size) { width *= max_size / height; height = max_size; } }
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            currentUpsBase64Image = canvas.toDataURL('image/jpeg', 0.5);
+            document.getElementById('upsImagePreview').src = currentUpsBase64Image;
+            document.getElementById('upsImagePreviewGroup').classList.remove('hidden');
+          }
+          img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
       }
     }
 
-    document.getElementById('assetForm').addEventListener('submit', async (e) => {
+    function removeUpsImage() {
+      currentUpsBase64Image = '';
+      document.getElementById('upsPhoto').value = '';
+      document.getElementById('upsImagePreviewGroup').classList.add('hidden');
+    }
+
+    document.getElementById('upsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const id = document.getElementById('assetId').value;
-      const payload = {
-        name: document.getElementById('aName').value,
-        position: document.getElementById('aPosition').value,
-        department: document.getElementById('aDepartment').value,
-        type: document.getElementById('aType').value,
-        model: document.getElementById('aModel').value,
-        cpu: document.getElementById('aCpu').value,
-        ram: document.getElementById('aRam').value,
-        storage: document.getElementById('aStorage').value,
-        os: document.getElementById('aOs').value,
-        serial_number: document.getElementById('aSerial').value,
-        adapter: document.getElementById('aAdapter').value,
-        monitor: document.getElementById('aMonitor').value,
-        ip: document.getElementById('aIp').value,
-        accessory: document.getElementById('aAccessory').value,
-        ups: document.getElementById('aUps').value,
-        status: document.getElementById('aStatus').value
+      const saveBtn = document.getElementById('saveUpsBtn');
+      saveBtn.disabled = true;
+
+      const newRecord = {
+        build: document.getElementById('upsBuild').value,
+        floor: document.getElementById('upsFloor').value,
+        side: document.getElementById('upsSide').value,
+        ups: document.getElementById('upsModel').value,
+        model_serial_no: document.getElementById('upsSerial').value,
+        battery: document.getElementById('upsBatteryModel').value,
+        battery_model_serial_no: document.getElementById('upsBatterySerial').value,
+        capacity: document.getElementById('upsCapacity').value,
+        input_voltage: document.getElementById('upsInputV').value,
+        output_voltage: document.getElementById('upsOutputV').value,
+        load_percent: document.getElementById('upsLoad').value,
+        status: document.getElementById('upsStatus').value,
+        inspection_date: document.getElementById('upsDate').value,
+        picture: currentUpsBase64Image,
+        inspector: document.getElementById('upsInspector').value
       };
 
-      if (id) {
-        await supabaseOps.from('inventory').update(payload).eq('id', id);
-        showToast('UPDATED', 'อัปเดตข้อมูลอุปกรณ์เรียบร้อย');
-      } else {
-        await supabaseOps.from('inventory').insert([payload]);
-        showToast('SUCCESS', 'เพิ่มอุปกรณ์ใหม่เรียบร้อย');
+      try {
+        const { error } = await supabaseUPS.from('ups_inspections').insert([newRecord]);
+        if (error) throw error;
+        showToast('SUCCESS', 'บันทึกข้อมูลการตรวจ UPS เรียบร้อย');
+        e.target.reset(); removeUpsImage(); applyUpsPreset();
+        document.getElementById('upsDate').value = new Date().toISOString().split('T')[0];
+        switchUpsSubTab('list');
+      } catch (err) {
+        showToast('ERROR', err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
       }
-
-      toggleAddItemForm();
-      fetchInventoryRecords();
     });
 
-    async function fetchInventoryRecords() {
-      const { data, error } = await supabaseOps.from('inventory').select('*').order('id', { ascending: true });
+    async function fetchUpsRecords() {
+      const { data, error } = await supabaseUPS.from('ups_inspections').select('*').order('created_at', { ascending: false });
       if (!error) {
-        rawInventoryRecords = data || [];
-        populateDeptFilter();
-        filterInventoryRecords();
+        rawUpsRecords = data || [];
+        populateUpsBuildFilter();
+        filterUpsRecords();
       }
     }
 
-    function populateDeptFilter() {
-      const select = document.getElementById('filterDepartment');
+    function populateUpsBuildFilter() {
+      const select = document.getElementById('filterUpsBuild');
       const val = select.value;
-      const depts = [...new Set(rawInventoryRecords.map(r => r.department).filter(Boolean))].sort();
-      select.innerHTML = '<option value="">ทุกแผนก (All Departments)</option>';
-      depts.forEach(d => { select.innerHTML += `<option value="${d}">${d}</option>`; });
+      const builds = [...new Set(rawUpsRecords.map(r => r.build).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">ทั้งหมดทุกอาคาร</option>';
+      builds.forEach(b => { select.innerHTML += `<option value="${b}">${b}</option>`; });
       select.value = val;
     }
 
-    function filterInventoryRecords() {
-      const dept = document.getElementById('filterDepartment').value;
-      const type = document.getElementById('filterType').value;
-      const search = document.getElementById('searchInventoryInput').value.toLowerCase();
-
-      filteredInventoryRecords = rawInventoryRecords.filter(r => {
-        const matchDept = !dept || r.department === dept;
-        const matchType = !type || r.type === type;
-        const matchSearch = !search || [r.name, r.position, r.department, r.model, r.serial_number, r.ip, r.cpu].join(' ').toLowerCase().includes(search);
-        return matchDept && matchType && matchSearch;
+    function filterUpsRecords() {
+      const build = document.getElementById('filterUpsBuild').value;
+      const search = document.getElementById('searchUpsInput').value.toLowerCase();
+      filteredUpsRecords = rawUpsRecords.filter(r => {
+        const mBuild = !build || r.build === build;
+        const mSearch = !search || [r.build, r.ups, r.model_serial_no, r.inspector, r.battery].join(' ').toLowerCase().includes(search);
+        return mBuild && mSearch;
       });
-
-      document.getElementById('statTotalItems').innerText = filteredInventoryRecords.length;
-      document.getElementById('statInUse').innerText = filteredInventoryRecords.filter(r => r.status === 'In Use').length;
-      document.getElementById('statSpare').innerText = filteredInventoryRecords.filter(r => r.status === 'Spare').length;
-      document.getElementById('statRepair').innerText = filteredInventoryRecords.filter(r => r.status === 'Repair').length;
-
-      renderInventoryTable();
+      document.getElementById('upsRecordCount').innerText = `${filteredUpsRecords.length} / ${rawUpsRecords.length} รายการ`;
+      renderUpsTable();
     }
 
-    function renderInventoryTable() {
-      const tbody = document.getElementById('inventoryTableBody');
-      if (filteredInventoryRecords.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="18" class="p-8 text-center text-slate-400 font-light">ไม่พบรายการอุปกรณ์ไอทีในระบบ</td></tr>`;
+    function renderUpsTable() {
+      const tbody = document.getElementById('upsTableBody');
+      if (filteredUpsRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่พบข้อมูลการตรวจเช็ก UPS</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filteredInventoryRecords.map((r, index) => {
-        let statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        if (r.status === 'Spare') statusBadge = 'bg-amber-50 text-amber-700 border-amber-200';
-        if (r.status === 'Repair') statusBadge = 'bg-rose-50 text-rose-700 border-rose-200';
-        if (r.status === 'Retired') statusBadge = 'bg-slate-100 text-slate-600 border-slate-200';
-
-        return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="p-3.5 text-center font-mono font-medium text-slate-400 text-[11px]">${index + 1}</td>
-            <td class="p-3.5 font-semibold text-slate-900">${r.name || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.position || '-'}</td>
-            <td class="p-3.5 font-medium text-slate-800">${r.model || '-'}</td>
-            <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[10px] font-semibold border border-slate-200">${r.type || '-'}</span></td>
-            <td class="p-3.5 font-medium text-slate-700">${r.department || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.cpu || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.storage || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.ram || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.os || '-'}</td>
-            <td class="p-3.5 font-mono text-[11px] text-slate-600">${r.serial_number || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.adapter || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.monitor || '-'}</td>
-            <td class="p-3.5 font-mono text-indigo-600 font-medium">${r.ip || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.accessory || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.ups || '-'}</td>
-            <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${statusBadge}">${r.status || 'In Use'}</span></td>
-            <td class="p-3.5 text-center space-x-1">
-              <button onclick="editAsset(${r.id})" class="text-slate-400 hover:text-slate-900 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteAsset(${r.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = filteredUpsRecords.map(r => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3"><b>${r.build||'-'}</b><br><span class="text-[10px] text-slate-500">Fl: ${r.floor||'-'} | ${r.side||'-'}</span></td>
+          <td class="p-3">${r.ups||'-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.model_serial_no||'-'}</span></td>
+          <td class="p-3">${r.battery||'-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.battery_model_serial_no||'-'}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 border">${r.status||'OK'}</span></td>
+          <td class="p-3"><b>${r.inspector||'-'}</b><br><span class="text-[10px] text-slate-400">${r.inspection_date||'-'}</span></td>
+          <td class="p-3">${r.picture ? `<img src="${r.picture}" class="w-9 h-9 object-cover rounded border cursor-pointer" onclick="window.open('${r.picture}')">` : '-'}</td>
+          <td class="p-3 text-center"><button onclick="deleteUpsRecord(${r.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
     }
 
-    function editAsset(id) {
-      const item = rawInventoryRecords.find(r => r.id === id);
-      if (!item) return;
-      document.getElementById('assetId').value = item.id;
-      document.getElementById('aName').value = item.name || '';
-      document.getElementById('aPosition').value = item.position || '';
-      document.getElementById('aDepartment').value = item.department || '';
-      document.getElementById('aType').value = item.type || 'PC';
-      document.getElementById('aModel').value = item.model || '';
-      document.getElementById('aCpu').value = item.cpu || '';
-      document.getElementById('aRam').value = item.ram || '';
-      document.getElementById('aStorage').value = item.storage || '';
-      document.getElementById('aOs').value = item.os || '';
-      document.getElementById('aSerial').value = item.serial_number || '';
-      document.getElementById('aAdapter').value = item.adapter || '';
-      document.getElementById('aMonitor').value = item.monitor || '';
-      document.getElementById('aIp').value = item.ip || '';
-      document.getElementById('aAccessory').value = item.accessory || '';
-      document.getElementById('aUps').value = item.ups || '';
-      document.getElementById('aStatus').value = item.status || 'In Use';
-
-      document.getElementById('addItemFormCard').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function deleteAsset(id) {
-      if (confirm('ยืนยันลบรายการอุปกรณ์นี้?')) {
-        await supabaseOps.from('inventory').delete().eq('id', id);
-        showToast('DELETED', 'ลบรายการอุปกรณ์เรียบร้อย');
-        fetchInventoryRecords();
+    async function deleteUpsRecord(id) {
+      if (confirm('ยืนยันลบรายการนี้?')) {
+        await supabaseUPS.from('ups_inspections').delete().eq('id', id);
+        fetchUpsRecords();
       }
     }
 
-    async function exportInventoryExcel() {
-      if (filteredInventoryRecords.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลสำหรับส่งออก', 'error');
+    async function exportUpsExcel() {
+      if (filteredUpsRecords.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลส่งออก', 'error');
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('IT_Asset_Inventory');
+      const worksheet = workbook.addWorksheet('UPS_Inspections');
 
       worksheet.columns = [
-        { header: 'No.', key: 'index', width: 8 },
-        { header: 'Name', key: 'name', width: 20 },
-        { header: 'Position', key: 'position', width: 18 },
-        { header: 'Model', key: 'model', width: 22 },
-        { header: 'Type', key: 'type', width: 12 },
-        { header: 'Department', key: 'department', width: 15 },
-        { header: 'CPU', key: 'cpu', width: 20 },
-        { header: 'Storage', key: 'storage', width: 18 },
-        { header: 'RAM', key: 'ram', width: 12 },
-        { header: 'OS', key: 'os', width: 15 },
-        { header: 'Serial number', key: 'serial_number', width: 22 },
-        { header: 'Adapter', key: 'adapter', width: 18 },
-        { header: 'Monitor', key: 'monitor', width: 20 },
-        { header: 'IP', key: 'ip', width: 16 },
-        { header: 'Accessory', key: 'accessory', width: 20 },
-        { header: 'UPS', key: 'ups', width: 18 },
-        { header: 'Status', key: 'status', width: 12 }
+        { header: 'Build', key: 'build', width: 15 },
+        { header: 'Floor', key: 'floor', width: 10 },
+        { header: 'Side', key: 'side', width: 15 },
+        { header: 'UPS', key: 'ups', width: 20 },
+        { header: 'UPS Serial', key: 'model_serial_no', width: 20 },
+        { header: 'Battery', key: 'battery', width: 20 },
+        { header: 'Battery Serial', key: 'battery_model_serial_no', width: 22 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Inspection Date', key: 'inspection_date', width: 16 },
+        { header: 'Inspector', key: 'inspector', width: 15 }
       ];
 
-      filteredInventoryRecords.forEach((r, idx) => {
-        worksheet.addRow({ ...r, index: idx + 1 });
-      });
-
+      filteredUpsRecords.forEach(r => { worksheet.addRow(r); });
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `IT_Asset_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `UPS_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
       link.click();
     }
 
     checkAuth();
+    switchUpsSubTab('form');
   </script>
 </body>
 </html>
