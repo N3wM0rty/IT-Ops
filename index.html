@@ -18,82 +18,408 @@
     .sidebar-link { transition: all 0.2s; }
     .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
     .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased">
 
-  <!-- 📌 SIDEBAR NAVIGATION -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0">
-    <div class="p-5 space-y-6">
-      <!-- BRAND LOGO -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-          <i class="fa-solid fa-microchip"></i>
-        </div>
-        <div>
-          <h1 class="text-sm font-semibold text-slate-900 leading-none">IT OPERATIONS</h1>
-          <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
-        </div>
-      </div>
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-      <!-- MENU GROUP 1: APPLICATIONS -->
-      <div class="space-y-1">
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
-        <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-          <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
-        </a>
-        <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-          <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
-        </a>
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="max-w-md mx-auto my-20 mini-card p-8 space-y-6 w-full">
+    <div class="text-center space-y-3">
+      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
+        <i class="fa-solid fa-laptop-code"></i>
       </div>
-
-      <!-- MENU GROUP 2: QUICK TABS -->
-      <div class="space-y-1 border-t border-slate-100 pt-4">
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">TASK NAVIGATION</p>
-        <button onclick="switchTab('tasks')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-          <i class="fa-solid fa-folder-open w-4"></i> Task Directory
-        </button>
-        <button onclick="switchTab('createTask')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-          <i class="fa-solid fa-plus w-4"></i> Create New Task
-        </button>
-        <button onclick="switchTab('shifts')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-          <i class="fa-solid fa-calendar-days w-4"></i> Shift Management
-        </button>
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">IT TRACKER</h1>
+        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks</p>
       </div>
     </div>
 
-    <!-- USER PROFILE / LOGOUT -->
-    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-      <div class="flex items-center justify-between">
-        <div>
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
-          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
-        </div>
-        <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
       </div>
-    </div>
-  </aside>
-
-  <!-- 📱 MOBILE HEADER (แสดงเฉพาะบนจอ มือถือ) -->
-  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
-      <span class="text-xs font-semibold">IT TASK TRACKER</span>
-    </div>
-    <div class="flex gap-2">
-      <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
-    </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-key mr-1"></i> Password</label>
+        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
+      </button>
+    </form>
+    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
   </div>
 
-  <!-- 🖥️ MAIN CONTENT AREA -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-7xl mx-auto overflow-y-auto">
-    <!-- ใส่ส่วน Dashboard, Form, Table ของ IT Task Tracker ตามเดิม -->
-    <h2 class="text-lg font-semibold text-slate-900 mb-4">IT TASK & SHIFT TRACKER</h2>
-    <!-- ... Content อยู่ตรงนี้ ... -->
-  </main>
+  <!-- MAIN APP WITH SIDEBAR -->
+  <div id="mainDashboard" class="hidden flex w-full min-h-screen">
+    
+    <!-- 📌 SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
+      <div class="p-5 space-y-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <h1 class="text-sm font-semibold text-slate-900 leading-none">IT OPERATIONS</h1>
+            <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
+          </div>
+        </div>
 
+        <div class="space-y-1">
+          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+          <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+          </a>
+          <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+          </a>
+        </div>
+
+        <div class="space-y-1 border-t border-slate-100 pt-4">
+          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">TASK NAVIGATION</p>
+          <button onclick="switchTab('tasks')" id="sideBtnTasks" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+            <i class="fa-solid fa-folder-open w-4"></i> Task Directory
+          </button>
+          <button onclick="switchTab('createTask')" id="sideBtnCreateTask" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+            <i class="fa-solid fa-plus w-4"></i> Create New Task
+          </button>
+          <button onclick="switchTab('shifts')" id="sideBtnShifts" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+            <i class="fa-solid fa-calendar-days w-4"></i> Shift Management
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+        <div class="flex items-center justify-between">
+          <div>
+            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
+            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
+          </div>
+          <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 📱 MOBILE HEADER -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
+        <span class="text-xs font-semibold">IT TASK TRACKER</span>
+      </div>
+      <div class="flex gap-2">
+        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      </div>
+    </div>
+
+    <!-- 🖥️ MAIN CONTENT -->
+    <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
+      
+      <!-- PAGE 1: CREATE TASK PAGE -->
+      <div id="viewCreateTask" class="hidden max-w-2xl mx-auto space-y-6">
+        <div class="mini-card p-6 md:p-8 space-y-5">
+          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-slate-500"></i> Record New Task
+          </h2>
+          <form id="taskForm" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Task Title / Name</label>
+              <input type="text" id="title" required placeholder="e.g. Reset Password" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Location</label>
+                <select id="location" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                  <option value="Radisson" selected>Radisson</option>
+                  <option value="Laya Suites">Laya Suites</option>
+                  <option value="BB Horizon">BB Horizon</option>
+                  <option value="Other Location">Other Location</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
+                <input type="date" id="taskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Reporter</label>
+                <input type="text" id="reporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Dept</label>
+                <input type="text" id="department" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Assignee</label>
+                <input type="text" id="assignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Category</label>
+              <select id="category" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="POS">POS</option>
+                <option value="PC/ Laptop">PC/ Laptop</option>
+                <option value="Opera Cloud">Opera Cloud</option>
+                <option value="Wi-Fi">Wi-Fi</option>
+                <option value="General work" selected>General work</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+                <select id="status" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                  <option value="Pending" selected>Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Priority</label>
+                <select id="priority" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                  <option value="Normal">Normal</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Description</label>
+              <textarea id="description" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-slate-900 text-white mini-btn py-3 rounded-xl text-xs font-medium">Save Task</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- PAGE 2: TASKS LIST VIEW -->
+      <div id="viewTasks" class="space-y-6">
+        <!-- TODAY SHIFT SUMMARY CARD -->
+        <div class="mini-card p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-sm font-medium tracking-wide flex items-center gap-2 text-slate-200">
+                <i class="fa-solid fa-clock text-slate-400"></i> TODAY ON-DUTY SHIFT (<span id="todayDateStr"></span>)
+              </h3>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
+                  <span class="text-slate-400 block text-[10px]">MORNING</span>
+                  <span id="summaryMorning" class="text-sm font-semibold text-white">-</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
+                  <span class="text-slate-400 block text-[10px]">EVENING</span>
+                  <span id="summaryEvening" class="text-sm font-semibold text-white">-</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
+                  <span class="text-slate-400 block text-[10px]">ON-CALL</span>
+                  <span id="summaryOnCall" class="text-sm font-semibold text-white">-</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
+                  <span class="text-slate-400 block text-[10px]">LEAVE</span>
+                  <span id="summaryLeave" class="text-sm font-semibold text-white">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex sm:flex-col gap-2 justify-end">
+              <button onclick="sendLineShiftAlertFromUI()" class="bg-emerald-600 hover:bg-emerald-500 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
+                <i class="fa-brands fa-line"></i> Push Line
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS COUNTER -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="mini-card p-4 flex items-center justify-between">
+            <div><p class="text-xs font-medium text-slate-500">Total Tasks</p><p id="statTotal" class="text-2xl font-semibold text-slate-900 mt-0.5">0</p></div>
+          </div>
+          <div class="mini-card p-4 flex items-center justify-between">
+            <div><p class="text-xs font-medium text-slate-500">Completed</p><p id="statCompleted" class="text-2xl font-semibold text-emerald-600 mt-0.5">0</p></div>
+          </div>
+          <div class="mini-card p-4 flex items-center justify-between">
+            <div><p class="text-xs font-medium text-slate-500">In Progress</p><p id="statInProgress" class="text-2xl font-semibold text-sky-600 mt-0.5">0</p></div>
+          </div>
+          <div class="mini-card p-4 flex items-center justify-between">
+            <div><p class="text-xs font-medium text-slate-500">Pending</p><p id="statPending" class="text-2xl font-semibold text-amber-600 mt-0.5">0</p></div>
+          </div>
+        </div>
+
+        <!-- TASK DIRECTORY TABLE -->
+        <div class="mini-card p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900">Task Directory</h2>
+            <button onclick="exportToExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs">Export Excel</button>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID..." class="w-full mini-input rounded-xl p-2 text-xs">
+          </div>
+          
+          <div class="overflow-x-auto rounded-xl border">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 text-[11px] uppercase border-b">
+                <tr><th class="p-3">Case ID</th><th class="p-3">Task & Location</th><th class="p-3">Personnel</th><th class="p-3">Category</th><th class="p-3">Status</th><th class="p-3 text-center">Actions</th></tr>
+              </thead>
+              <tbody id="taskTableBody" class="divide-y bg-white"></tbody>
+            </table>
+          </div>
+          <div id="pageInfo" class="text-xs text-slate-500 font-medium"></div>
+          <div class="flex items-center gap-1" id="paginationButtons"></div>
+        </div>
+      </div>
+
+      <!-- PAGE 3: SHIFTS MANAGEMENT VIEW -->
+      <div id="viewShifts" class="hidden space-y-6">
+        <div class="mini-card p-6 md:p-8 space-y-6">
+          <h2 class="text-lg font-semibold text-slate-900">Shift Management System</h2>
+          <form id="shiftManageForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label class="block text-xs font-medium mb-1">Morning Shift</label><input type="text" id="mMorning" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Evening Shift</label><input type="text" id="mEvening" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Standby On-Call</label><input type="text" id="mOnCall" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Leave Info</label><input type="text" id="mLeave" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <button type="submit" class="md:col-span-2 bg-slate-900 text-white mini-btn py-2.5 rounded-xl text-xs font-medium">Save Shift Schedule</button>
+          </form>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
+
+    let currentUser = null, rawTasks = [], currentTasks = [];
+    let currentPage = 1, itemsPerPage = 15;
+
+    function switchTab(tabName) {
+      document.getElementById('viewCreateTask').classList.add('hidden');
+      document.getElementById('viewTasks').classList.add('hidden');
+      document.getElementById('viewShifts').classList.add('hidden');
+
+      if (tabName === 'createTask') document.getElementById('viewCreateTask').classList.remove('hidden');
+      if (tabName === 'tasks') document.getElementById('viewTasks').classList.remove('hidden');
+      if (tabName === 'shifts') document.getElementById('viewShifts').classList.remove('hidden');
+    }
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    async function checkAuth() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        currentUser = user;
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('mainDashboard').classList.remove('hidden');
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
+        fetchTasks();
+        switchTab('tasks');
+      } else {
+        document.getElementById('loginPage').classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      });
+      if (error) {
+        document.getElementById('loginError').innerText = error.message;
+        document.getElementById('loginError').classList.remove('hidden');
+      } else { checkAuth(); }
+    });
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      location.reload();
+    }
+
+    async function fetchTasks() {
+      const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
+      rawTasks = data || [];
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      currentTasks = rawTasks.filter(t => !search || (t.title && t.title.toLowerCase().includes(search)));
+      
+      document.getElementById('statTotal').innerText = currentTasks.length;
+      document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
+      document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
+      document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
+
+      renderTablePage();
+    }
+
+    function renderTablePage() {
+      const tbody = document.getElementById('taskTableBody');
+      tbody.innerHTML = '';
+      currentTasks.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-3 font-mono">#${t.id}</td>
+          <td class="p-3"><b>${t.title||'-'}</b><br><span class="text-[10px] text-slate-400">${t.location||'-'}</span></td>
+          <td class="p-3">${t.reporter||'-'}</td>
+          <td class="p-3">${t.category||'-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100">${t.status}</span></td>
+          <td class="p-3 text-center"><button onclick="deleteTask(${t.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newTask = {
+        user_id: currentUser.id,
+        date: document.getElementById('taskDate').value,
+        title: document.getElementById('title').value,
+        location: document.getElementById('location').value,
+        reporter: document.getElementById('reporter').value,
+        department: document.getElementById('department').value,
+        assignee: document.getElementById('assignee').value,
+        category: document.getElementById('category').value,
+        priority: document.getElementById('priority').value,
+        status: document.getElementById('status').value,
+        description: document.getElementById('description').value
+      };
+      await supabaseClient.from('tasks').insert([newTask]);
+      showToast('SUCCESS', 'บันทึก Task เรียบร้อย');
+      fetchTasks(); switchTab('tasks');
+    });
+
+    async function deleteTask(id) {
+      if (confirm('ยืนยันลบ?')) {
+        await supabaseClient.from('tasks').delete().eq('id', id);
+        fetchTasks();
+      }
+    }
+
+    checkAuth();
+  </script>
 </body>
 </html>
