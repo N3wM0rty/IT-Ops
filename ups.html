@@ -64,6 +64,19 @@
         </button>
       </div>
     </div>
+
+    <!-- 👤 USER PROFILE & LOGOUT FOOTER -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      <div class="flex items-center justify-between">
+        <div>
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
+          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
+        </div>
+        <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
   </aside>
 
   <!-- 📱 MOBILE HEADER -->
@@ -72,9 +85,10 @@
       <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
       <span class="text-xs font-semibold">UPS INSPECTOR</span>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
       <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
       <a href="ups.html" class="bg-emerald-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
@@ -208,6 +222,12 @@
   </main>
 
   <script>
+    // 1️⃣ Config Supabase สำหรับ IT Task (เช็กสิทธิ์ Auth User)
+    const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
+
+    // 2️⃣ Config Supabase สำหรับ UPS & Battery Inspector
     const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
     const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
     const supabaseUPS = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
@@ -217,6 +237,23 @@
     let currentUpsBase64Image = '';
 
     document.getElementById('upsDate').value = new Date().toISOString().split('T')[0];
+
+    async function checkAuth() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).maybeSingle();
+        document.getElementById('userRoleBadge').innerText = profile?.role || 'staff';
+      } else {
+        // หากยังไม่ได้ Login ให้เด้งกลับไปหน้า index.html (Login Page)
+        window.location.href = 'index.html';
+      }
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
+    }
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -392,8 +429,8 @@
       link.click();
     }
 
-    // เริ่มต้นแสดงหน้าประวัติการตรวจ
-    switchUpsSubTab('list');
+    checkAuth();
+    switchUpsSubTab('form');
   </script>
 </body>
 </html>
