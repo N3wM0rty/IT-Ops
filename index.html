@@ -19,8 +19,8 @@
     .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
     .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
     
-    input[type="date"] { position: relative; -webkit-appearance: none; min-height: 2.5rem; }
-    input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
+    input[type="date"], input[type="month"] { position: relative; -webkit-appearance: none; min-height: 2.5rem; }
+    input[type="date"]::-webkit-calendar-picker-indicator, input[type="month"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
 
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
@@ -62,7 +62,7 @@
   <div id="mainDashboard" class="hidden flex w-full min-h-screen">
     
     <!-- 📌 SIDEBAR NAVIGATION -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start">
       <div class="p-5 space-y-6">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
@@ -98,13 +98,13 @@
         </div>
       </div>
 
-      <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-        <div class="flex items-center justify-between">
-          <div>
-            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
-            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
+      <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+        <div class="flex items-center justify-between gap-2">
+          <div class="overflow-hidden">
+            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
+            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
           </div>
-          <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
+          <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
             <i class="fa-solid fa-right-from-bracket"></i>
           </button>
         </div>
@@ -117,9 +117,10 @@
         <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
         <span class="text-xs font-semibold">IT TASK TRACKER</span>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
         <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
         <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+        <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
 
@@ -281,40 +282,77 @@
           </div>
         </div>
 
-        <!-- TASK DIRECTORY TABLE -->
-        <div class="mini-card p-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
-            </h2>
-            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-              <i class="fa-solid fa-file-excel"></i> Export Excel
-            </button>
+        <!-- 🔍 FILTER BAR & TASK DIRECTORY TABLE -->
+        <div class="space-y-4">
+          <!-- FILTER CONTROLS BAR -->
+          <div class="mini-card p-4 flex flex-wrap items-end gap-3 text-xs">
+            <div class="w-[140px]">
+              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-filter mr-1"></i> Filter View</label>
+              <select id="dateRangeMode" onchange="toggleDateInputs(); applyFilters();" class="w-full mini-input rounded-xl p-2 text-xs">
+                <option value="today">Today</option>
+                <option value="month">This Month</option>
+                <option value="selectMonth">Select Month...</option>
+                <option value="all" selected>All Time</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+
+            <div id="selectMonthGroup" class="hidden">
+              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-calendar mr-1"></i> Select Month</label>
+              <input type="month" id="monthPicker" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
+            </div>
+
+            <div class="flex-1 min-w-[140px]">
+              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> Search Task / Case</label>
+              <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID (#2026-00001)..." class="w-full mini-input rounded-xl p-2 text-xs">
+            </div>
+
+            <div id="customDateGroup" class="hidden flex gap-2">
+              <input type="date" id="startDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
+              <input type="date" id="endDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
+            </div>
+
+            <div>
+              <button onclick="resetFilter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn px-3 py-2 rounded-xl text-xs flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
           </div>
 
-          <div class="flex gap-2">
-            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID (#2026-00001)..." class="w-full mini-input rounded-xl p-2 text-xs">
-          </div>
-          
-          <div class="overflow-x-auto rounded-xl border border-slate-100">
-            <table class="w-full text-left text-xs text-slate-700">
-              <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
-                <tr>
-                  <th class="p-3">Case ID</th>
-                  <th class="p-3">Task & Location</th>
-                  <th class="p-3">Personnel</th>
-                  <th class="p-3">Category</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-            </table>
-          </div>
+          <!-- TABLE CARD -->
+          <div class="mini-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                  <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
+                </h2>
+                <span id="taskCount" class="bg-slate-100 text-slate-600 text-[11px] font-medium px-2.5 py-0.5 rounded-full">0 items</span>
+              </div>
+              <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
+              </button>
+            </div>
 
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
-            <div id="pageInfo" class="font-medium">Showing 0-0 of 0 tasks</div>
-            <div class="flex items-center gap-1" id="paginationButtons"></div>
+            <div class="overflow-x-auto rounded-xl border border-slate-100">
+              <table class="w-full text-left text-xs text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
+                  <tr>
+                    <th class="p-3">Case ID</th>
+                    <th class="p-3">Task & Location</th>
+                    <th class="p-3">Personnel</th>
+                    <th class="p-3">Category</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+              </table>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+              <div id="pageInfo" class="font-medium">Showing 0-0 of 0 tasks</div>
+              <div class="flex items-center gap-1" id="paginationButtons"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -531,41 +569,194 @@
       }
     }
 
-    // --- TASK MANAGEMENT FUNCTIONS ---
+    // --- TASK FILTERING & LIST FUNCTIONS ---
     async function fetchTasks() {
       const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
       rawTasks = data || [];
       applyFilters();
     }
 
-    function applyFilters() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      currentTasks = rawTasks.filter(t => !search || (t.title && t.title.toLowerCase().includes(search)));
+    function toggleDateInputs() {
+      const mode = document.getElementById('dateRangeMode').value;
+      document.getElementById('customDateGroup').classList.toggle('hidden', mode !== 'custom');
+      document.getElementById('selectMonthGroup').classList.toggle('hidden', mode !== 'selectMonth');
       
+      if (mode === 'selectMonth' && !document.getElementById('monthPicker').value) {
+        document.getElementById('monthPicker').value = new Date().toISOString().substring(0, 7);
+      }
+    }
+
+    function resetFilter() {
+      document.getElementById('dateRangeMode').value = 'all';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+      document.getElementById('monthPicker').value = '';
+      toggleDateInputs();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const mode = document.getElementById('dateRangeMode').value;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const currentMonthPrefix = todayStr.substring(0, 7);
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const selectedMonthVal = document.getElementById('monthPicker').value;
+      const startDateVal = document.getElementById('startDate').value;
+      const endDateVal = document.getElementById('endDate').value;
+
+      currentTasks = rawTasks.filter(t => {
+        let matchDate = true;
+        const taskDateStr = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
+        
+        if (mode === 'today') {
+          matchDate = (taskDateStr === todayStr);
+        } else if (mode === 'month') {
+          matchDate = taskDateStr.startsWith(currentMonthPrefix);
+        } else if (mode === 'selectMonth') {
+          matchDate = selectedMonthVal ? taskDateStr.startsWith(selectedMonthVal) : true;
+        } else if (mode === 'custom') {
+          if (startDateVal && endDateVal) {
+            matchDate = (taskDateStr >= startDateVal && taskDateStr <= endDateVal);
+          } else if (startDateVal) {
+            matchDate = (taskDateStr >= startDateVal);
+          } else if (endDateVal) {
+            matchDate = (taskDateStr <= endDateVal);
+          }
+        }
+        
+        const caseIdStr = (t.case_id || `#2026-${String(t.id).padStart(5, '0')}`).toLowerCase();
+        const taskTitle = t.title || t.task_name || '';
+        const taskLoc = t.location || '';
+        const matchSearch = !search || caseIdStr.includes(search) || taskTitle.toLowerCase().includes(search) || taskLoc.toLowerCase().includes(search) || (t.reporter && t.reporter.toLowerCase().includes(search));
+        
+        return matchDate && matchSearch;
+      });
+
       document.getElementById('statTotal').innerText = currentTasks.length;
       document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
       document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
       document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
 
+      document.getElementById('taskCount').innerText = `${currentTasks.length} items`;
+
+      currentPage = 1;
       renderTablePage();
     }
 
     function renderTablePage() {
       const tbody = document.getElementById('taskTableBody');
       tbody.innerHTML = '';
-      currentTasks.forEach(t => {
+
+      const totalItems = currentTasks.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+      const pageTasks = currentTasks.slice(startIndex, endIndex);
+
+      pageTasks.forEach(t => {
         const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 transition-colors";
         const caseIdStr = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
+        const taskTitle = t.title || t.task_name || '-';
+        const locationStr = t.location || 'Radisson';
+        
+        let statusColorClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (t.status === 'Completed') statusColorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (t.status === 'In Progress') statusColorClass = 'bg-sky-50 text-sky-700 border-sky-200';
+
         tr.innerHTML = `
-          <td class="p-3"><span class="bg-slate-100 text-slate-700 font-mono text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200">${caseIdStr}</span></td>
-          <td class="p-3"><b>${t.title||'-'}</b><br><span class="text-[10px] text-slate-400">${t.location||'-'}</span></td>
-          <td class="p-3">${t.reporter||'-'}</td>
-          <td class="p-3">${t.category||'-'}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100">${t.status}</span></td>
-          <td class="p-3 text-center"><button onclick="deleteTask(${t.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="p-3">
+            <span class="bg-slate-100 text-slate-700 font-mono text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200 inline-block">${caseIdStr}</span>
+          </td>
+          <td class="p-3">
+            <span class="text-xs font-semibold text-slate-900 block">${taskTitle}</span>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[10px] text-slate-500 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-slate-400"></i> ${locationStr}
+              </span>
+              <span class="text-slate-300">•</span>
+              <span class="text-[11px] text-slate-500 truncate max-w-[180px]">${t.description || ''}</span>
+            </div>
+          </td>
+          <td class="p-3 text-[11px]">
+            <span class="text-slate-700 block font-medium"><i class="fa-solid fa-user text-slate-400 mr-1"></i>${t.reporter || '-'}</span>
+            <span class="text-slate-400">Dept: ${t.department || '-'} | Fixer: ${t.assignee || '-'}</span>
+          </td>
+          <td class="p-3">
+            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] font-medium border border-slate-200">${t.category || 'General work'}</span>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusColorClass}">${t.status}</span>
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="deleteTask(${t.id})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg text-xs transition-colors" title="Delete">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
+
+      const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
+      document.getElementById('pageInfo').innerText = `Showing ${startDisplay}-${endIndex} of ${totalItems} tasks (Page ${currentPage}/${totalPages})`;
+
+      renderPaginationControls(totalPages);
+    }
+
+    function renderPaginationControls(totalPages) {
+      const container = document.getElementById('paginationButtons');
+      container.innerHTML = '';
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-[10px]"></i> Prev';
+      prevBtn.disabled = (currentPage === 1);
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTablePage();
+        }
+      };
+      container.appendChild(prevBtn);
+
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && Math.abs(i - currentPage) > 2 && i !== 1 && i !== totalPages) {
+          if (i === 2 && currentPage > 4) {
+            const dots = document.createElement('span');
+            dots.className = 'px-1 text-slate-400';
+            dots.innerText = '...';
+            container.appendChild(dots);
+          }
+          continue;
+        }
+
+        const numBtn = document.createElement('button');
+        numBtn.className = `mini-btn px-2.5 py-1 text-xs rounded-lg ${i === currentPage ? 'bg-slate-900 text-white font-medium' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`;
+        numBtn.innerText = i;
+        numBtn.onclick = () => {
+          currentPage = i;
+          renderTablePage();
+        };
+        container.appendChild(numBtn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
+      nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right text-[10px]"></i>';
+      nextBtn.disabled = (currentPage === totalPages || totalPages === 0);
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTablePage();
+        }
+      };
+      container.appendChild(nextBtn);
     }
 
     document.getElementById('taskForm').addEventListener('submit', async (e) => {
@@ -593,6 +784,35 @@
         await supabaseClient.from('tasks').delete().eq('id', id);
         fetchTasks();
       }
+    }
+
+    function exportToExcel() {
+      if (currentTasks.length === 0) {
+        showToast('EMPTY DATA', 'No tasks available to export', 'error');
+        return;
+      }
+
+      const excelData = currentTasks.map(t => {
+        return {
+          'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
+          'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
+          'Location': t.location || 'Radisson',
+          'Category': t.category || 'General work',
+          'Task Name': t.title || t.task_name || '',
+          'Priority': t.priority || 'Normal',
+          'Status': t.status || 'Pending',
+          'Description / Outcome': t.description || '-',
+          'Dept': t.department || '-',
+          'Reporter': t.reporter || '-',
+          'Fix By': t.assignee || '-'
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks_Report");
+      XLSX.writeFile(workbook, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast('EXPORT COMPLETE!', 'Excel file downloaded', 'success');
     }
 
     checkAuth();
