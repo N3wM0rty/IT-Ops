@@ -82,6 +82,9 @@
           <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
             <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
           </a>
+          <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+          </a>
         </div>
 
         <div class="space-y-1 border-t border-slate-100 pt-4">
@@ -117,9 +120,10 @@
         <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
         <span class="text-xs font-semibold">IT TASK TRACKER</span>
       </div>
-      <div class="flex gap-2 items-center">
-        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
-        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      <div class="flex gap-1.5 items-center">
+        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
+        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
+        <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
         <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
@@ -282,9 +286,8 @@
           </div>
         </div>
 
-        <!-- 🔍 FILTER BAR & TASK DIRECTORY TABLE -->
+        <!-- FILTER BAR & TASK DIRECTORY TABLE -->
         <div class="space-y-4">
-          <!-- FILTER CONTROLS BAR -->
           <div class="mini-card p-4 flex flex-wrap items-end gap-3 text-xs">
             <div class="w-[140px]">
               <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-filter mr-1"></i> Filter View</label>
@@ -319,7 +322,6 @@
             </div>
           </div>
 
-          <!-- TABLE CARD -->
           <div class="mini-card p-5 space-y-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -483,7 +485,6 @@
       location.reload();
     }
 
-    // --- SHIFT MANAGEMENT FUNCTIONS ---
     async function fetchTodayShiftSummary() {
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('todayDateStr').innerText = todayStr;
@@ -569,7 +570,6 @@
       }
     }
 
-    // --- TASK FILTERING & LIST FUNCTIONS ---
     async function fetchTasks() {
       const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
       rawTasks = data || [];
@@ -637,7 +637,6 @@
       document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
       document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
       document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
-
       document.getElementById('taskCount').innerText = `${currentTasks.length} items`;
 
       currentPage = 1;
@@ -717,12 +716,7 @@
       prevBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
       prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-[10px]"></i> Prev';
       prevBtn.disabled = (currentPage === 1);
-      prevBtn.onclick = () => {
-        if (currentPage > 1) {
-          currentPage--;
-          renderTablePage();
-        }
-      };
+      prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTablePage(); } };
       container.appendChild(prevBtn);
 
       for (let i = 1; i <= totalPages; i++) {
@@ -739,10 +733,7 @@
         const numBtn = document.createElement('button');
         numBtn.className = `mini-btn px-2.5 py-1 text-xs rounded-lg ${i === currentPage ? 'bg-slate-900 text-white font-medium' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`;
         numBtn.innerText = i;
-        numBtn.onclick = () => {
-          currentPage = i;
-          renderTablePage();
-        };
+        numBtn.onclick = () => { currentPage = i; renderTablePage(); };
         container.appendChild(numBtn);
       }
 
@@ -750,12 +741,7 @@
       nextBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
       nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right text-[10px]"></i>';
       nextBtn.disabled = (currentPage === totalPages || totalPages === 0);
-      nextBtn.onclick = () => {
-        if (currentPage < totalPages) {
-          currentPage++;
-          renderTablePage();
-        }
-      };
+      nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTablePage(); } };
       container.appendChild(nextBtn);
     }
 
@@ -787,26 +773,21 @@
     }
 
     function exportToExcel() {
-      if (currentTasks.length === 0) {
-        showToast('EMPTY DATA', 'No tasks available to export', 'error');
-        return;
-      }
+      if (currentTasks.length === 0) return showToast('EMPTY DATA', 'No tasks available to export', 'error');
 
-      const excelData = currentTasks.map(t => {
-        return {
-          'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
-          'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
-          'Location': t.location || 'Radisson',
-          'Category': t.category || 'General work',
-          'Task Name': t.title || t.task_name || '',
-          'Priority': t.priority || 'Normal',
-          'Status': t.status || 'Pending',
-          'Description / Outcome': t.description || '-',
-          'Dept': t.department || '-',
-          'Reporter': t.reporter || '-',
-          'Fix By': t.assignee || '-'
-        };
-      });
+      const excelData = currentTasks.map(t => ({
+        'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
+        'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
+        'Location': t.location || 'Radisson',
+        'Category': t.category || 'General work',
+        'Task Name': t.title || t.task_name || '',
+        'Priority': t.priority || 'Normal',
+        'Status': t.status || 'Pending',
+        'Description / Outcome': t.description || '-',
+        'Dept': t.department || '-',
+        'Reporter': t.reporter || '-',
+        'Fix By': t.assignee || '-'
+      }));
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
