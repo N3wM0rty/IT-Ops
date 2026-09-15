@@ -30,6 +30,108 @@
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
+  <!-- ✏️ EDIT TASK MODAL (ป๊อปอัพแก้ไขเคส) -->
+  <div id="editTaskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden space-y-4 p-6">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-indigo-600"></i> แก้ไขข้อมูลเคสงาน (<span id="editModalCaseId" class="font-mono text-indigo-600">#</span>)
+        </h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="editTaskForm" class="space-y-4">
+        <input type="hidden" id="editTaskId">
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Task Title / Name</label>
+          <input type="text" id="editTitle" required class="w-full mini-input rounded-xl p-2.5 text-xs">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Location</label>
+            <select id="editLocation" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="Radisson">Radisson</option>
+              <option value="Laya Suites">Laya Suites</option>
+              <option value="BB Horizon">BB Horizon</option>
+              <option value="Other Location">Other Location</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
+            <input type="date" id="editTaskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Reporter</label>
+            <input type="text" id="editReporter" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Dept</label>
+            <input type="text" id="editDepartment" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Assignee (Fixer)</label>
+            <input type="text" id="editAssignee" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Category</label>
+            <select id="editCategory" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="POS">POS</option>
+              <option value="PC/ Laptop">PC/ Laptop</option>
+              <option value="Opera Cloud">Opera Cloud</option>
+              <option value="MC">MC</option>
+              <option value="Door">Door</option>
+              <option value="SUN">SUN</option>
+              <option value="Wi-Fi">Wi-Fi</option>
+              <option value="Passport">Passport</option>
+              <option value="CCTV">CCTV</option>
+              <option value="TV">TV</option>
+              <option value="Phone">Phone</option>
+              <option value="Silverman">Silverman</option>
+              <option value="Interface">Interface</option>
+              <option value="Print">Print</option>
+              <option value="other">other</option>
+              <option value="General work">General work</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+            <select id="editStatus" class="w-full mini-input rounded-xl p-2.5 text-xs font-semibold">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Priority</label>
+            <select id="editPriority" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="Normal">Normal</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Description / Outcome</label>
+          <textarea id="editDescription" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeEditModal()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs mini-btn">อัปเดตข้อมูลเคส</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- LOGIN PAGE -->
   <div id="loginPage" class="max-w-md mx-auto my-20 mini-card p-8 space-y-6 w-full">
     <div class="text-center space-y-3">
@@ -83,7 +185,7 @@
             <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
           </a>
           <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+            <i class="fa-solid fa-desktop w-4 text-indigo-600"></i> Asset Inventory
           </a>
         </div>
 
@@ -229,7 +331,6 @@
 
       <!-- PAGE 2: TASKS LIST VIEW -->
       <div id="viewTasks" class="space-y-6">
-        <!-- TODAY SHIFT SUMMARY CARD -->
         <div class="mini-card p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -266,7 +367,6 @@
           </div>
         </div>
 
-        <!-- STATS COUNTER -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="mini-card p-4 flex items-center justify-between">
             <div><p class="text-xs font-medium text-slate-500">Total Tasks</p><p id="statTotal" class="text-2xl font-semibold text-slate-900 mt-0.5">0</p></div>
@@ -286,16 +386,15 @@
           </div>
         </div>
 
-        <!-- FILTER BAR & TASK DIRECTORY TABLE -->
         <div class="space-y-4">
           <div class="mini-card p-4 flex flex-wrap items-end gap-3 text-xs">
             <div class="w-[140px]">
               <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-filter mr-1"></i> Filter View</label>
               <select id="dateRangeMode" onchange="toggleDateInputs(); applyFilters();" class="w-full mini-input rounded-xl p-2 text-xs">
                 <option value="today">Today</option>
-                <option value="month">This Month</option>
+                <option value="month" selected>This Month</option>
                 <option value="selectMonth">Select Month...</option>
-                <option value="all" selected>All Time</option>
+                <option value="all">All Time</option>
                 <option value="custom">Custom Range</option>
               </select>
             </div>
@@ -587,7 +686,7 @@
     }
 
     function resetFilter() {
-      document.getElementById('dateRangeMode').value = 'all';
+      document.getElementById('dateRangeMode').value = 'month';
       document.getElementById('searchInput').value = '';
       document.getElementById('startDate').value = '';
       document.getElementById('endDate').value = '';
@@ -693,8 +792,11 @@
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusColorClass}">${t.status}</span>
           </td>
-          <td class="p-3 text-center">
-            <button onclick="deleteTask(${t.id})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg text-xs transition-colors" title="Delete">
+          <td class="p-3 text-center space-x-1">
+            <button onclick="editTask(${t.id})" class="text-slate-400 hover:text-slate-900 p-1.5 hover:bg-slate-100 rounded-lg text-xs transition-colors" title="Edit Task">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg text-xs transition-colors" title="Delete">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -765,9 +867,64 @@
       fetchTasks(); switchTab('tasks');
     });
 
+    // ✏️ EDIT TASK FUNCTIONS (ดึงข้อมูลใส่ Modal และสั่ง Update เข้า Supabase)
+    function editTask(id) {
+      const task = rawTasks.find(t => t.id === id);
+      if (!task) return;
+
+      const caseIdStr = task.case_id || `#2026-${String(task.id).padStart(5, '0')}`;
+      document.getElementById('editModalCaseId').innerText = caseIdStr;
+      document.getElementById('editTaskId').value = task.id;
+      document.getElementById('editTitle').value = task.title || task.task_name || '';
+      document.getElementById('editLocation').value = task.location || 'Radisson';
+      document.getElementById('editTaskDate').value = task.date || (task.created_at ? task.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
+      document.getElementById('editReporter').value = task.reporter || '';
+      document.getElementById('editDepartment').value = task.department || '';
+      document.getElementById('editAssignee').value = task.assignee || '';
+      document.getElementById('editCategory').value = task.category || 'General work';
+      document.getElementById('editStatus').value = task.status || 'Pending';
+      document.getElementById('editPriority').value = task.priority || 'Normal';
+      document.getElementById('editDescription').value = task.description || '';
+
+      document.getElementById('editTaskModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editTaskModal').classList.add('hidden');
+    }
+
+    document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editTaskId').value;
+      
+      const updatedPayload = {
+        title: document.getElementById('editTitle').value,
+        location: document.getElementById('editLocation').value,
+        date: document.getElementById('editTaskDate').value,
+        reporter: document.getElementById('editReporter').value,
+        department: document.getElementById('editDepartment').value,
+        assignee: document.getElementById('editAssignee').value,
+        category: document.getElementById('editCategory').value,
+        status: document.getElementById('editStatus').value,
+        priority: document.getElementById('editPriority').value,
+        description: document.getElementById('editDescription').value
+      };
+
+      const { error } = await supabaseClient.from('tasks').update(updatedPayload).eq('id', id);
+
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('UPDATED', 'อัปเดตข้อมูลเคสงานเรียบร้อย');
+        closeEditModal();
+        fetchTasks();
+      }
+    });
+
     async function deleteTask(id) {
-      if (confirm('ยืนยันลบ?')) {
+      if (confirm('ยืนยันลบเคสนี้?')) {
         await supabaseClient.from('tasks').delete().eq('id', id);
+        showToast('DELETED', 'ลบเคสงานเรียบร้อย');
         fetchTasks();
       }
     }
