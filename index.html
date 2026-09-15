@@ -30,7 +30,7 @@
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- NAVIGATION BAR -->
-  <header class="max-w-7xl mx-auto mini-card p-4 mb-6 bg-slate-900 text-white border-slate-800 flex items-center justify-between">
+  <header class="max-w-7xl mx-auto mini-card p-4 mb-6 bg-slate-900 text-white border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('home')">
       <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-lg font-bold">
         <i class="fa-solid fa-server"></i>
@@ -41,14 +41,14 @@
       </div>
     </div>
     
-    <nav class="flex items-center gap-2">
-      <button onclick="switchView('home')" id="navHome" class="bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+    <nav class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+      <button onclick="switchView('home')" id="navHome" class="bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-house"></i> หน้าหลัก
       </button>
-      <button onclick="switchView('ups')" id="navUps" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+      <button onclick="switchView('ups')" id="navUps" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-car-battery"></i> ตรวจเช็ก UPS
       </button>
-      <button onclick="switchView('task')" id="navTask" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+      <button onclick="switchView('task')" id="navTask" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap">
         <i class="fa-solid fa-list-check"></i> IT Task Tracker
       </button>
     </nav>
@@ -65,7 +65,6 @@
         <p class="text-slate-400 text-xs md:text-sm max-w-xl">เลือกเข้าใช้งานโมดูลระบบงานตรวจเช็กอุปกรณ์หรือติดตามงานบริการไอทีได้จากการ์ดเมนูด้านล่างนี้</p>
       </div>
 
-      <!-- MAIN MODULE CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- CARD 1: UPS INSPECTOR -->
         <div class="mini-card p-6 space-y-4 hover:border-blue-400 transition-all cursor-pointer group" onclick="switchView('ups')">
@@ -206,20 +205,154 @@
     </div>
 
     <!-- ================================================= -->
-    <!-- 📋 VIEW 3: IT TASK TRACKER MODULE                 -->
+    <!-- 📋 VIEW 3: IT TASK TRACKER MODULE (FULL SYSTEM)   -->
     <!-- ================================================= -->
     <div id="viewTask" class="hidden space-y-6">
       <div class="border-b border-slate-200 pb-4">
-        <h2 class="text-lg font-semibold text-slate-900">IT TASK TRACKER</h2>
-        <p class="text-xs text-slate-500">ระบบบันทึกและติดตามงาน IT Support (เชื่อมกับ Supabase: <span class="font-mono text-blue-600">it-task-tracker</span>)</p>
+        <h2 class="text-lg font-semibold text-slate-900">IT TASK TRACKER & MANAGEMENT</h2>
+        <p class="text-xs text-slate-500">ระบบจัดการงาน IT ประจำวัน (Supabase Project: <span class="font-mono text-blue-600">it-task-tracker</span>)</p>
       </div>
 
-      <div class="mini-card p-6 text-center space-y-3">
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
-          <i class="fa-solid fa-list-check"></i>
+      <!-- TASK STATS CARDS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="mini-card p-4 border-l-4 border-l-slate-800">
+          <p class="text-slate-500 text-xs font-medium">งานทั้งหมด</p>
+          <h3 id="statTotalTask" class="text-xl font-semibold text-slate-900 mt-1">0</h3>
         </div>
-        <h3 class="text-sm font-semibold text-slate-800">ส่วนติดตามงาน IT Support</h3>
-        <p class="text-xs text-slate-500 max-w-md mx-auto">พร้อมเชื่อมต่อเข้ากับตารางงานเดิมของคุณเรียบร้อยแล้วครับ</p>
+        <div class="mini-card p-4 border-l-4 border-l-emerald-500">
+          <p class="text-emerald-600 text-xs font-medium">เสร็จสิ้น (Completed)</p>
+          <h3 id="statCompletedTask" class="text-xl font-semibold text-emerald-700 mt-1">0</h3>
+        </div>
+        <div class="mini-card p-4 border-l-4 border-l-amber-500">
+          <p class="text-amber-600 text-xs font-medium">กำลังทำ (In Progress)</p>
+          <h3 id="statInProgressTask" class="text-xl font-semibold text-amber-700 mt-1">0</h3>
+        </div>
+        <div class="mini-card p-4 border-l-4 border-l-blue-500">
+          <p class="text-blue-600 text-xs font-medium">รอดำเนินการ (Pending)</p>
+          <h3 id="statPendingTask" class="text-xl font-semibold text-blue-700 mt-1">0</h3>
+        </div>
+      </div>
+
+      <!-- NEW TASK FORM & LIST GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- TASK FORM -->
+        <div class="mini-card p-6 space-y-4 lg:col-span-1 h-fit">
+          <h3 class="text-sm font-semibold text-slate-900 border-b pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-pen"></i> บันทึกงานใหม่
+          </h3>
+          <form id="taskForm" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ Task / งานที่ทำ</label>
+              <input type="text" id="taskTitle" required placeholder="เช่น ซ่อมคอมพิวเตอร์ / เซ็ตระบบ Wi-Fi" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">วันที่ทำรายการ</label>
+                <input type="date" id="taskDate" required class="w-full mini-input rounded-xl p-2 text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">แผนก (Dept)</label>
+                <select id="taskDept" class="w-full mini-input rounded-xl p-2 text-xs">
+                  <option value="FO">FO</option>
+                  <option value="HK">HK</option>
+                  <option value="F&B">F&B</option>
+                  <option value="ACC">ACC</option>
+                  <option value="HR">HR</option>
+                  <option value="IT">IT</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">ผู้แจ้งงาน</label>
+                <input type="text" id="taskReporter" placeholder="ชื่อผู้แจ้ง" class="w-full mini-input rounded-xl p-2 text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">ผู้รับงาน</label>
+                <input type="text" id="taskAssignee" placeholder="ชื่อช่าง IT" class="w-full mini-input rounded-xl p-2 text-xs">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">หมวดหมู่งาน (Category)</label>
+                <select id="taskCategory" class="w-full mini-input rounded-xl p-2 text-xs">
+                  <option value="POS">POS</option>
+                  <option value="PC/Laptop">PC/Laptop</option>
+                  <option value="Opera V.5">Opera V.5</option>
+                  <option value="Opera Cloud">Opera Cloud</option>
+                  <option value="CCTV">CCTV</option>
+                  <option value="Print">Print</option>
+                  <option value="Wi-Fi">Wi-Fi</option>
+                  <option value="TV">TV</option>
+                  <option value="Phone">Phone</option>
+                  <option value="General work">General work</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">สถานะงาน (Status)</label>
+                <select id="taskStatus" class="w-full mini-input rounded-xl p-2 text-xs">
+                  <option value="Pending">Pending (รอดำเนินการ)</option>
+                  <option value="In Progress">In Progress (กำลังทำ)</option>
+                  <option value="Completed">Completed (เสร็จสิ้น)</option>
+                  <option value="Cancelled">Cancelled (ยกเลิก)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ความสำคัญ (Priority)</label>
+              <select id="taskPriority" class="w-full mini-input rounded-xl p-2 text-xs">
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">รายละเอียดเพิ่มเติม / ผลลัพธ์</label>
+              <textarea id="taskDetail" rows="2" placeholder="ระบุรายละเอียด..." class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
+            </div>
+
+            <button type="submit" id="submitTaskBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white mini-btn py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> บันทึก Task เข้าระบบ
+            </button>
+          </form>
+        </div>
+
+        <!-- TASK TABLE LIST -->
+        <div class="mini-card p-6 space-y-4 lg:col-span-2">
+          <div class="flex flex-col md:flex-row justify-between items-center gap-3 border-b pb-3">
+            <h3 class="text-sm font-semibold text-slate-900">รายการงานในระบบ</h3>
+            <div class="flex items-center gap-2">
+              <input type="text" id="searchTaskInput" onkeyup="filterTasks()" placeholder="ค้นหาชื่อ Task, ผู้แจ้ง..." class="mini-input rounded-xl p-2 text-xs w-48">
+              <select id="filterTaskStatus" onchange="filterTasks()" class="mini-input rounded-xl p-2 text-xs">
+                <option value="">สถานะทั้งหมด</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-100">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
+                <tr>
+                  <th class="p-3">งานที่ทำ / หมวดหมู่</th>
+                  <th class="p-3">ผู้แจ้ง / แผนก</th>
+                  <th class="p-3">ผู้รับงาน</th>
+                  <th class="p-3">สถานะ</th>
+                  <th class="p-3 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -246,16 +379,19 @@
     }
 
     let rawRecords = [], filteredRecords = [], currentBase64Image = '';
+    let rawTasks = [], filteredTasksList = [];
 
-    // ฟังก์ชันสลับหน้าหลัก (Home / UPS / Task)
+    // Switch Main System Tabs
     function switchView(view) {
       document.getElementById('viewHome').classList.toggle('hidden', view !== 'home');
       document.getElementById('viewUps').classList.toggle('hidden', view !== 'ups');
       document.getElementById('viewTask').classList.toggle('hidden', view !== 'task');
 
-      document.getElementById('navHome').className = view === 'home' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
-      document.getElementById('navUps').className = view === 'ups' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
-      document.getElementById('navTask').className = view === 'task' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+      document.getElementById('navHome').className = view === 'home' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('navUps').className = view === 'ups' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('navTask').className = view === 'task' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 whitespace-nowrap';
+
+      if (view === 'task') fetchTasks();
     }
 
     function switchUpsTab(tab) {
@@ -275,6 +411,7 @@
 
     const todayFormatted = new Date().toISOString().split('T')[0];
     document.getElementById('inspectionDate').value = todayFormatted;
+    document.getElementById('taskDate').value = todayFormatted;
 
     function applyModelPreset() {
       document.getElementById('ups').value = 'SRVPM2KRIL';
@@ -300,6 +437,9 @@
       document.getElementById('imagePreviewContainer').classList.add('hidden');
     }
 
+    // ==========================================
+    // 🔋 UPS MODULE FUNCTIONS
+    // ==========================================
     document.getElementById('inspectionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const newRecord = {
@@ -323,7 +463,7 @@
       try {
         const { error } = await supabaseUPS.from('ups_inspections').insert([newRecord]);
         if (error) throw error;
-        showToast('SUCCESS', 'บันทึกข้อมูลเรียบร้อย');
+        showToast('SUCCESS', 'บันทึกข้อมูล UPS เรียบร้อย');
         e.target.reset(); removeImage(); applyModelPreset();
         switchUpsTab('list');
       } catch (err) { showToast('ERROR', err.message, 'error'); }
@@ -372,6 +512,115 @@
       if (confirm('ยืนยันลบ?')) {
         await supabaseUPS.from('ups_inspections').delete().eq('id', id);
         fetchRecords();
+      }
+    }
+
+    // ==========================================
+    // 📋 IT TASK TRACKER MODULE FUNCTIONS
+    // ==========================================
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newTask = {
+        title: document.getElementById('taskTitle').value,
+        task_date: document.getElementById('taskDate').value,
+        department: document.getElementById('taskDept').value,
+        reporter: document.getElementById('taskReporter').value,
+        assignee: document.getElementById('taskAssignee').value,
+        category: document.getElementById('taskCategory').value,
+        status: document.getElementById('taskStatus').value,
+        priority: document.getElementById('taskPriority').value,
+        details: document.getElementById('taskDetail').value
+      };
+
+      try {
+        if (!supabaseTask) {
+          // หากยังไม่ได้ใส่ TASK_SUPABASE_KEY ให้เก็บใน Memory แสดงผลชั่วคราว
+          rawTasks.unshift({ ...newTask, id: Date.now() });
+          showToast('DEMO MODE', 'บันทึก Task ในโหมดตัวอย่าง (ใส่ Key ในโค้ดเพื่อเซฟลง Supabase จริง)');
+        } else {
+          const { error } = await supabaseTask.from('tasks').insert([newTask]);
+          if (error) throw error;
+          showToast('SUCCESS', 'บันทึก Task เข้าระบบเรียบร้อย');
+        }
+        e.target.reset();
+        document.getElementById('taskDate').value = todayFormatted;
+        fetchTasks();
+      } catch (err) { showToast('ERROR', err.message, 'error'); }
+    });
+
+    async function fetchTasks() {
+      if (supabaseTask) {
+        const { data, error } = await supabaseTask.from('tasks').select('*').order('created_at', { ascending: false });
+        if (!error) rawTasks = data || [];
+      }
+      updateTaskStats();
+      filterTasks();
+    }
+
+    function updateTaskStats() {
+      document.getElementById('statTotalTask').innerText = rawTasks.length;
+      document.getElementById('statCompletedTask').innerText = rawTasks.filter(t => t.status === 'Completed').length;
+      document.getElementById('statInProgressTask').innerText = rawTasks.filter(t => t.status === 'In Progress').length;
+      document.getElementById('statPendingTask').innerText = rawTasks.filter(t => t.status === 'Pending').length;
+    }
+
+    function filterTasks() {
+      const search = document.getElementById('searchTaskInput').value.toLowerCase();
+      const status = document.getElementById('filterTaskStatus').value;
+
+      filteredTasksList = rawTasks.filter(t => {
+        const matchStatus = !status || t.status === status;
+        const matchSearch = !search || [t.title, t.reporter, t.assignee, t.category, t.department].join(' ').toLowerCase().includes(search);
+        return matchStatus && matchSearch;
+      });
+
+      renderTaskTable();
+    }
+
+    function renderTaskTable() {
+      const tbody = document.getElementById('taskTableBody');
+      if (filteredTasksList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">ยังไม่มีรายการงานในระบบ</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredTasksList.map(t => {
+        let badge = 'bg-blue-50 text-blue-700 border-blue-200';
+        if (t.status === 'In Progress') badge = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (t.status === 'Completed') badge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3">
+              <span class="font-semibold text-slate-900 block">${t.title || '-'}</span>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">${t.category || '-'}</span>
+            </td>
+            <td class="p-3">
+              <span class="block font-medium">${t.reporter || '-'}</span>
+              <span class="text-[10px] text-slate-500">Dept: ${t.department || '-'}</span>
+            </td>
+            <td class="p-3 text-slate-600">${t.assignee || '-'}</td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded-full text-[10px] border ${badge}">${t.status}</span>
+            </td>
+            <td class="p-3 text-center">
+              <button onclick="deleteTask(${t.id})" class="text-rose-500 hover:text-rose-700 p-1 text-xs">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function deleteTask(id) {
+      if (confirm('ยืนยันลบรายการงานนี้?')) {
+        if (supabaseTask) {
+          await supabaseTask.from('tasks').delete().eq('id', id);
+        } else {
+          rawTasks = rawTasks.filter(t => t.id !== id);
+        }
+        fetchTasks();
       }
     }
   </script>
