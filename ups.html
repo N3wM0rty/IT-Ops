@@ -23,9 +23,8 @@
 <body class="min-h-screen flex bg-slate-50 antialiased">
 
   <!-- 📌 SIDEBAR NAVIGATION -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0">
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
     <div class="p-5 space-y-6">
-      <!-- BRAND LOGO -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
           <i class="fa-solid fa-car-battery"></i>
@@ -36,7 +35,6 @@
         </div>
       </div>
 
-      <!-- MENU GROUP 1: APPLICATIONS -->
       <div class="space-y-1">
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
         <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
@@ -47,7 +45,6 @@
         </a>
       </div>
 
-      <!-- MENU GROUP 2: QUICK ACTIONS -->
       <div class="space-y-1 border-t border-slate-100 pt-4">
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">UPS NAVIGATION</p>
         <button onclick="switchUpsSubTab('form')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
@@ -58,31 +55,97 @@
         </button>
       </div>
     </div>
-
-    <!-- SYSTEM INFO FOOTER -->
-    <div class="p-4 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-400">
-      <p>Database: <span class="text-emerald-600 font-mono">UPS-Inspector</span></p>
-    </div>
   </aside>
 
-  <!-- 📱 MOBILE HEADER -->
-  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
-      <span class="text-xs font-semibold">UPS INSPECTOR</span>
-    </div>
-    <div class="flex gap-2">
-      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-emerald-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
-    </div>
-  </div>
+  <!-- 🖥️ MAIN CONTENT -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
+    
+    <div class="mini-card p-6 md:p-8 space-y-6">
+      <h2 class="text-lg font-semibold text-slate-900">UPS & BATTERY INSPECTOR</h2>
+      
+      <!-- FORM -->
+      <div id="upsSubViewForm" class="space-y-4">
+        <form id="upsForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Build (อาคาร)</label><input type="text" id="upsBuild" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Floor (ชั้น)</label><input type="text" id="upsFloor" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Side (ตำแหน่ง)</label><input type="text" id="upsSide" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div><label class="block text-xs font-medium mb-1">UPS (รุ่น)</label><input type="text" id="upsModel" value="SRVPM2KRIL" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">UPS Serial No.</label><input type="text" id="upsSerial" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Battery (รุ่น)</label><input type="text" id="upsBatteryModel" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Inspector</label><input type="text" id="upsInspector" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+          <button type="submit" class="w-full bg-slate-900 text-white mini-btn py-3 rounded-xl text-xs font-medium">บันทึกข้อมูลการตรวจ UPS</button>
+        </form>
+      </div>
 
-  <!-- 🖥️ MAIN CONTENT AREA -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-7xl mx-auto overflow-y-auto">
-    <!-- ใส่ส่วน แบบฟอร์ม UPS และ ตารางประวัติ UPS ตามเดิม -->
-    <h2 class="text-lg font-semibold text-slate-900 mb-4">UPS & BATTERY INSPECTOR</h2>
-    <!-- ... Content อยู่ตรงนี้ ... -->
+      <!-- LIST -->
+      <div id="upsSubViewList" class="hidden space-y-4">
+        <div class="overflow-x-auto rounded-xl border">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase border-b">
+              <tr><th class="p-3">Build/Floor</th><th class="p-3">UPS Model</th><th class="p-3">Inspector</th><th class="p-3 text-center">Action</th></tr>
+            </thead>
+            <tbody id="upsTableBody" class="divide-y bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
+  <script>
+    const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
+    const supabaseUPS = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
+
+    let rawUpsRecords = [];
+
+    function switchUpsSubTab(subTab) {
+      document.getElementById('upsSubViewForm').classList.toggle('hidden', subTab !== 'form');
+      document.getElementById('upsSubViewList').classList.toggle('hidden', subTab !== 'list');
+      if (subTab === 'list') fetchUpsRecords();
+    }
+
+    document.getElementById('upsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newRecord = {
+        build: document.getElementById('upsBuild').value,
+        floor: document.getElementById('upsFloor').value,
+        side: document.getElementById('upsSide').value,
+        ups: document.getElementById('upsModel').value,
+        model_serial_no: document.getElementById('upsSerial').value,
+        battery: document.getElementById('upsBatteryModel').value,
+        inspector: document.getElementById('upsInspector').value,
+        inspection_date: new Date().toISOString().split('T')[0]
+      };
+      await supabaseUPS.from('ups_inspections').insert([newRecord]);
+      alert('บันทึกสำเร็จ');
+      switchUpsSubTab('list');
+    });
+
+    async function fetchUpsRecords() {
+      const { data } = await supabaseUPS.from('ups_inspections').select('*').order('created_at', { ascending: false });
+      rawUpsRecords = data || [];
+      const tbody = document.getElementById('upsTableBody');
+      tbody.innerHTML = rawUpsRecords.map(r => `
+        <tr>
+          <td class="p-3"><b>${r.build||'-'}</b> (Fl: ${r.floor||'-'})</td>
+          <td class="p-3">${r.ups||'-'}</td>
+          <td class="p-3">${r.inspector||'-'}</td>
+          <td class="p-3 text-center"><button onclick="deleteUps(${r.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function deleteUps(id) {
+      if (confirm('ยืนยันลบ?')) {
+        await supabaseUPS.from('ups_inspections').delete().eq('id', id);
+        fetchUpsRecords();
+      }
+    }
+  </script>
 </body>
 </html>
