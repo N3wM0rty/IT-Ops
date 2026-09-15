@@ -3,1102 +3,377 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT TASK TRACKER - MINIMAL</title>
+  <title>IT OPERATIONS PORTAL</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { 
-      font-family: 'Kanit', sans-serif; 
-      background-color: #f8fafc; /* Minimal Light Slate Background */
-      color: #0f172a;
-    }
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-radius: 16px; }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-input { background-color: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
+    .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1); }
     
-    /* Minimal Card Styles */
-    .mini-card {
-      background-color: #ffffff;
-      color: #0f172a;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      border-radius: 16px;
-    }
+    input[type="date"] { position: relative; -webkit-appearance: none; min-height: 2.5rem; }
+    input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
 
-    .mini-btn {
-      transition: all 0.2s ease;
-      font-weight: 500;
-    }
-
-    .mini-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .mini-btn:active {
-      transform: translateY(0);
-    }
-
-    .mini-input {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border: 1px solid #cbd5e1 !important;
-      font-weight: 400;
-      transition: all 0.2s ease;
-    }
-
-    .mini-input:focus {
-      border-color: #0f172a !important;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
-    }
-
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 relative antialiased text-slate-800">
+<body class="min-h-screen p-4 md:p-6 relative antialiased text-slate-800">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="max-w-md mx-auto my-20 mini-card p-8 space-y-6">
-    <div class="text-center space-y-3">
-      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
-        <i class="fa-solid fa-laptop-code"></i>
+  <!-- NAVIGATION BAR -->
+  <header class="max-w-7xl mx-auto mini-card p-4 mb-6 bg-slate-900 text-white border-slate-800 flex items-center justify-between">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('home')">
+      <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-lg font-bold">
+        <i class="fa-solid fa-server"></i>
       </div>
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">IT TRACKER</h1>
-        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks</p>
+        <h1 class="text-base font-semibold tracking-tight leading-none">IT OPERATIONS PORTAL</h1>
+        <p class="text-slate-400 text-[11px] mt-1">ระบบศูนย์กลางบริหารจัดการงานไอที</p>
       </div>
     </div>
-
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
-        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <div>
-        <div class="flex justify-between items-center mb-1.5">
-          <label class="block text-xs font-medium text-slate-600"><i class="fa-solid fa-key mr-1"></i> Password</label>
-          <button type="button" onclick="showForgotPasswordPage()" class="text-[11px] text-slate-500 hover:text-slate-900 underline">Forgot?</button>
-        </div>
-        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
-      </button>
-    </form>
-    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
-  </div>
-
-  <!-- REGISTER PAGE -->
-  <div id="registerPage" class="hidden max-w-md mx-auto my-20 mini-card p-8 space-y-6">
-    <div class="text-center space-y-2">
-      <h1 class="text-2xl font-semibold tracking-tight text-slate-900"><i class="fa-solid fa-user-plus mr-2 text-slate-700"></i>Create Account</h1>
-    </div>
-    <form id="registerForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
-        <input type="email" id="regEmail" required class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-lock mr-1"></i> Password</label>
-        <input type="password" id="regPassword" required minlength="6" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-user-check text-xs"></i> Create Account
-      </button>
-      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
-        <i class="fa-solid fa-arrow-left text-xs"></i> Back
-      </button>
-    </form>
-  </div>
-
-  <!-- FORGOT PASSWORD PAGE -->
-  <div id="forgotPasswordPage" class="hidden max-w-md mx-auto my-20 mini-card p-8 space-y-6">
-    <div class="text-center space-y-2">
-      <h1 class="text-xl font-semibold tracking-tight text-slate-900"><i class="fa-solid fa-shield-halved mr-2 text-slate-700"></i>Reset Password</h1>
-    </div>
-    <form id="forgotPasswordForm" class="space-y-4">
-      <input type="email" id="forgotEmail" required placeholder="user@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
-      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-paper-plane text-xs"></i> Send Reset Link
-      </button>
-      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
-        <i class="fa-solid fa-arrow-left text-xs"></i> Back
-      </button>
-    </form>
-  </div>
-
-  <!-- MAIN DASHBOARD -->
-  <div id="mainDashboard" class="hidden max-w-6xl mx-auto space-y-6">
     
-    <!-- HEADER NAVBAR -->
-    <header class="mini-card p-4 md:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg">
-          <i class="fa-solid fa-microchip"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-semibold tracking-tight text-slate-900 leading-none">IT TASK TRACKER</h1>
-          <p class="text-slate-500 text-xs mt-1">Minimal & Clean Task Management System</p>
-        </div>
-      </div>
-      
-      <div class="flex flex-wrap items-center gap-2">
-        <button onclick="switchTab('createTask')" id="tabBtnCreateTask" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-plus text-xs"></i> New Task
-        </button>
-        <button onclick="switchTab('tasks')" id="tabBtnTasks" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-xs"></i> Task List
-        </button>
-        <button onclick="switchTab('shifts')" id="tabBtnShifts" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-xs"></i> Shifts
-        </button>
+    <nav class="flex items-center gap-2">
+      <button onclick="switchView('home')" id="navHome" class="bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-house"></i> หน้าหลัก
+      </button>
+      <button onclick="switchView('ups')" id="navUps" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-car-battery"></i> ตรวจเช็ก UPS
+      </button>
+      <button onclick="switchView('task')" id="navTask" class="text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-list-check"></i> IT Task Tracker
+      </button>
+    </nav>
+  </header>
 
-        <div class="bg-slate-50 p-1.5 px-3 rounded-xl border border-slate-200 flex items-center gap-3 ml-auto lg:ml-0">
-          <div class="text-right">
-            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 leading-none">user@resort.com</p>
-            <span id="userRoleBadge" class="inline-block mt-0.5 text-slate-400 text-[10px] uppercase">STAFF</span>
-          </div>
-          <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 mini-btn px-2.5 py-1 rounded-lg text-xs flex items-center gap-1">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- PAGE 1: CREATE TASK PAGE -->
-    <div id="viewCreateTask" class="hidden max-w-2xl mx-auto space-y-6">
-      <div class="mini-card p-6 md:p-8 space-y-5">
-        <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-slate-500"></i> Record New Task
-        </h2>
-        <form id="taskForm" class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-heading mr-1"></i> Task Title / Name</label>
-            <input type="text" id="title" required placeholder="e.g. Reset Password" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Location</label>
-              <select id="location" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="Radisson" selected>Radisson</option>
-                <option value="Laya Suites">Laya Suites</option>
-                <option value="BB Horizon">BB Horizon</option>
-                <option value="Other Location">Other Location</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-calendar-day mr-1"></i> Date</label>
-              <input type="date" id="taskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user mr-1"></i> Reporter</label>
-              <input type="text" id="reporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-building mr-1"></i> Dept</label>
-              <input type="text" id="department" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user-gear mr-1"></i> Assignee</label>
-              <input type="text" id="assignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-layer-group mr-1"></i> Category</label>
-            <select id="category" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="POS">POS</option>
-              <option value="PC/ Laptop">PC/ Laptop</option>
-              <option value="Opera Cloud">Opera Cloud</option>
-              <option value="MC">MC</option>
-              <option value="Door">Door</option>
-              <option value="SUN">SUN</option>
-              <option value="Wi-Fi">Wi-Fi</option>
-              <option value="Passport">Passport</option>
-              <option value="CCTV">CCTV</option>
-              <option value="TV">TV</option>
-              <option value="Phone">Phone</option>
-              <option value="Silverman">Silverman</option>
-              <option value="Interface">Interface</option>
-              <option value="Print">Print</option>
-              <option value="other">other</option>
-              <option value="General work" selected>General work</option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-bars-progress mr-1"></i> Status</label>
-              <select id="status" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="Pending" selected>Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Priority</label>
-              <select id="priority" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="Normal">Normal</option>
-                <option value="High">High</option>
-                <option value="Urgent">Urgent</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-align-left mr-1"></i> Description</label>
-            <textarea id="description" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
-          </div>
-
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2 mt-2">
-            <i class="fa-solid fa-floppy-disk"></i> Save Task
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- PAGE 2: TASKS LIST VIEW -->
-    <div id="viewTasks" class="space-y-6">
-      
-      <!-- TODAY SHIFT SUMMARY CARD -->
-      <div class="mini-card p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 class="text-sm font-medium tracking-wide flex items-center gap-2 text-slate-200">
-              <i class="fa-solid fa-clock text-slate-400"></i> TODAY ON-DUTY SHIFT (<span id="todayDateStr"></span>)
-            </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
-              <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-sun mr-1 text-amber-400"></i>MORNING</span>
-                <span id="summaryMorning" class="text-sm font-semibold text-white">-</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-moon mr-1 text-indigo-400"></i>EVENING</span>
-                <span id="summaryEvening" class="text-sm font-semibold text-white">-</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-phone-volume mr-1 text-emerald-400"></i>ON-CALL</span>
-                <span id="summaryOnCall" class="text-sm font-semibold text-white">-</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-user-slash mr-1 text-rose-400"></i>LEAVE</span>
-                <span id="summaryLeave" class="text-sm font-semibold text-white">-</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex sm:flex-col gap-2 justify-end">
-            <button onclick="sendLineShiftAlertFromUI()" class="bg-emerald-600 hover:bg-emerald-500 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-              <i class="fa-brands fa-line"></i> Push Line
-            </button>
-            <button onclick="switchTab('shifts')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-user-pen"></i> Edit Shift
-            </button>
-          </div>
-        </div>
+  <main class="max-w-7xl mx-auto">
+    <!-- ================================================= -->
+    <!-- 🏠 VIEW 1: HOME LANDING DASHBOARD                 -->
+    <!-- ================================================= -->
+    <div id="viewHome" class="space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 md:p-8 rounded-2xl shadow-sm space-y-3">
+        <span class="bg-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full font-medium border border-blue-500/30">Welcome Back</span>
+        <h2 class="text-xl md:text-2xl font-semibold">ศูนย์รวมระบบปฏิบัติการ IT Operations Center</h2>
+        <p class="text-slate-400 text-xs md:text-sm max-w-xl">เลือกเข้าใช้งานโมดูลระบบงานตรวจเช็กอุปกรณ์หรือติดตามงานบริการไอทีได้จากการ์ดเมนูด้านล่างนี้</p>
       </div>
 
-      <!-- STATS COUNTER -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="mini-card p-4 flex items-center justify-between">
-          <div><p class="text-xs font-medium text-slate-500">Total Tasks</p><p id="statTotal" class="text-2xl font-semibold text-slate-900 mt-0.5">0</p></div>
-          <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-folder-open"></i></div>
-        </div>
-        <div class="mini-card p-4 flex items-center justify-between">
-          <div><p class="text-xs font-medium text-slate-500">Completed</p><p id="statCompleted" class="text-2xl font-semibold text-emerald-600 mt-0.5">0</p></div>
-          <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
-        </div>
-        <div class="mini-card p-4 flex items-center justify-between">
-          <div><p class="text-xs font-medium text-slate-500">In Progress</p><p id="statInProgress" class="text-2xl font-semibold text-sky-600 mt-0.5">0</p></div>
-          <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-spinner"></i></div>
-        </div>
-        <div class="mini-card p-4 flex items-center justify-between">
-          <div><p class="text-xs font-medium text-slate-500">Pending</p><p id="statPending" class="text-2xl font-semibold text-amber-600 mt-0.5">0</p></div>
-          <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-hourglass-start"></i></div>
-        </div>
-      </div>
-
-      <!-- FILTER & TASK TABLE -->
-      <div class="space-y-4">
-        <div class="mini-card p-4 flex flex-wrap items-end gap-3 text-xs">
-          <div class="w-[140px]">
-            <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-filter mr-1"></i> Filter View</label>
-            <select id="dateRangeMode" onchange="toggleDateInputs(); applyFilters();" class="w-full mini-input rounded-xl p-2 text-xs">
-              <option value="today">Today</option>
-              <option value="month">This Month</option>
-              <option value="selectMonth">Select Month...</option>
-              <option value="all" selected>All Time</option>
-              <option value="custom">Custom Range</option>
-            </select>
-          </div>
-
-          <div id="selectMonthGroup" class="hidden">
-            <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-calendar mr-1"></i> Select Month</label>
-            <input type="month" id="monthPicker" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-          </div>
-
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> Search Task / Case</label>
-            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID (#2026-00001)..." class="w-full mini-input rounded-xl p-2 text-xs">
-          </div>
-          <div id="customDateGroup" class="hidden flex gap-2">
-            <input type="date" id="startDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-            <input type="date" id="endDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-          </div>
-          <div>
-            <button onclick="resetFilter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn px-3 py-2 rounded-xl text-xs flex items-center gap-1">
-              <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
-          </div>
-        </div>
-
-        <div class="mini-card p-5 space-y-4">
+      <!-- MAIN MODULE CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- CARD 1: UPS INSPECTOR -->
+        <div class="mini-card p-6 space-y-4 hover:border-blue-400 transition-all cursor-pointer group" onclick="switchView('ups')">
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
-              </h2>
-              <span id="taskCount" class="bg-slate-100 text-slate-600 text-[11px] font-medium px-2.5 py-0.5 rounded-full">0 items</span>
+            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-car-battery"></i>
             </div>
-            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-              <i class="fa-solid fa-file-excel"></i> Export Excel
-            </button>
+            <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-medium">Supabase: UPS</span>
           </div>
-          
-          <div class="overflow-x-auto rounded-xl border border-slate-100">
-            <table class="w-full text-left text-xs text-slate-700">
-              <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
-                <tr>
-                  <th class="p-3">Case ID</th>
-                  <th class="p-3">Task & Location</th>
-                  <th class="p-3">Personnel</th>
-                  <th class="p-3">Category</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-            </table>
+          <div>
+            <h3 class="text-base font-semibold text-slate-900">UPS & Battery Inspector</h3>
+            <p class="text-slate-500 text-xs mt-1">บันทึกผลการตรวจสอบตู้ UPS และแบตเตอรี่ประจำงวด แนบรูปถ่าย และ Import/Export Excel</p>
           </div>
+          <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-blue-600">
+            <span>เข้าใช้งานระบบตรวจเช็ก</span>
+            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
 
-          <!-- PAGINATION CONTROLS -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
-            <div id="pageInfo" class="font-medium">
-              Showing 0-0 of 0 tasks
+        <!-- CARD 2: IT TASK TRACKER -->
+        <div class="mini-card p-6 space-y-4 hover:border-blue-400 transition-all cursor-pointer group" onclick="switchView('task')">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-list-check"></i>
             </div>
-            <div class="flex items-center gap-1" id="paginationButtons">
-              <!-- Buttons dynamically generated -->
-            </div>
+            <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">Supabase: Task</span>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-slate-900">IT Task Tracker</h3>
+            <p class="text-slate-500 text-xs mt-1">ระบบติดตามใบงาน IT Support (Work Orders) บันทึกกะการทำงาน และติดตามสถานะแจ้งซ่อม</p>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-blue-600">
+            <span>เข้าใช้งานระบบติดตามงาน</span>
+            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PAGE 3: SHIFTS MANAGEMENT VIEW -->
-    <div id="viewShifts" class="hidden space-y-6">
-      <div class="mini-card p-6 md:p-8 space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-user-clock text-slate-500"></i> Shift Management System
-            </h2>
-            <p class="text-slate-500 text-xs mt-0.5">Select date to view or update daily shift duty</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <input type="date" id="manageShiftDate" onchange="loadShiftForDate()" class="mini-input rounded-xl p-2 text-xs">
-            <button onclick="loadShiftForDate()" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1">
-              <i class="fa-solid fa-rotate"></i> Load
-            </button>
-          </div>
+    <!-- ================================================= -->
+    <!-- 🔋 VIEW 2: UPS & BATTERY INSPECTOR MODULE        -->
+    <!-- ================================================= -->
+    <div id="viewUps" class="hidden space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">UPS & BATTERY INSPECTOR</h2>
+          <p class="text-xs text-slate-500">ระบบตรวจเช็กตู้ UPS และแบตเตอรี่ประจำงวด</p>
         </div>
-
-        <form id="shiftManageForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-            <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <i class="fa-solid fa-sun text-amber-500"></i> Morning Shift (08:00 - 17:00)
-            </h4>
-            <input type="text" id="mMorning" required placeholder="e.g. New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-            <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <i class="fa-solid fa-moon text-indigo-500"></i> Evening Shift (13:00 - 22:00)
-            </h4>
-            <input type="text" id="mEvening" placeholder="e.g. P'Puen ITM" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-            <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <i class="fa-solid fa-phone-volume text-emerald-600"></i> Standby On-Call
-            </h4>
-            <input type="text" id="mOnCall" required placeholder="e.g. New / P'Puen" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-            <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <i class="fa-solid fa-user-slash text-rose-500"></i> Leave & Day Off
-            </h4>
-            <input type="text" id="mLeave" placeholder="e.g. None" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-
-          <div class="md:col-span-2 flex items-center justify-end gap-3 pt-2">
-            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn px-6 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Save Shift Schedule
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- EDIT TASK MODAL -->
-    <div id="editTaskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm">
-      <div class="mini-card p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto relative">
-        <button onclick="closeEditModal()" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-        <h3 class="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-slate-500"></i> Edit Task Details
-        </h3>
-        
-        <form id="editTaskForm" class="space-y-3">
-          <input type="hidden" id="editTaskId">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-heading mr-1"></i> Task Title</label>
-            <input type="text" id="editTitle" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Location</label>
-              <select id="editLocation" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="Radisson">Radisson</option>
-                <option value="Laya Suites">Laya Suites</option>
-                <option value="BB Horizon">BB Horizon</option>
-                <option value="Other Location">Other Location</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-layer-group mr-1"></i> Category</label>
-              <select id="editCategory" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="POS">POS</option>
-                <option value="PC/ Laptop">PC/ Laptop</option>
-                <option value="Opera Cloud">Opera Cloud</option>
-                <option value="MC">MC</option>
-                <option value="Door">Door</option>
-                <option value="SUN">SUN</option>
-                <option value="Wi-Fi">Wi-Fi</option>
-                <option value="Passport">Passport</option>
-                <option value="CCTV">CCTV</option>
-                <option value="TV">TV</option>
-                <option value="Phone">Phone</option>
-                <option value="Silverman">Silverman</option>
-                <option value="Interface">Interface</option>
-                <option value="Print">Print</option>
-                <option value="other">other</option>
-                <option value="General work">General work</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user mr-1"></i> Reporter</label>
-              <input type="text" id="editReporter" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-building mr-1"></i> Dept</label>
-              <input type="text" id="editDept" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user-gear mr-1"></i> Assignee</label>
-              <input type="text" id="editAssignee" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-align-left mr-1"></i> Description</label>
-            <textarea id="editDescription" rows="2" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
-          </div>
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-2 mt-2">
-            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        <div class="flex items-center gap-2">
+          <button onclick="switchUpsTab('form')" id="tabBtnForm" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> บันทึกผลการตรวจ
           </button>
+          <button onclick="switchUpsTab('list')" id="tabBtnList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
+          </button>
+        </div>
+      </div>
+
+      <!-- UPS FORM -->
+      <div id="upsViewForm" class="mini-card p-6 space-y-4">
+        <form id="inspectionForm" class="space-y-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">1. ข้อมูลสถานที่</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Build (อาคาร)</label><input type="text" id="build" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Floor (ชั้น)</label><input type="text" id="floor" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Side (ตำแหน่ง)</label><input type="text" id="side" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xs font-semibold text-slate-500 uppercase">2. ข้อมูลอุปกรณ์</h3>
+              <button type="button" onclick="applyModelPreset()" class="text-[11px] bg-slate-200 text-slate-700 px-2 py-1 rounded-lg"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> เติมรุ่นอัตโนมัติ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><label class="block text-xs font-medium mb-1">UPS (รุ่น)</label><input type="text" id="ups" value="SRVPM2KRIL" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">UPS Serial No.</label><input type="text" id="modelSerial" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery (รุ่น)</label><input type="text" id="battery" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery Serial No.</label><input type="text" id="batteryModelSerial" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">3. ค่าทางไฟฟ้าและสถานะ</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Capacity</label><input type="text" id="capacity" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Input (V)</label><input type="text" id="inputVoltage" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Output (V)</label><input type="text" id="outputVoltage" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Load (%)</label><input type="text" id="load" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Status</label>
+                <select id="status" class="w-full mini-input rounded-xl p-2 text-xs"><option value="OK">OK</option><option value="Need Replace">Need Replace</option><option value="Warning">Warning</option><option value="Fault">Fault</option></select>
+              </div>
+              <div><label class="block text-xs font-medium mb-1">Inspection Date</label><input type="date" id="inspectionDate" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Inspector</label><input type="text" id="inspector" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">4. รูปถ่าย</h3>
+            <input type="file" id="pictureInput" accept="image/*" capture="environment" onchange="previewImage(event)" class="w-full mini-input rounded-xl p-2 text-xs">
+            <div id="imagePreviewContainer" class="hidden relative w-32 h-32">
+              <img id="imagePreview" class="w-full h-full object-cover rounded-xl border">
+              <button type="button" onclick="removeImage()" class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full bg-slate-900 text-white mini-btn py-3 rounded-xl text-xs font-medium">บันทึกข้อมูล UPS</button>
         </form>
+      </div>
+
+      <!-- UPS LIST -->
+      <div id="upsViewList" class="hidden mini-card p-5 space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 border-b pb-3">
+          <span id="recordCount" class="text-xs font-semibold text-slate-600">0 รายการ</span>
+          <div class="flex gap-2">
+            <label class="bg-blue-50 text-blue-700 border border-blue-200 mini-btn px-3 py-1.5 rounded-xl text-xs cursor-pointer">Import Excel<input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="importFromExcel(event)" class="hidden"></label>
+            <button onclick="exportToExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs">Export Excel</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border">
+          <div><label class="text-[11px] font-medium text-slate-500">กรองตามอาคาร</label><select id="filterBuild" onchange="filterRecords()" class="w-full mini-input rounded-xl p-2 text-xs"><option value="">ทั้งหมดทุกอาคาร</option></select></div>
+          <div><label class="text-[11px] font-medium text-slate-500">ค้นหา</label><input type="text" id="searchInput" onkeyup="filterRecords()" placeholder="ค้นหา S/N, ผู้ตรวจ..." class="w-full mini-input rounded-xl p-2 text-xs"></div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase border-b">
+              <tr><th class="p-3">Build/Floor</th><th class="p-3">UPS Details</th><th class="p-3">Battery</th><th class="p-3">Status</th><th class="p-3">Inspector</th><th class="p-3">Picture</th><th class="p-3 text-center">Action</th></tr>
+            </thead>
+            <tbody id="inspectionTableBody" class="divide-y bg-white"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-  </div>
+    <!-- ================================================= -->
+    <!-- 📋 VIEW 3: IT TASK TRACKER MODULE                 -->
+    <!-- ================================================= -->
+    <div id="viewTask" class="hidden space-y-6">
+      <div class="border-b border-slate-200 pb-4">
+        <h2 class="text-lg font-semibold text-slate-900">IT TASK TRACKER</h2>
+        <p class="text-xs text-slate-500">ระบบบันทึกและติดตามงาน IT Support (เชื่อมกับ Supabase: <span class="font-mono text-blue-600">it-task-tracker</span>)</p>
+      </div>
+
+      <div class="mini-card p-6 text-center space-y-3">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-800">ส่วนติดตามงาน IT Support</h3>
+        <p class="text-xs text-slate-500 max-w-md mx-auto">พร้อมเชื่อมต่อเข้ากับตารางงานเดิมของคุณเรียบร้อยแล้วครับ</p>
+      </div>
+    </div>
+  </main>
 
   <script>
-    const SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    // 1️⃣ Config Supabase โปรเจกต์ UPS-Battery-Inspector
+    const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    let currentUser = null;
-    let currentUserRole = 'staff';
-    let rawTasks = [];
-    let currentTasks = [];
-    let todayShiftCache = { morning: '-', evening: '-', onCall: '-', leave: 'ไม่มี' };
+    // 2️⃣ Config Supabase โปรเจกต์ it-task-tracker
+    const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co'; 
+    const TASK_SUPABASE_KEY = 'YOUR_IT_TASK_TRACKER_ANON_KEY';
 
-    // PAGINATION VARIABLES
-    let currentPage = 1;
-    const itemsPerPage = 15;
+    let supabaseUPS = null;
+    let supabaseTask = null;
 
-    function switchTab(tabName) {
-      const btnCreateTask = document.getElementById('tabBtnCreateTask');
-      const btnTasks = document.getElementById('tabBtnTasks');
-      const btnShifts = document.getElementById('tabBtnShifts');
-      
-      const viewCreateTask = document.getElementById('viewCreateTask');
-      const viewTasks = document.getElementById('viewTasks');
-      const viewShifts = document.getElementById('viewShifts');
-
-      viewCreateTask.classList.add('hidden');
-      viewTasks.classList.add('hidden');
-      viewShifts.classList.add('hidden');
-
-      btnCreateTask.className = "bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-      btnTasks.className = "bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-      btnShifts.className = "bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-
-      if (tabName === 'createTask') {
-        viewCreateTask.classList.remove('hidden');
-        btnCreateTask.className = "bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-      } else if (tabName === 'tasks') {
-        viewTasks.classList.remove('hidden');
-        btnTasks.className = "bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-      } else if (tabName === 'shifts') {
-        viewShifts.classList.remove('hidden');
-        btnShifts.className = "bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2";
-        
-        if (!document.getElementById('manageShiftDate').value) {
-          document.getElementById('manageShiftDate').value = new Date().toISOString().split('T')[0];
-        }
-        loadShiftForDate();
+    try {
+      supabaseUPS = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
+      if (TASK_SUPABASE_KEY !== 'YOUR_IT_TASK_TRACKER_ANON_KEY') {
+        supabaseTask = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
       }
+    } catch (e) {
+      console.error('Supabase Init Error:', e);
     }
 
-    async function fetchTodayShiftSummary() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      document.getElementById('todayDateStr').innerText = todayStr;
+    let rawRecords = [], filteredRecords = [], currentBase64Image = '';
 
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', todayStr)
-        .maybeSingle();
+    // ฟังก์ชันสลับหน้าหลัก (Home / UPS / Task)
+    function switchView(view) {
+      document.getElementById('viewHome').classList.toggle('hidden', view !== 'home');
+      document.getElementById('viewUps').classList.toggle('hidden', view !== 'ups');
+      document.getElementById('viewTask').classList.toggle('hidden', view !== 'task');
 
-      if (data) {
-        todayShiftCache = {
-          morning: data.morning_staff || '-',
-          evening: data.evening_staff || '-',
-          onCall: data.on_call_staff || '-',
-          leave: data.leave_info || 'ไม่มี'
-        };
-      }
-
-      document.getElementById('summaryMorning').innerText = todayShiftCache.morning;
-      document.getElementById('summaryEvening').innerText = todayShiftCache.evening;
-      document.getElementById('summaryOnCall').innerText = todayShiftCache.onCall;
-      document.getElementById('summaryLeave').innerText = todayShiftCache.leave;
+      document.getElementById('navHome').className = view === 'home' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+      document.getElementById('navUps').className = view === 'ups' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+      document.getElementById('navTask').className = view === 'task' ? 'bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'text-slate-300 hover:text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
     }
 
-    async function loadShiftForDate() {
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      if (!selectedDate) return;
-
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', selectedDate)
-        .maybeSingle();
-
-      if (data) {
-        document.getElementById('mMorning').value = data.morning_staff || '';
-        document.getElementById('mEvening').value = data.evening_staff || '';
-        document.getElementById('mOnCall').value = data.on_call_staff || '';
-        document.getElementById('mLeave').value = data.leave_info || '';
-      } else {
-        document.getElementById('mMorning').value = '';
-        document.getElementById('mEvening').value = '';
-        document.getElementById('mOnCall').value = '';
-        document.getElementById('mLeave').value = '';
-      }
-    }
-
-    document.getElementById('shiftManageForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      
-      const shiftPayload = {
-        shift_date: selectedDate,
-        morning_staff: document.getElementById('mMorning').value,
-        evening_staff: document.getElementById('mEvening').value,
-        on_call_staff: document.getElementById('mOnCall').value,
-        leave_info: document.getElementById('mLeave').value || 'ไม่มีผู้แจ้งลา'
-      };
-
-      const { error } = await supabaseClient
-        .from('shifts')
-        .upsert(shiftPayload, { onConflict: 'shift_date' });
-
-      if (error) {
-        showToast('ERROR', error.message, 'error');
-      } else {
-        showToast('SUCCESS!', `Updated shift schedule for ${selectedDate}`, 'success');
-        fetchTodayShiftSummary();
-      }
-    });
-
-    async function sendLineShiftAlertFromUI() {
-      try {
-        const { error } = await supabaseClient.rpc('send_line_shift_now');
-        if (error) {
-          showToast('PUSH FAILED', error.message, 'error');
-        } else {
-          showToast('LINE PUSHED!', 'Shift schedule sent to LINE group', 'success');
-        }
-      } catch (err) {
-        showToast('ERROR', err.message, 'error');
-      }
+    function switchUpsTab(tab) {
+      document.getElementById('upsViewForm').classList.toggle('hidden', tab !== 'form');
+      document.getElementById('upsViewList').classList.toggle('hidden', tab !== 'list');
+      if (tab === 'list') fetchRecords();
     }
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
-      toast.innerHTML = `
-        <div class="text-base pt-0.5"><i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-400'}"></i></div>
-        <div class="flex-1"><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>
-      `;
+      toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-400'} pt-0.5"></i><div><h4 class="text-xs font-semibold">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
       container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
+      setTimeout(() => toast.remove(), 4000);
     }
 
-    function hideAllPages() {
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('registerPage').classList.add('hidden');
-      document.getElementById('forgotPasswordPage').classList.add('hidden');
-      document.getElementById('mainDashboard').classList.add('hidden');
+    const todayFormatted = new Date().toISOString().split('T')[0];
+    document.getElementById('inspectionDate').value = todayFormatted;
+
+    function applyModelPreset() {
+      document.getElementById('ups').value = 'SRVPM2KRIL';
+      document.getElementById('battery').value = 'SRV72RLBP-9A';
     }
 
-    function showLoginPage() { hideAllPages(); document.getElementById('loginPage').classList.remove('hidden'); }
-    function showRegisterPage() { hideAllPages(); document.getElementById('registerPage').classList.remove('hidden'); }
-    function showForgotPasswordPage() { hideAllPages(); document.getElementById('forgotPasswordPage').classList.remove('hidden'); }
-
-    async function checkAuth() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        currentUser = user;
-        hideAllPages();
-        document.getElementById('mainDashboard').classList.remove('hidden');
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        
-        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).maybeSingle();
-        currentUserRole = profile?.role || 'staff';
-        document.getElementById('userRoleBadge').innerText = currentUserRole;
-
-        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-        fetchTodayShiftSummary();
-        fetchTasks();
-        
-        switchTab('tasks');
-      } else {
-        showLoginPage();
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          currentBase64Image = e.target.result;
+          document.getElementById('imagePreview').src = currentBase64Image;
+          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
       }
     }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    function removeImage() {
+      currentBase64Image = '';
+      document.getElementById('pictureInput').value = '';
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
+    }
+
+    document.getElementById('inspectionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('loginEmail').value,
-        password: document.getElementById('loginPassword').value
-      });
-      if (error) {
-        document.getElementById('loginError').innerText = error.message;
-        document.getElementById('loginError').classList.remove('hidden');
-      } else {
-        checkAuth();
-      }
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { error } = await supabaseClient.auth.signUp({
-        email: document.getElementById('regEmail').value,
-        password: document.getElementById('regPassword').value
-      });
-      if (error) {
-        showToast('REGISTER FAILED', error.message, 'error');
-      } else {
-        showToast('SUCCESS', 'Check your email to confirm registration', 'success');
-        showLoginPage();
-      }
-    });
-
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
-      showLoginPage();
-    }
-
-    async function fetchTasks() {
-      const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
-      rawTasks = data || [];
-      applyFilters();
-    }
-
-    async function sendLineTaskCompletedAlert(task) {
-      try {
-        const { data, error } = await supabaseClient.functions.invoke('send-line-alert', {
-          body: {
-            task: task,
-            type: 'TASK_COMPLETED'
-          }
-        });
-
-        if (error) {
-          console.error('Error invoking Edge Function:', error);
-        } else {
-          console.log('LINE Alert Response:', data);
-        }
-      } catch (err) {
-        console.error('Error sending LINE completion alert:', err);
-      }
-    }
-
-    async function updateTaskStatus(taskId, newStatus) {
-      const targetTask = rawTasks.find(t => t.id === taskId);
-      
-      const { error } = await supabaseClient
-        .from('tasks')
-        .update({ status: newStatus })
-        .eq('id', taskId);
-
-      if (error) {
-        showToast('UPDATE FAILED', error.message, 'error');
-      } else {
-        showToast('STATUS UPDATED!', `Changed to ${newStatus}`, 'success');
-        if (targetTask) targetTask.status = newStatus;
-        
-        if (newStatus === 'Completed' && targetTask) {
-          sendLineTaskCompletedAlert(targetTask);
-        }
-        
-        applyFilters();
-      }
-    }
-
-    function applyFilters() {
-      const mode = document.getElementById('dateRangeMode').value;
-      const todayStr = new Date().toISOString().split('T')[0];
-      const currentMonthPrefix = todayStr.substring(0, 7);
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const selectedMonthVal = document.getElementById('monthPicker').value;
-
-      currentTasks = rawTasks.filter(t => {
-        let matchDate = true;
-        const taskDateStr = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
-        
-        if (mode === 'today') {
-          matchDate = (taskDateStr === todayStr);
-        } else if (mode === 'month') {
-          matchDate = taskDateStr.startsWith(currentMonthPrefix);
-        } else if (mode === 'selectMonth') {
-          matchDate = selectedMonthVal ? taskDateStr.startsWith(selectedMonthVal) : true;
-        }
-        
-        const caseIdStr = (t.case_id || `#2026-${String(t.id).padStart(5, '0')}`).toLowerCase();
-        const taskTitle = t.title || t.task_name || '';
-        const taskLoc = t.location || '';
-        const matchSearch = !search || caseIdStr.includes(search) || taskTitle.toLowerCase().includes(search) || taskLoc.toLowerCase().includes(search) || (t.reporter && t.reporter.toLowerCase().includes(search));
-        return matchDate && matchSearch;
-      });
-
-      document.getElementById('statTotal').innerText = currentTasks.length;
-      document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
-      document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
-      document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
-
-      document.getElementById('taskCount').innerText = `${currentTasks.length} items`;
-
-      currentPage = 1;
-      renderTablePage();
-    }
-
-    function renderTablePage() {
-      const tbody = document.getElementById('taskTableBody');
-      tbody.innerHTML = '';
-
-      const totalItems = currentTasks.length;
-      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
-      if (currentPage > totalPages) currentPage = totalPages;
-      if (currentPage < 1) currentPage = 1;
-
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-
-      const pageTasks = currentTasks.slice(startIndex, endIndex);
-
-      pageTasks.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/80 transition-colors";
-        const caseIdStr = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
-        const taskTitle = t.title || t.task_name || '-';
-        const locationStr = t.location || 'Radisson';
-        
-        let statusColorClass = 'bg-amber-50 text-amber-700 border-amber-200';
-        if (t.status === 'Completed') statusColorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        if (t.status === 'In Progress') statusColorClass = 'bg-sky-50 text-sky-700 border-sky-200';
-
-        tr.innerHTML = `
-          <td class="p-3">
-            <span class="bg-slate-100 text-slate-700 font-mono text-[11px] font-medium px-2 py-0.5 rounded-md border border-slate-200 inline-block">${caseIdStr}</span>
-          </td>
-          <td class="p-3">
-            <span class="text-xs font-semibold text-slate-900 block">${taskTitle}</span>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[10px] text-slate-500 flex items-center gap-1">
-                <i class="fa-solid fa-location-dot text-slate-400"></i> ${locationStr}
-              </span>
-              <span class="text-slate-300">•</span>
-              <span class="text-[11px] text-slate-500 truncate max-w-[180px]">${t.description || ''}</span>
-            </div>
-          </td>
-          <td class="p-3 text-[11px]">
-            <span class="text-slate-700 block font-medium"><i class="fa-solid fa-user text-slate-400 mr-1"></i>${t.reporter || '-'}</span>
-            <span class="text-slate-400">Dept: ${t.department || '-'} | Fixer: ${t.assignee || '-'}</span>
-          </td>
-          <td class="p-3">
-            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] font-medium border border-slate-200">${t.category || 'General work'}</span>
-          </td>
-          <td class="p-3">
-            <select onchange="updateTaskStatus(${t.id}, this.value)" class="mini-input text-[11px] font-medium rounded-lg px-2 py-1 border outline-none cursor-pointer ${statusColorClass}">
-              <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
-              <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-              <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
-            </select>
-          </td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="openEditModal(${t.id})" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100 p-1.5 rounded-lg text-xs transition-colors" title="Edit">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-            <button onclick="deleteTask(${t.id})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg text-xs transition-colors" title="Delete">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
-      document.getElementById('pageInfo').innerText = `Showing ${startDisplay}-${endIndex} of ${totalItems} tasks (Page ${currentPage}/${totalPages})`;
-
-      renderPaginationControls(totalPages);
-    }
-
-    function renderPaginationControls(totalPages) {
-      const container = document.getElementById('paginationButtons');
-      container.innerHTML = '';
-
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
-      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-[10px]"></i> Prev';
-      prevBtn.disabled = (currentPage === 1);
-      prevBtn.onclick = () => {
-        if (currentPage > 1) {
-          currentPage--;
-          renderTablePage();
-        }
-      };
-      container.appendChild(prevBtn);
-
-      for (let i = 1; i <= totalPages; i++) {
-        if (totalPages > 7 && Math.abs(i - currentPage) > 2 && i !== 1 && i !== totalPages) {
-          if (i === 2 && currentPage > 4) {
-            const dots = document.createElement('span');
-            dots.className = 'px-1 text-slate-400';
-            dots.innerText = '...';
-            container.appendChild(dots);
-          }
-          continue;
-        }
-
-        const numBtn = document.createElement('button');
-        numBtn.className = `mini-btn px-2.5 py-1 text-xs rounded-lg ${i === currentPage ? 'bg-slate-900 text-white font-medium' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`;
-        numBtn.innerText = i;
-        numBtn.onclick = () => {
-          currentPage = i;
-          renderTablePage();
-        };
-        container.appendChild(numBtn);
-      }
-
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
-      nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right text-[10px]"></i>';
-      nextBtn.disabled = (currentPage === totalPages || totalPages === 0);
-      nextBtn.onclick = () => {
-        if (currentPage < totalPages) {
-          currentPage++;
-          renderTablePage();
-        }
-      };
-      container.appendChild(nextBtn);
-    }
-
-    document.getElementById('taskForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newTask = {
-        user_id: currentUser.id,
-        date: document.getElementById('taskDate').value,
-        title: document.getElementById('title').value,
-        location: document.getElementById('location').value,
-        reporter: document.getElementById('reporter').value,
-        department: document.getElementById('department').value,
-        assignee: document.getElementById('assignee').value || currentUser.email.split('@')[0],
-        category: document.getElementById('category').value,
-        priority: document.getElementById('priority').value,
+      const newRecord = {
+        build: document.getElementById('build').value,
+        floor: document.getElementById('floor').value,
+        side: document.getElementById('side').value,
+        ups: document.getElementById('ups').value,
+        model_serial_no: document.getElementById('modelSerial').value,
+        battery: document.getElementById('battery').value,
+        battery_model_serial_no: document.getElementById('batteryModelSerial').value,
+        capacity: document.getElementById('capacity').value,
+        input_voltage: document.getElementById('inputVoltage').value,
+        output_voltage: document.getElementById('outputVoltage').value,
+        load_percent: document.getElementById('load').value,
         status: document.getElementById('status').value,
-        description: document.getElementById('description').value
+        inspection_date: document.getElementById('inspectionDate').value,
+        picture: currentBase64Image,
+        inspector: document.getElementById('inspector').value
       };
 
-      const { error } = await supabaseClient.from('tasks').insert([newTask]);
+      try {
+        const { error } = await supabaseUPS.from('ups_inspections').insert([newRecord]);
+        if (error) throw error;
+        showToast('SUCCESS', 'บันทึกข้อมูลเรียบร้อย');
+        e.target.reset(); removeImage(); applyModelPreset();
+        switchUpsTab('list');
+      } catch (err) { showToast('ERROR', err.message, 'error'); }
+    });
+
+    async function fetchRecords() {
+      const { data, error } = await supabaseUPS.from('ups_inspections').select('*').order('created_at', { ascending: false });
       if (!error) {
-        showToast('TASK CREATED!', 'Added new task successfully', 'success');
-        e.target.reset();
-        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-        fetchTasks();
-        switchTab('tasks');
-      }
-    });
-
-    async function deleteTask(id) {
-      if (confirm('Are you sure you want to delete this task?')) {
-        await supabaseClient.from('tasks').delete().eq('id', id);
-        fetchTasks();
+        rawRecords = data || [];
+        const select = document.getElementById('filterBuild');
+        const builds = [...new Set(rawRecords.map(r => r.build).filter(Boolean))].sort();
+        select.innerHTML = '<option value="">ทั้งหมดทุกอาคาร</option>';
+        builds.forEach(b => select.innerHTML += `<option value="${b}">${b}</option>`);
+        filterRecords();
       }
     }
 
-    function toggleDateInputs() {
-      const mode = document.getElementById('dateRangeMode').value;
-      document.getElementById('customDateGroup').classList.toggle('hidden', mode !== 'custom');
-      document.getElementById('selectMonthGroup').classList.toggle('hidden', mode !== 'selectMonth');
-      
-      if (mode === 'selectMonth' && !document.getElementById('monthPicker').value) {
-        document.getElementById('monthPicker').value = new Date().toISOString().substring(0, 7);
-      }
-    }
-
-    function resetFilter() {
-      document.getElementById('dateRangeMode').value = 'all';
-      document.getElementById('searchInput').value = '';
-      toggleDateInputs();
-      fetchTasks();
-    }
-
-    function exportToExcel() {
-      if (currentTasks.length === 0) {
-        showToast('EMPTY DATA', 'No tasks available to export', 'error');
-        return;
-      }
-
-      const excelData = currentTasks.map(t => {
-        return {
-          'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
-          'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
-          'Location': t.location || 'Radisson',
-          'Category': t.category || 'General work',
-          'Task Name': t.title || t.task_name || '',
-          'Priority': t.priority || 'Normal',
-          'Status': t.status || 'Pending',
-          'Description / Outcome': t.description || '-',
-          'Dept': t.department || '-',
-          'Reporter': t.reporter || '-',
-          'Fix By': t.assignee || '-'
-        };
+    function filterRecords() {
+      const build = document.getElementById('filterBuild').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      filteredRecords = rawRecords.filter(r => {
+        const mBuild = !build || r.build === build;
+        const mSearch = !search || [r.build, r.ups, r.model_serial_no, r.inspector].join(' ').toLowerCase().includes(search);
+        return mBuild && mSearch;
       });
-
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      
-      const wscols = [
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 16 },
-        { wch: 16 },
-        { wch: 32 },
-        { wch: 12 },
-        { wch: 14 },
-        { wch: 45 },
-        { wch: 12 },
-        { wch: 18 },
-        { wch: 18 }
-      ];
-      worksheet['!cols'] = wscols;
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks_Report");
-
-      const todayStr = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `IT_Tasks_Report_${todayStr}.xlsx`);
-
-      showToast('EXPORT COMPLETE!', 'Excel file downloaded', 'success');
+      document.getElementById('recordCount').innerText = `${filteredRecords.length} รายการ`;
+      renderTable();
     }
 
-    // --- EDIT TASK FUNCTIONS ---
-    function openEditModal(taskId) {
-      const t = rawTasks.find(x => x.id === taskId);
-      if (!t) return;
-      
-      document.getElementById('editTaskId').value = t.id;
-      document.getElementById('editTitle').value = t.title || t.task_name || '';
-      document.getElementById('editLocation').value = t.location || 'Radisson';
-      document.getElementById('editCategory').value = t.category || 'General work';
-      document.getElementById('editReporter').value = t.reporter || '';
-      document.getElementById('editDept').value = t.department || '';
-      document.getElementById('editAssignee').value = t.assignee || '';
-      document.getElementById('editDescription').value = t.description || '';
-      
-      document.getElementById('editTaskModal').classList.remove('hidden');
+    function renderTable() {
+      const tbody = document.getElementById('inspectionTableBody');
+      tbody.innerHTML = filteredRecords.map(r => `
+        <tr>
+          <td class="p-3"><b>${r.build||'-'}</b><br><span class="text-[10px] text-slate-400">Fl: ${r.floor||'-'}</span></td>
+          <td class="p-3">${r.ups||'-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.model_serial_no||'-'}</span></td>
+          <td class="p-3">${r.battery||'-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100">${r.status}</span></td>
+          <td class="p-3">${r.inspector||'-'}</td>
+          <td class="p-3">${r.picture ? `<img src="${r.picture}" class="w-8 h-8 object-cover rounded">` : '-'}</td>
+          <td class="p-3 text-center"><button onclick="deleteRecord(${r.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
     }
 
-    function closeEditModal() {
-      document.getElementById('editTaskModal').classList.add('hidden');
-    }
-
-    document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('editTaskId').value;
-      const updates = {
-        title: document.getElementById('editTitle').value,
-        location: document.getElementById('editLocation').value,
-        category: document.getElementById('editCategory').value,
-        reporter: document.getElementById('editReporter').value,
-        department: document.getElementById('editDept').value,
-        assignee: document.getElementById('editAssignee').value,
-        description: document.getElementById('editDescription').value
-      };
-
-      const { error } = await supabaseClient.from('tasks').update(updates).eq('id', id);
-      
-      if (error) {
-        showToast('UPDATE FAILED', error.message, 'error');
-      } else {
-        showToast('UPDATED!', 'Task updated successfully', 'success');
-        closeEditModal();
-        fetchTasks();
+    async function deleteRecord(id) {
+      if (confirm('ยืนยันลบ?')) {
+        await supabaseUPS.from('ups_inspections').delete().eq('id', id);
+        fetchRecords();
       }
-    });
-
-    checkAuth();
+    }
   </script>
 </body>
 </html>
