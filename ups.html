@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPS & Battery Inspector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+  </style>
+</head>
+<body class="min-h-screen flex bg-slate-50 antialiased">
+
+  <!-- 📌 SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0">
+    <div class="p-5 space-y-6">
+      <!-- BRAND LOGO -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-car-battery"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-semibold text-slate-900 leading-none">UPS INSPECTOR</h1>
+          <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
+        </div>
+      </div>
+
+      <!-- MENU GROUP 1: APPLICATIONS -->
+      <div class="space-y-1">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+        <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+        </a>
+        <a href="ups.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-car-battery w-4 text-emerald-400"></i> UPS Inspector
+        </a>
+      </div>
+
+      <!-- MENU GROUP 2: QUICK ACTIONS -->
+      <div class="space-y-1 border-t border-slate-100 pt-4">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">UPS NAVIGATION</p>
+        <button onclick="switchUpsSubTab('form')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-plus w-4"></i> บันทึกผลตรวจเช็ก
+        </button>
+        <button onclick="switchUpsSubTab('list')" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-table-list w-4"></i> ประวัติการตรวจ
+        </button>
+      </div>
+    </div>
+
+    <!-- SYSTEM INFO FOOTER -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-400">
+      <p>Database: <span class="text-emerald-600 font-mono">UPS-Inspector</span></p>
+    </div>
+  </aside>
+
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
+      <span class="text-xs font-semibold">UPS INSPECTOR</span>
+    </div>
+    <div class="flex gap-2">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-emerald-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+    </div>
+  </div>
+
+  <!-- 🖥️ MAIN CONTENT AREA -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-7xl mx-auto overflow-y-auto">
+    <!-- ใส่ส่วน แบบฟอร์ม UPS และ ตารางประวัติ UPS ตามเดิม -->
+    <h2 class="text-lg font-semibold text-slate-900 mb-4">UPS & BATTERY INSPECTOR</h2>
+    <!-- ... Content อยู่ตรงนี้ ... -->
+  </main>
+
+</body>
+</html>
