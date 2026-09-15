@@ -32,7 +32,7 @@
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR NAVIGATION (ตรงธีมกับอีก 2 หน้า) -->
+  <!-- 📌 SIDEBAR NAVIGATION -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
@@ -269,7 +269,7 @@
       <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-users text-indigo-600"></i> สรุปอุปกรณ์แยกตามผู้ครอบครอง (Holders)
+            <i class="fa-solid fa-users text-indigo-600"></i> สรุปอุปกรณ์แยกตามผู้ครอบครอง (HOLDERS)
           </h3>
           <span id="holderCountBadge" class="text-[11px] bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium">0 คน</span>
         </div>
@@ -303,29 +303,29 @@
         </div>
       </div>
 
-      <!-- 📊 MODERN ENTERPRISE TABLE -->
-      <div class="overflow-x-auto rounded-xl border border-slate-200 custom-scroll bg-white">
-        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
-          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider sticky top-0">
+      <!-- 📊 MODERN ENTERPRISE TABLE (แก้ปัญหาตารางตกขอบ + ล็อกปุ่มขวาสุด) -->
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 custom-scroll bg-white shadow-sm">
+        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap min-w-max">
+          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider sticky top-0 z-10">
             <tr>
-              <th class="p-3.5 text-center">No.</th>
-              <th class="p-3.5">Name</th>
-              <th class="p-3.5">Position</th>
-              <th class="p-3.5">Model</th>
-              <th class="p-3.5">Type</th>
-              <th class="p-3.5">Department</th>
-              <th class="p-3.5">CPU</th>
-              <th class="p-3.5">Storage</th>
-              <th class="p-3.5">RAM</th>
-              <th class="p-3.5">OS</th>
-              <th class="p-3.5">Serial number</th>
-              <th class="p-3.5">Adapter</th>
-              <th class="p-3.5">Monitor</th>
-              <th class="p-3.5">IP Address</th>
-              <th class="p-3.5">Accessory</th>
-              <th class="p-3.5">UPS</th>
-              <th class="p-3.5">Status</th>
-              <th class="p-3.5 text-center">Actions</th>
+              <th class="py-4 px-4 text-center border-b border-slate-800">No.</th>
+              <th class="py-4 px-4 border-b border-slate-800">Name (ผู้ครองครอง)</th>
+              <th class="py-4 px-4 border-b border-slate-800">Position</th>
+              <th class="py-4 px-4 border-b border-slate-800">Model</th>
+              <th class="py-4 px-4 border-b border-slate-800">Type</th>
+              <th class="py-4 px-4 border-b border-slate-800">Dept</th>
+              <th class="py-4 px-4 border-b border-slate-800">CPU</th>
+              <th class="py-4 px-4 border-b border-slate-800">Storage</th>
+              <th class="py-4 px-4 border-b border-slate-800">RAM</th>
+              <th class="py-4 px-4 border-b border-slate-800">OS</th>
+              <th class="py-4 px-4 border-b border-slate-800">Serial Number</th>
+              <th class="py-4 px-4 border-b border-slate-800">Adapter</th>
+              <th class="py-4 px-4 border-b border-slate-800">Monitor</th>
+              <th class="py-4 px-4 border-b border-slate-800">IP Address</th>
+              <th class="py-4 px-4 border-b border-slate-800">Accessory</th>
+              <th class="py-4 px-4 border-b border-slate-800">UPS</th>
+              <th class="py-4 px-4 border-b border-slate-800">Status</th>
+              <th class="py-4 px-4 text-center border-b border-slate-800 sticky right-0 bg-slate-900 z-20">Actions</th>
             </tr>
           </thead>
           <tbody id="inventoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -453,7 +453,6 @@
       renderInventoryTable();
     }
 
-    // 🔍 แสดงสรุปการถือครองแยกตามบุคคล
     function renderUserAssetSummary() {
       const container = document.getElementById('holderCardsContainer');
       if (!container) return;
@@ -481,7 +480,7 @@
       }
 
       container.innerHTML = holders.map(h => `
-        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between space-y-2">
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between space-y-2">
           <div>
             <div class="flex items-center justify-between gap-2">
               <h4 class="text-xs font-semibold text-slate-900 truncate">${h.name}</h4>
@@ -520,26 +519,26 @@
 
         return `
           <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="p-3.5 text-center font-mono font-medium text-slate-400 text-[11px]">${index + 1}</td>
-            <td class="p-3.5 font-semibold text-slate-900">${r.name || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.position || '-'}</td>
-            <td class="p-3.5 font-medium text-slate-800">${r.model || '-'}</td>
-            <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[10px] font-semibold border border-slate-200">${r.type || '-'}</span></td>
-            <td class="p-3.5 font-medium text-slate-700">${r.department || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.cpu || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.storage || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.ram || '-'}</td>
-            <td class="p-3.5 text-slate-600">${r.os || '-'}</td>
-            <td class="p-3.5 font-mono text-[11px] text-slate-600">${r.serial_number || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.adapter || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.monitor || '-'}</td>
-            <td class="p-3.5 font-mono text-indigo-600 font-medium">${r.ip || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.accessory || '-'}</td>
-            <td class="p-3.5 text-slate-500">${r.ups || '-'}</td>
-            <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${statusBadge}">${r.status || 'In Use'}</span></td>
-            <td class="p-3.5 text-center space-x-1">
-              <button onclick="editAsset(${r.id})" class="text-slate-400 hover:text-slate-900 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteAsset(${r.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button>
+            <td class="py-3.5 px-4 text-center font-mono font-medium text-slate-400 text-[11px]">${index + 1}</td>
+            <td class="py-3.5 px-4 font-semibold text-slate-900">${r.name || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-600">${r.position || '-'}</td>
+            <td class="py-3.5 px-4 font-medium text-slate-800">${r.model || '-'}</td>
+            <td class="py-3.5 px-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[10px] font-semibold border border-slate-200">${r.type || '-'}</span></td>
+            <td class="py-3.5 px-4 font-medium text-slate-700">${r.department || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-600">${r.cpu || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-600">${r.storage || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-600">${r.ram || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-600">${r.os || '-'}</td>
+            <td class="py-3.5 px-4 font-mono text-[11px] text-slate-600">${r.serial_number || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-500">${r.adapter || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-500">${r.monitor || '-'}</td>
+            <td class="py-3.5 px-4 font-mono text-indigo-600 font-semibold">${r.ip || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-500">${r.accessory || '-'}</td>
+            <td class="py-3.5 px-4 text-slate-500">${r.ups || '-'}</td>
+            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold border ${statusBadge}">${r.status || 'In Use'}</span></td>
+            <td class="py-3.5 px-4 text-center space-x-1 sticky right-0 bg-white/95 backdrop-blur-sm border-l border-slate-100 shadow-sm">
+              <button onclick="editAsset(${r.id})" class="text-slate-400 hover:text-indigo-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors" title="Edit"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteAsset(${r.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
