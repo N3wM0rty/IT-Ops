@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT Task & Shift Tracker</title>
+  <title>UPS & Battery Inspector</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
@@ -30,572 +31,406 @@
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="max-w-md mx-auto my-20 mini-card p-8 space-y-6 w-full">
-    <div class="text-center space-y-3">
-      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
-        <i class="fa-solid fa-laptop-code"></i>
+  <!-- 📌 SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
+    <div class="p-5 space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-car-battery"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-semibold text-slate-900 leading-none">UPS INSPECTOR</h1>
+          <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">IT TRACKER</h1>
-        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks</p>
+
+      <div class="space-y-1">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+        <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+        </a>
+        <a href="ups.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-car-battery w-4 text-emerald-400"></i> UPS Inspector
+        </a>
+      </div>
+
+      <div class="space-y-1 border-t border-slate-100 pt-4">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">UPS NAVIGATION</p>
+        <button onclick="switchUpsSubTab('form')" id="sideBtnForm" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-plus w-4"></i> บันทึกผลตรวจเช็ก
+        </button>
+        <button onclick="switchUpsSubTab('list')" id="sideBtnList" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
+          <i class="fa-solid fa-table-list w-4"></i> ประวัติการตรวจ
+        </button>
       </div>
     </div>
 
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
-        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
+    <!-- 👤 USER PROFILE & LOGOUT FOOTER -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+      <div class="flex items-center justify-between">
+        <div>
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
+          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
+        </div>
+        <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-key mr-1"></i> Password</label>
-        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
-      </button>
-    </form>
-    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
+    </div>
+  </aside>
+
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
+      <span class="text-xs font-semibold">UPS INSPECTOR</span>
+    </div>
+    <div class="flex gap-2 items-center">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-emerald-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
   </div>
 
-  <!-- MAIN APP WITH SIDEBAR -->
-  <div id="mainDashboard" class="hidden flex w-full min-h-screen">
+  <!-- 🖥️ MAIN CONTENT -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
     
-    <!-- 📌 SIDEBAR NAVIGATION -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex h-screen sticky top-0">
-      <div class="p-5 space-y-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-            <i class="fa-solid fa-microchip"></i>
-          </div>
-          <div>
-            <h1 class="text-sm font-semibold text-slate-900 leading-none">IT OPERATIONS</h1>
-            <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
-          </div>
-        </div>
-
-        <div class="space-y-1">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
-          <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
-          </a>
-          <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
-          </a>
-        </div>
-
-        <div class="space-y-1 border-t border-slate-100 pt-4">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">TASK NAVIGATION</p>
-          <button onclick="switchTab('tasks')" id="sideBtnTasks" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-folder-open w-4"></i> Task Directory
-          </button>
-          <button onclick="switchTab('createTask')" id="sideBtnCreateTask" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-plus w-4"></i> Create New Task
-          </button>
-          <button onclick="switchTab('shifts')" id="sideBtnShifts" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-user-clock w-4"></i> Shift Management
-          </button>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-        <div class="flex items-center justify-between">
-          <div>
-            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate max-w-[130px]">user@resort.com</p>
-            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase">STAFF</span>
-          </div>
-          <button onclick="handleLogout()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs" title="Logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- 📱 MOBILE HEADER -->
-    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
-        <span class="text-xs font-semibold">IT TASK TRACKER</span>
-      </div>
-      <div class="flex gap-2">
-        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
-        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
-      </div>
-    </div>
-
-    <!-- 🖥️ MAIN CONTENT -->
-    <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
-      
-      <!-- PAGE 1: CREATE TASK PAGE -->
-      <div id="viewCreateTask" class="hidden max-w-2xl mx-auto space-y-6">
-        <div class="mini-card p-6 md:p-8 space-y-5">
-          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-pen-to-square text-slate-500"></i> Record New Task
+    <div class="mini-card p-6 md:p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-car-battery text-emerald-600"></i> UPS & BATTERY INSPECTOR
           </h2>
-          <form id="taskForm" class="space-y-4">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-heading mr-1"></i> Task Title / Name</label>
-              <input type="text" id="title" required placeholder="e.g. Reset Password" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Location</label>
-                <select id="location" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Radisson" selected>Radisson</option>
-                  <option value="Laya Suites">Laya Suites</option>
-                  <option value="BB Horizon">BB Horizon</option>
-                  <option value="Other Location">Other Location</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-calendar-day mr-1"></i> Date</label>
-                <input type="date" id="taskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user mr-1"></i> Reporter</label>
-                <input type="text" id="reporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-building mr-1"></i> Dept</label>
-                <input type="text" id="department" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user-gear mr-1"></i> Assignee</label>
-                <input type="text" id="assignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-layer-group mr-1"></i> Category</label>
-              <select id="category" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="POS">POS</option>
-                <option value="PC/ Laptop">PC/ Laptop</option>
-                <option value="Opera Cloud">Opera Cloud</option>
-                <option value="MC">MC</option>
-                <option value="Door">Door</option>
-                <option value="SUN">SUN</option>
-                <option value="Wi-Fi">Wi-Fi</option>
-                <option value="Passport">Passport</option>
-                <option value="CCTV">CCTV</option>
-                <option value="TV">TV</option>
-                <option value="Phone">Phone</option>
-                <option value="Silverman">Silverman</option>
-                <option value="Interface">Interface</option>
-                <option value="Print">Print</option>
-                <option value="other">other</option>
-                <option value="General work" selected>General work</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-bars-progress mr-1"></i> Status</label>
-                <select id="status" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Pending" selected>Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Priority</label>
-                <select id="priority" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Normal">Normal</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-align-left mr-1"></i> Description</label>
-              <textarea id="description" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
-            </div>
-
-            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Save Task
-            </button>
-          </form>
+          <p class="text-slate-500 text-xs mt-0.5">ระบบบันทึก ตรวจสอบพารามิเตอร์ไฟฟ้า และประวัติอุปกรณ์ UPS</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchUpsSubTab('form')" id="btnTabForm" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> บันทึกผลตรวจ
+          </button>
+          <button onclick="switchUpsSubTab('list')" id="btnTabList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
+          </button>
         </div>
       </div>
+      
+      <!-- 📝 FORM VIEW -->
+      <div id="upsSubViewForm" class="space-y-4">
+        <form id="upsForm" class="space-y-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">1. ข้อมูลสถานที่ (Location)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Build (อาคาร)</label><input type="text" id="upsBuild" required placeholder="Main Building" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Floor (ชั้น)</label><input type="text" id="upsFloor" required placeholder="2nd Floor" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Side (ตำแหน่ง)</label><input type="text" id="upsSide" placeholder="Server Room" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
+          </div>
 
-      <!-- PAGE 2: TASKS LIST VIEW -->
-      <div id="viewTasks" class="space-y-6">
-        <!-- TODAY SHIFT SUMMARY CARD -->
-        <div class="mini-card p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h3 class="text-sm font-medium tracking-wide flex items-center gap-2 text-slate-200">
-                <i class="fa-solid fa-clock text-slate-400"></i> TODAY ON-DUTY SHIFT (<span id="todayDateStr"></span>)
-              </h3>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-sun mr-1 text-amber-400"></i>MORNING</span>
-                  <span id="summaryMorning" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-moon mr-1 text-indigo-400"></i>EVENING</span>
-                  <span id="summaryEvening" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-phone-volume mr-1 text-emerald-400"></i>ON-CALL</span>
-                  <span id="summaryOnCall" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-user-slash mr-1 text-rose-400"></i>LEAVE</span>
-                  <span id="summaryLeave" class="text-sm font-semibold text-white">-</span>
-                </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xs font-semibold text-slate-500 uppercase">2. ข้อมูลอุปกรณ์</h3>
+              <button type="button" onclick="applyUpsPreset()" class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> เติมรุ่นอัตโนมัติ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div><label class="block text-xs font-medium mb-1">UPS (รุ่น)</label><input type="text" id="upsModel" value="SRVPM2KRIL" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">UPS Serial No.</label><input type="text" id="upsSerial" placeholder="852221400268" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery (รุ่น)</label><input type="text" id="upsBatteryModel" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Battery Serial No.</label><input type="text" id="upsBatterySerial" placeholder="852203A02477" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">3. ค่าทางไฟฟ้าและสถานะ</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div><label class="block text-xs font-medium mb-1">Capacity</label><input type="text" id="upsCapacity" placeholder="2 kVA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Input (V)</label><input type="text" id="upsInputV" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Output (V)</label><input type="text" id="upsOutputV" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Load (%)</label><input type="text" id="upsLoad" placeholder="100%" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium mb-1">Status</label>
+                <select id="upsStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                  <option value="OK">OK (ปกติ)</option>
+                  <option value="Need Replace">Need Replace (ต้องเปลี่ยน)</option>
+                  <option value="Warning">Warning (เตือน)</option>
+                  <option value="Fault">Fault (ชำรุด)</option>
+                </select>
               </div>
-            </div>
-            <div class="flex sm:flex-col gap-2 justify-end">
-              <button onclick="sendLineShiftAlertFromUI()" class="bg-emerald-600 hover:bg-emerald-500 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-                <i class="fa-brands fa-line"></i> Push Line
-              </button>
-              <button onclick="switchTab('shifts')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-user-pen"></i> Edit Shift
-              </button>
+              <div><label class="block text-xs font-medium mb-1">Inspection Date</label><input type="date" id="upsDate" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+              <div><label class="block text-xs font-medium mb-1">Inspector</label><input type="text" id="upsInspector" required placeholder="ผู้ตรวจสอบ" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
             </div>
           </div>
-        </div>
 
-        <!-- STATS COUNTER -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Total Tasks</p><p id="statTotal" class="text-2xl font-semibold text-slate-900 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-folder-open"></i></div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">4. รูปถ่ายประกอบ</h3>
+            <input type="file" id="upsPhoto" accept="image/*" capture="environment" onchange="previewUpsImage(event)" class="w-full mini-input rounded-xl p-2 text-xs">
+            <div id="upsImagePreviewGroup" class="hidden relative w-32 h-32 mt-2">
+              <img id="upsImagePreview" class="w-full h-full object-cover rounded-xl border">
+              <button type="button" onclick="removeUpsImage()" class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full w-5 h-5 text-xs">×</button>
+            </div>
           </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Completed</p><p id="statCompleted" class="text-2xl font-semibold text-emerald-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
-          </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">In Progress</p><p id="statInProgress" class="text-2xl font-semibold text-sky-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-spinner"></i></div>
-          </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Pending</p><p id="statPending" class="text-2xl font-semibold text-amber-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-hourglass-start"></i></div>
-          </div>
-        </div>
 
-        <!-- TASK DIRECTORY TABLE -->
-        <div class="mini-card p-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
-            </h2>
-            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+          <button type="submit" id="saveUpsBtn" class="w-full bg-slate-900 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลการตรวจ UPS
+          </button>
+        </form>
+      </div>
+
+      <!-- 📊 LIST VIEW -->
+      <div id="upsSubViewList" class="hidden space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 border-b pb-3">
+          <span id="upsRecordCount" class="text-xs font-semibold text-slate-600">0 รายการ</span>
+          <div class="flex gap-2">
+            <button onclick="exportUpsExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
               <i class="fa-solid fa-file-excel"></i> Export Excel
             </button>
           </div>
+        </div>
 
-          <div class="flex gap-2">
-            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID (#2026-00001)..." class="w-full mini-input rounded-xl p-2 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border">
+          <div>
+            <label class="text-[11px] font-medium text-slate-500">กรองตามอาคาร (Build)</label>
+            <select id="filterUpsBuild" onchange="filterUpsRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">ทั้งหมดทุกอาคาร</option>
+            </select>
           </div>
-          
-          <div class="overflow-x-auto rounded-xl border border-slate-100">
-            <table class="w-full text-left text-xs text-slate-700">
-              <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
-                <tr>
-                  <th class="p-3">Case ID</th>
-                  <th class="p-3">Task & Location</th>
-                  <th class="p-3">Personnel</th>
-                  <th class="p-3">Category</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-            </table>
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
-            <div id="pageInfo" class="font-medium">Showing 0-0 of 0 tasks</div>
-            <div class="flex items-center gap-1" id="paginationButtons"></div>
+          <div>
+            <label class="text-[11px] font-medium text-slate-500">ค้นหาข้อมูล</label>
+            <input type="text" id="searchUpsInput" onkeyup="filterUpsRecords()" placeholder="ค้นหา S/N, ผู้ตรวจ, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
           </div>
         </div>
-      </div>
 
-      <!-- PAGE 3: SHIFTS MANAGEMENT VIEW -->
-      <div id="viewShifts" class="hidden space-y-6">
-        <div class="mini-card p-6 md:p-8 space-y-6">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-user-clock text-slate-500"></i> Shift Management System
-              </h2>
-              <p class="text-slate-500 text-xs mt-0.5">Select date to view or update daily shift duty</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="date" id="manageShiftDate" onchange="loadShiftForDate()" class="mini-input rounded-xl p-2 text-xs">
-              <button onclick="loadShiftForDate()" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1">
-                <i class="fa-solid fa-rotate"></i> Load
-              </button>
-            </div>
-          </div>
-
-          <form id="shiftManageForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-sun text-amber-500"></i> Morning Shift (08:00 - 17:00)
-              </h4>
-              <input type="text" id="mMorning" required placeholder="e.g. New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-moon text-indigo-500"></i> Evening Shift (13:00 - 22:00)
-              </h4>
-              <input type="text" id="mEvening" placeholder="e.g. P'Puen ITM" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-phone-volume text-emerald-600"></i> Standby On-Call
-              </h4>
-              <input type="text" id="mOnCall" required placeholder="e.g. New / P'Puen" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-user-slash text-rose-500"></i> Leave & Day Off
-              </h4>
-              <input type="text" id="mLeave" placeholder="e.g. None" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="md:col-span-2 flex items-center justify-end gap-3 pt-2">
-              <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn px-6 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Save Shift Schedule
-              </button>
-            </div>
-          </form>
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase border-b">
+              <tr>
+                <th class="p-3">Build/Floor</th>
+                <th class="p-3">UPS Details</th>
+                <th class="p-3">Battery</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Inspector</th>
+                <th class="p-3">Picture</th>
+                <th class="p-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="upsTableBody" class="divide-y bg-white"></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-    </main>
-  </div>
+  </main>
 
   <script>
+    // 1️⃣ Config Supabase สำหรับ IT Task (เช็กสิทธิ์ Auth User)
     const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
     const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
 
-    let currentUser = null, rawTasks = [], currentTasks = [];
-    let currentPage = 1, itemsPerPage = 15;
-    let todayShiftCache = { morning: '-', evening: '-', onCall: '-', leave: 'ไม่มี' };
+    // 2️⃣ Config Supabase สำหรับ UPS & Battery Inspector
+    const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
+    const supabaseUPS = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
 
-    function switchTab(tabName) {
-      document.getElementById('viewCreateTask').classList.add('hidden');
-      document.getElementById('viewTasks').classList.add('hidden');
-      document.getElementById('viewShifts').classList.add('hidden');
+    let rawUpsRecords = [];
+    let filteredUpsRecords = [];
+    let currentUpsBase64Image = '';
 
-      if (tabName === 'createTask') document.getElementById('viewCreateTask').classList.remove('hidden');
-      if (tabName === 'tasks') document.getElementById('viewTasks').classList.remove('hidden');
-      if (tabName === 'shifts') {
-        document.getElementById('viewShifts').classList.remove('hidden');
-        if (!document.getElementById('manageShiftDate').value) {
-          document.getElementById('manageShiftDate').value = new Date().toISOString().split('T')[0];
-        }
-        loadShiftForDate();
+    document.getElementById('upsDate').value = new Date().toISOString().split('T')[0];
+
+    async function checkAuth() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).maybeSingle();
+        document.getElementById('userRoleBadge').innerText = profile?.role || 'staff';
+      } else {
+        // หากยังไม่ได้ Login ให้เด้งกลับไปหน้า index.html (Login Page)
+        window.location.href = 'index.html';
       }
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
     }
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
-      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3500);
     }
 
-    async function checkAuth() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        currentUser = user;
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('mainDashboard').classList.remove('hidden');
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-        fetchTodayShiftSummary();
-        fetchTasks();
-        switchTab('tasks');
-      } else {
-        document.getElementById('loginPage').classList.remove('hidden');
+    function switchUpsSubTab(subTab) {
+      document.getElementById('upsSubViewForm').classList.toggle('hidden', subTab !== 'form');
+      document.getElementById('upsSubViewList').classList.toggle('hidden', subTab !== 'list');
+
+      document.getElementById('btnTabForm').className = subTab === 'form' ? 'bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+      document.getElementById('btnTabList').className = subTab === 'list' ? 'bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5';
+
+      if (subTab === 'list') fetchUpsRecords();
+    }
+
+    function applyUpsPreset() {
+      document.getElementById('upsModel').value = 'SRVPM2KRIL';
+      document.getElementById('upsBatteryModel').value = 'SRV72RLBP-9A';
+    }
+
+    function previewUpsImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width, height = img.height, max_size = 500;
+            if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
+            else { if (height > max_size) { width *= max_size / height; height = max_size; } }
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            currentUpsBase64Image = canvas.toDataURL('image/jpeg', 0.5);
+            document.getElementById('upsImagePreview').src = currentUpsBase64Image;
+            document.getElementById('upsImagePreviewGroup').classList.remove('hidden');
+          }
+          img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
       }
     }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    function removeUpsImage() {
+      currentUpsBase64Image = '';
+      document.getElementById('upsPhoto').value = '';
+      document.getElementById('upsImagePreviewGroup').classList.add('hidden');
+    }
+
+    document.getElementById('upsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('loginEmail').value,
-        password: document.getElementById('loginPassword').value
-      });
-      if (error) {
-        document.getElementById('loginError').innerText = error.message;
-        document.getElementById('loginError').classList.remove('hidden');
-      } else { checkAuth(); }
-    });
+      const saveBtn = document.getElementById('saveUpsBtn');
+      saveBtn.disabled = true;
 
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
-      location.reload();
-    }
-
-    // --- SHIFT MANAGEMENT FUNCTIONS ---
-    async function fetchTodayShiftSummary() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      document.getElementById('todayDateStr').innerText = todayStr;
-
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', todayStr)
-        .maybeSingle();
-
-      if (data) {
-        todayShiftCache = {
-          morning: data.morning_staff || '-',
-          evening: data.evening_staff || '-',
-          onCall: data.on_call_staff || '-',
-          leave: data.leave_info || 'ไม่มี'
-        };
-      }
-
-      document.getElementById('summaryMorning').innerText = todayShiftCache.morning;
-      document.getElementById('summaryEvening').innerText = todayShiftCache.evening;
-      document.getElementById('summaryOnCall').innerText = todayShiftCache.onCall;
-      document.getElementById('summaryLeave').innerText = todayShiftCache.leave;
-    }
-
-    async function loadShiftForDate() {
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      if (!selectedDate) return;
-
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', selectedDate)
-        .maybeSingle();
-
-      if (data) {
-        document.getElementById('mMorning').value = data.morning_staff || '';
-        document.getElementById('mEvening').value = data.evening_staff || '';
-        document.getElementById('mOnCall').value = data.on_call_staff || '';
-        document.getElementById('mLeave').value = data.leave_info || '';
-      } else {
-        document.getElementById('mMorning').value = '';
-        document.getElementById('mEvening').value = '';
-        document.getElementById('mOnCall').value = '';
-        document.getElementById('mLeave').value = '';
-      }
-    }
-
-    document.getElementById('shiftManageForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      
-      const shiftPayload = {
-        shift_date: selectedDate,
-        morning_staff: document.getElementById('mMorning').value,
-        evening_staff: document.getElementById('mEvening').value,
-        on_call_staff: document.getElementById('mOnCall').value,
-        leave_info: document.getElementById('mLeave').value || 'ไม่มีผู้แจ้งลา'
+      const newRecord = {
+        build: document.getElementById('upsBuild').value,
+        floor: document.getElementById('upsFloor').value,
+        side: document.getElementById('upsSide').value,
+        ups: document.getElementById('upsModel').value,
+        model_serial_no: document.getElementById('upsSerial').value,
+        battery: document.getElementById('upsBatteryModel').value,
+        battery_model_serial_no: document.getElementById('upsBatterySerial').value,
+        capacity: document.getElementById('upsCapacity').value,
+        input_voltage: document.getElementById('upsInputV').value,
+        output_voltage: document.getElementById('upsOutputV').value,
+        load_percent: document.getElementById('upsLoad').value,
+        status: document.getElementById('upsStatus').value,
+        inspection_date: document.getElementById('upsDate').value,
+        picture: currentUpsBase64Image,
+        inspector: document.getElementById('upsInspector').value
       };
 
-      const { error } = await supabaseClient
-        .from('shifts')
-        .upsert(shiftPayload, { onConflict: 'shift_date' });
-
-      if (error) {
-        showToast('ERROR', error.message, 'error');
-      } else {
-        showToast('SUCCESS!', `Updated shift schedule for ${selectedDate}`, 'success');
-        fetchTodayShiftSummary();
-      }
-    });
-
-    async function sendLineShiftAlertFromUI() {
       try {
-        const { error } = await supabaseClient.rpc('send_line_shift_now');
-        if (error) {
-          showToast('PUSH FAILED', error.message, 'error');
-        } else {
-          showToast('LINE PUSHED!', 'Shift schedule sent to LINE group', 'success');
-        }
+        const { error } = await supabaseUPS.from('ups_inspections').insert([newRecord]);
+        if (error) throw error;
+        showToast('SUCCESS', 'บันทึกการตรวจเช็ก UPS เรียบร้อย');
+        e.target.reset(); removeUpsImage(); applyUpsPreset();
+        document.getElementById('upsDate').value = new Date().toISOString().split('T')[0];
+        switchUpsSubTab('list');
       } catch (err) {
         showToast('ERROR', err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
       }
-    }
-
-    // --- TASK MANAGEMENT FUNCTIONS ---
-    async function fetchTasks() {
-      const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
-      rawTasks = data || [];
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      currentTasks = rawTasks.filter(t => !search || (t.title && t.title.toLowerCase().includes(search)));
-      
-      document.getElementById('statTotal').innerText = currentTasks.length;
-      document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
-      document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
-      document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
-
-      renderTablePage();
-    }
-
-    function renderTablePage() {
-      const tbody = document.getElementById('taskTableBody');
-      tbody.innerHTML = '';
-      currentTasks.forEach(t => {
-        const tr = document.createElement('tr');
-        const caseIdStr = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
-        tr.innerHTML = `
-          <td class="p-3"><span class="bg-slate-100 text-slate-700 font-mono text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200">${caseIdStr}</span></td>
-          <td class="p-3"><b>${t.title||'-'}</b><br><span class="text-[10px] text-slate-400">${t.location||'-'}</span></td>
-          <td class="p-3">${t.reporter||'-'}</td>
-          <td class="p-3">${t.category||'-'}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100">${t.status}</span></td>
-          <td class="p-3 text-center"><button onclick="deleteTask(${t.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    document.getElementById('taskForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newTask = {
-        user_id: currentUser.id,
-        date: document.getElementById('taskDate').value,
-        title: document.getElementById('title').value,
-        location: document.getElementById('location').value,
-        reporter: document.getElementById('reporter').value,
-        department: document.getElementById('department').value,
-        assignee: document.getElementById('assignee').value,
-        category: document.getElementById('category').value,
-        priority: document.getElementById('priority').value,
-        status: document.getElementById('status').value,
-        description: document.getElementById('description').value
-      };
-      await supabaseClient.from('tasks').insert([newTask]);
-      showToast('SUCCESS', 'บันทึก Task เรียบร้อย');
-      fetchTasks(); switchTab('tasks');
     });
 
-    async function deleteTask(id) {
-      if (confirm('ยืนยันลบ?')) {
-        await supabaseClient.from('tasks').delete().eq('id', id);
-        fetchTasks();
+    async function fetchUpsRecords() {
+      const { data, error } = await supabaseUPS.from('ups_inspections').select('*').order('created_at', { ascending: false });
+      if (!error) {
+        rawUpsRecords = data || [];
+        populateUpsBuildFilter();
+        filterUpsRecords();
       }
+    }
+
+    function populateUpsBuildFilter() {
+      const select = document.getElementById('filterUpsBuild');
+      const val = select.value;
+      const builds = [...new Set(rawUpsRecords.map(r => r.build).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">ทั้งหมดทุกอาคาร</option>';
+      builds.forEach(b => { select.innerHTML += `<option value="${b}">${b}</option>`; });
+      select.value = val;
+    }
+
+    function filterUpsRecords() {
+      const build = document.getElementById('filterUpsBuild').value;
+      const search = document.getElementById('searchUpsInput').value.toLowerCase();
+      filteredUpsRecords = rawUpsRecords.filter(r => {
+        const mBuild = !build || r.build === build;
+        const mSearch = !search || [r.build, r.ups, r.model_serial_no, r.inspector, r.battery].join(' ').toLowerCase().includes(search);
+        return mBuild && mSearch;
+      });
+      document.getElementById('upsRecordCount').innerText = `${filteredUpsRecords.length} / ${rawUpsRecords.length} รายการ`;
+      renderUpsTable();
+    }
+
+    function renderUpsTable() {
+      const tbody = document.getElementById('upsTableBody');
+      if (filteredUpsRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่พบข้อมูลการตรวจเช็ก UPS</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredUpsRecords.map(r => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3"><b>${r.build||'-'}</b><br><span class="text-[10px] text-slate-500">Fl: ${r.floor||'-'} | ${r.side||'-'}</span></td>
+          <td class="p-3">${r.ups||'-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.model_serial_no||'-'}</span></td>
+          <td class="p-3">${r.battery||'-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.battery_model_serial_no||'-'}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 border">${r.status||'OK'}</span></td>
+          <td class="p-3"><b>${r.inspector||'-'}</b><br><span class="text-[10px] text-slate-400">${r.inspection_date||'-'}</span></td>
+          <td class="p-3">${r.picture ? `<img src="${r.picture}" class="w-9 h-9 object-cover rounded border cursor-pointer" onclick="window.open('${r.picture}')">` : '-'}</td>
+          <td class="p-3 text-center"><button onclick="deleteUpsRecord(${r.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function deleteUpsRecord(id) {
+      if (confirm('ยืนยันลบรายการนี้?')) {
+        await supabaseUPS.from('ups_inspections').delete().eq('id', id);
+        fetchUpsRecords();
+      }
+    }
+
+    async function exportUpsExcel() {
+      if (filteredUpsRecords.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลส่งออก', 'error');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('UPS_Inspections');
+
+      worksheet.columns = [
+        { header: 'Build', key: 'build', width: 15 },
+        { header: 'Floor', key: 'floor', width: 10 },
+        { header: 'Side', key: 'side', width: 15 },
+        { header: 'UPS', key: 'ups', width: 20 },
+        { header: 'UPS Serial', key: 'model_serial_no', width: 20 },
+        { header: 'Battery', key: 'battery', width: 20 },
+        { header: 'Battery Serial', key: 'battery_model_serial_no', width: 22 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Inspection Date', key: 'inspection_date', width: 16 },
+        { header: 'Inspector', key: 'inspector', width: 15 }
+      ];
+
+      filteredUpsRecords.forEach(r => { worksheet.addRow(r); });
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `UPS_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
     }
 
     checkAuth();
+    switchUpsSubTab('form');
   </script>
 </body>
 </html>
