@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Asset Inventory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen flex bg-slate-50 antialiased">
+
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- 📌 SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start">
+    <div class="p-5 space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-semibold text-slate-900 leading-none">IT INVENTORY</h1>
+          <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+        <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+        </a>
+        <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+        </a>
+        <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-boxes-stacked w-4 text-amber-400"></i> Asset Inventory
+        </a>
+      </div>
+    </div>
+
+    <!-- 👤 USER PROFILE & LOGOUT -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+      <div class="flex items-center justify-between gap-2">
+        <div class="overflow-hidden">
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
+          <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+        </div>
+        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-boxes-stacked"></i></div>
+      <span class="text-xs font-semibold">IT INVENTORY</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-amber-500 text-white text-[11px] px-2 py-1 rounded-lg">Stock</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+
+  <!-- 🖥️ MAIN CONTENT -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-7xl mx-auto space-y-6 w-full">
+    
+    <div class="mini-card p-6 md:p-8 space-y-6">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-desktop text-amber-500"></i> IT ASSET INVENTORY MANAGEMENT
+          </h2>
+          <p class="text-slate-500 text-xs mt-0.5">ระบบลงทะเบียน ตรวจสอบ และติดตามสเปกอุปกรณ์ไอที (Database: IT_Ops)</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleAddItemForm()" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์ใหม่
+          </button>
+          <button onclick="exportInventoryExcel()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-file-excel"></i> Export Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- 📝 FORM ADD / EDIT ASSET (Hidden by default) -->
+      <div id="addItemFormCard" class="hidden bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+        <h3 class="text-xs font-semibold text-slate-700 uppercase flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-500"></i> บันทึกข้อมูลอุปกรณ์ไอที
+        </h3>
+        <form id="assetForm" class="space-y-4">
+          <input type="hidden" id="assetId">
+          
+          <!-- Group 1: User & Dept -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Name (ชื่อผู้ครองครอง)</label><input type="text" id="aName" required placeholder="เช่น Somchai K." class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Position (ตำแหน่ง)</label><input type="text" id="aPosition" placeholder="เช่น IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Department (แผนก)</label><input type="text" id="aDepartment" required placeholder="เช่น IT, FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">IP Address</label><input type="text" id="aIp" placeholder="192.168.1.100" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+
+          <!-- Group 2: Hardware Specs -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Type (ประเภท)</label>
+              <select id="aType" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="PC">PC Desktop</option>
+                <option value="Laptop">Laptop</option>
+                <option value="All-in-One">All-in-One</option>
+                <option value="Printer">Printer</option>
+                <option value="Monitor">Monitor Only</option>
+                <option value="Server">Server</option>
+                <option value="Network">Network Device</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div><label class="block text-xs font-medium mb-1">Model (ยี่ห้อ/รุ่น)</label><input type="text" id="aModel" placeholder="Dell OptiPlex 7090" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">CPU</label><input type="text" id="aCpu" placeholder="Intel Core i5-11500" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">RAM</label><input type="text" id="aRam" placeholder="16GB DDR4" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+
+          <!-- Group 3: Storage & OS & Serial -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Storage</label><input type="text" id="aStorage" placeholder="SSD 512GB M.2" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">OS (ระบบปฏิบัติการ)</label><input type="text" id="aOs" placeholder="Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Serial Number</label><input type="text" id="aSerial" placeholder="CN12345678" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Status (สถานะ)</label>
+              <select id="aStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="In Use">In Use (กำลังใช้งาน)</option>
+                <option value="Spare">Spare (สำรอง)</option>
+                <option value="Repair">Repair (ส่งซ่อม)</option>
+                <option value="Retired">Retired (ยกเลิกใช้)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Group 4: Accessories -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Monitor (จอภาพ)</label><input type="text" id="aMonitor" placeholder='Dell 24" P2419H' class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Adapter (อแดปเตอร์)</label><input type="text" id="aAdapter" placeholder="Dell 65W Type-C" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">UPS (เครื่องสำรองไฟ)</label><input type="text" id="aUps" placeholder="APC 800VA" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Accessory (อุปกรณ์เสริม)</label><input type="text" id="aAccessory" placeholder="Mouse, KB, Headset" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+            <button type="button" onclick="toggleAddItemForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+            <button type="submit" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูลอุปกรณ์</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- OVERVIEW STAT CARDS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
+          <p class="text-xs font-medium text-slate-500">จำนวนอุปกรณ์ทั้งหมด</p>
+          <p id="statTotalItems" class="text-2xl font-semibold text-slate-900 mt-1">0</p>
+        </div>
+        <div class="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl">
+          <p class="text-xs font-medium text-emerald-700">In Use (กำลังใช้งาน)</p>
+          <p id="statInUse" class="text-2xl font-semibold text-emerald-600 mt-1">0</p>
+        </div>
+        <div class="p-4 bg-amber-50 border border-amber-200/80 rounded-2xl">
+          <p class="text-xs font-medium text-amber-700">Spare (สำรอง)</p>
+          <p id="statSpare" class="text-2xl font-semibold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="p-4 bg-rose-50 border border-rose-200/80 rounded-2xl">
+          <p class="text-xs font-medium text-rose-700">Repair (ส่งซ่อม)</p>
+          <p id="statRepair" class="text-2xl font-semibold text-rose-600 mt-1">0</p>
+        </div>
+      </div>
+
+      <!-- SEARCH & FILTER BAR -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">กรองตามแผนก (Department)</label>
+          <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+            <option value="">ทุกแผนก (All Departments)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">กรองตามประเภท (Type)</label>
+          <select id="filterType" onchange="filterInventoryRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+            <option value="">ทุกประเภท (All Types)</option>
+            <option value="PC">PC Desktop</option>
+            <option value="Laptop">Laptop</option>
+            <option value="All-in-One">All-in-One</option>
+            <option value="Printer">Printer</option>
+            <option value="Monitor">Monitor</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500">ค้นหาข้อมูล</label>
+          <input type="text" id="searchInventoryInput" onkeyup="filterInventoryRecords()" placeholder="ค้นหาชื่อ, S/N, IP, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+      </div>
+
+      <!-- 📊 TABLE -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <table class="w-full text-left text-xs text-slate-700">
+          <thead class="bg-lime-600 text-white font-medium text-[11px] uppercase border-b">
+            <tr>
+              <th class="p-3">No.</th>
+              <th class="p-3">Name</th>
+              <th class="p-3">Position</th>
+              <th class="p-3">Model</th>
+              <th class="p-3">Type</th>
+              <th class="p-3">Department</th>
+              <th class="p-3">CPU</th>
+              <th class="p-3">Storage</th>
+              <th class="p-3">RAM</th>
+              <th class="p-3">OS</th>
+              <th class="p-3">Serial number</th>
+              <th class="p-3">Adapter</th>
+              <th class="p-3">Monitor</th>
+              <th class="p-3">IP</th>
+              <th class="p-3">Accessory</th>
+              <th class="p-3">UPS</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // 1️⃣ Config สำหรับ Auth ผู้ใช้งาน (IT Task)
+    const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+
+    // 2️⃣ Config สำหรับ Database IT_Ops (UPS & Inventory)
+    const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
+    const supabaseOps = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
+
+    let rawInventoryRecords = [];
+    let filteredInventoryRecords = [];
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    async function checkAuth() {
+      const { data: { user } } = await supabaseAuth.auth.getUser();
+      if (user) {
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        fetchInventoryRecords();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    async function handleLogout() {
+      await supabaseAuth.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    function toggleAddItemForm() {
+      const formCard = document.getElementById('addItemFormCard');
+      formCard.classList.toggle('hidden');
+      if (formCard.classList.contains('hidden')) {
+        document.getElementById('assetForm').reset();
+        document.getElementById('assetId').value = '';
+      }
+    }
+
+    document.getElementById('assetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('assetId').value;
+      const payload = {
+        name: document.getElementById('aName').value,
+        position: document.getElementById('aPosition').value,
+        department: document.getElementById('aDepartment').value,
+        type: document.getElementById('aType').value,
+        model: document.getElementById('aModel').value,
+        cpu: document.getElementById('aCpu').value,
+        ram: document.getElementById('aRam').value,
+        storage: document.getElementById('aStorage').value,
+        os: document.getElementById('aOs').value,
+        serial_number: document.getElementById('aSerial').value,
+        adapter: document.getElementById('aAdapter').value,
+        monitor: document.getElementById('aMonitor').value,
+        ip: document.getElementById('aIp').value,
+        accessory: document.getElementById('aAccessory').value,
+        ups: document.getElementById('aUps').value,
+        status: document.getElementById('aStatus').value
+      };
+
+      if (id) {
+        await supabaseOps.from('inventory').update(payload).eq('id', id);
+        showToast('UPDATED', 'อัปเดตข้อมูลอุปกรณ์เรียบร้อย');
+      } else {
+        await supabaseOps.from('inventory').insert([payload]);
+        showToast('SUCCESS', 'เพิ่มอุปกรณ์ใหม่เรียบร้อย');
+      }
+
+      toggleAddItemForm();
+      fetchInventoryRecords();
+    });
+
+    async function fetchInventoryRecords() {
+      const { data, error } = await supabaseOps.from('inventory').select('*').order('id', { ascending: true });
+      if (!error) {
+        rawInventoryRecords = data || [];
+        populateDeptFilter();
+        filterInventoryRecords();
+      }
+    }
+
+    function populateDeptFilter() {
+      const select = document.getElementById('filterDepartment');
+      const val = select.value;
+      const depts = [...new Set(rawInventoryRecords.map(r => r.department).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">ทุกแผนก (All Departments)</option>';
+      depts.forEach(d => { select.innerHTML += `<option value="${d}">${d}</option>`; });
+      select.value = val;
+    }
+
+    function filterInventoryRecords() {
+      const dept = document.getElementById('filterDepartment').value;
+      const type = document.getElementById('filterType').value;
+      const search = document.getElementById('searchInventoryInput').value.toLowerCase();
+
+      filteredInventoryRecords = rawInventoryRecords.filter(r => {
+        const matchDept = !dept || r.department === dept;
+        const matchType = !type || r.type === type;
+        const matchSearch = !search || [r.name, r.position, r.department, r.model, r.serial_number, r.ip, r.cpu].join(' ').toLowerCase().includes(search);
+        return matchDept && matchType && matchSearch;
+      });
+
+      document.getElementById('statTotalItems').innerText = filteredInventoryRecords.length;
+      document.getElementById('statInUse').innerText = filteredInventoryRecords.filter(r => r.status === 'In Use').length;
+      document.getElementById('statSpare').innerText = filteredInventoryRecords.filter(r => r.status === 'Spare').length;
+      document.getElementById('statRepair').innerText = filteredInventoryRecords.filter(r => r.status === 'Repair').length;
+
+      renderInventoryTable();
+    }
+
+    function renderInventoryTable() {
+      const tbody = document.getElementById('inventoryTableBody');
+      if (filteredInventoryRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="18" class="p-6 text-center text-slate-400">ไม่พบรายการอุปกรณ์ไอทีในระบบ</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredInventoryRecords.map((r, index) => {
+        let statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (r.status === 'Spare') statusBadge = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (r.status === 'Repair') statusBadge = 'bg-rose-50 text-rose-700 border-rose-200';
+        if (r.status === 'Retired') statusBadge = 'bg-slate-100 text-slate-600 border-slate-200';
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-3 font-mono font-bold text-slate-500">${index + 1}</td>
+            <td class="p-3 font-semibold text-slate-900 whitespace-nowrap">${r.name || '-'}</td>
+            <td class="p-3 text-slate-600 whitespace-nowrap">${r.position || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.model || '-'}</td>
+            <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-medium">${r.type || '-'}</span></td>
+            <td class="p-3 font-medium text-slate-700 whitespace-nowrap">${r.department || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.cpu || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.storage || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.ram || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.os || '-'}</td>
+            <td class="p-3 font-mono text-[11px] whitespace-nowrap">${r.serial_number || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.adapter || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.monitor || '-'}</td>
+            <td class="p-3 font-mono text-blue-600 whitespace-nowrap">${r.ip || '-'}</td>
+            <td class="p-3 text-slate-500 whitespace-nowrap">${r.accessory || '-'}</td>
+            <td class="p-3 whitespace-nowrap">${r.ups || '-'}</td>
+            <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusBadge}">${r.status || 'In Use'}</span></td>
+            <td class="p-3 text-center whitespace-nowrap space-x-1">
+              <button onclick="editAsset(${r.id})" class="text-slate-600 hover:text-slate-900 p-1"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteAsset(${r.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function editAsset(id) {
+      const item = rawInventoryRecords.find(r => r.id === id);
+      if (!item) return;
+      document.getElementById('assetId').value = item.id;
+      document.getElementById('aName').value = item.name || '';
+      document.getElementById('aPosition').value = item.position || '';
+      document.getElementById('aDepartment').value = item.department || '';
+      document.getElementById('aType').value = item.type || 'PC';
+      document.getElementById('aModel').value = item.model || '';
+      document.getElementById('aCpu').value = item.cpu || '';
+      document.getElementById('aRam').value = item.ram || '';
+      document.getElementById('aStorage').value = item.storage || '';
+      document.getElementById('aOs').value = item.os || '';
+      document.getElementById('aSerial').value = item.serial_number || '';
+      document.getElementById('aAdapter').value = item.adapter || '';
+      document.getElementById('aMonitor').value = item.monitor || '';
+      document.getElementById('aIp').value = item.ip || '';
+      document.getElementById('aAccessory').value = item.accessory || '';
+      document.getElementById('aUps').value = item.ups || '';
+      document.getElementById('aStatus').value = item.status || 'In Use';
+
+      document.getElementById('addItemFormCard').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteAsset(id) {
+      if (confirm('ยืนยันลบรายการอุปกรณ์นี้?')) {
+        await supabaseOps.from('inventory').delete().eq('id', id);
+        showToast('DELETED', 'ลบรายการอุปกรณ์เรียบร้อย');
+        fetchInventoryRecords();
+      }
+    }
+
+    async function exportInventoryExcel() {
+      if (filteredInventoryRecords.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลสำหรับส่งออก', 'error');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('IT_Asset_Inventory');
+
+      worksheet.columns = [
+        { header: 'No.', key: 'index', width: 8 },
+        { header: 'Name', key: 'name', width: 20 },
+        { header: 'Position', key: 'position', width: 18 },
+        { header: 'Model', key: 'model', width: 22 },
+        { header: 'Type', key: 'type', width: 12 },
+        { header: 'Department', key: 'department', width: 15 },
+        { header: 'CPU', key: 'cpu', width: 20 },
+        { header: 'Storage', key: 'storage', width: 18 },
+        { header: 'RAM', key: 'ram', width: 12 },
+        { header: 'OS', key: 'os', width: 15 },
+        { header: 'Serial number', key: 'serial_number', width: 22 },
+        { header: 'Adapter', key: 'adapter', width: 18 },
+        { header: 'Monitor', key: 'monitor', width: 20 },
+        { header: 'IP', key: 'ip', width: 16 },
+        { header: 'Accessory', key: 'accessory', width: 20 },
+        { header: 'UPS', key: 'ups', width: 18 },
+        { header: 'Status', key: 'status', width: 12 }
+      ];
+
+      filteredInventoryRecords.forEach((r, idx) => {
+        worksheet.addRow({ ...r, index: idx + 1 });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `IT_Asset_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>
