@@ -67,9 +67,6 @@
           <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
           <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
         </div>
-        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
       </div>
     </div>
   </aside>
@@ -450,7 +447,6 @@
     let filteredTasks = [];
     let currentPage = 1;
     const pageSize = 10;
-    let currentUser = null;
     let currentFilterRange = 'month';
 
     function showToast(title, message, type = 'success') {
@@ -460,21 +456,6 @@
       toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3500);
-    }
-
-    async function checkAuth() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        currentUser = user;
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        fetchTodayShift();
-        fetchTasks();
-      }
-    }
-
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
-      location.reload();
     }
 
     // --- SHIFT MANAGEMENT ---
@@ -527,6 +508,8 @@
         rawTasks = data || [];
         renderAnalytics();
         filterTasks();
+      } else {
+        showToast('ERROR', error.message || 'ไม่สามารถดึงข้อมูลได้', 'error');
       }
     }
 
@@ -825,7 +808,6 @@
       e.preventDefault();
       const id = document.getElementById('taskId').value;
       const payload = {
-        user_id: currentUser ? currentUser.id : null,
         title: document.getElementById('tTitle').value,
         location: document.getElementById('tLocation').value,
         date: document.getElementById('tDate').value,
@@ -907,7 +889,9 @@
       XLSX.writeFile(wb, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
-    checkAuth();
+    // โหลดข้อมูลทันที
+    fetchTodayShift();
+    fetchTasks();
   </script>
 </body>
 </html>
