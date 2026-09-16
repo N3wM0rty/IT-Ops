@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - IT Operations Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #0f172a; }
+    .login-card { background-color: #1e293b; border: 1px solid #334155; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+    .input-field { background-color: #0f172a !important; border: 1px solid #475569 !important; color: #f8fafc !important; }
+    .input-field:focus { border-color: #3b82f6 !important; outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 antialiased text-slate-100">
+
+  <div class="login-card p-6 md:p-8 max-w-md w-full space-y-6">
+    <!-- LOGO & HEADER -->
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-lg shadow-blue-500/20">
+        <i class="fa-solid fa-microchip"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-white uppercase">IT OPERATIONS CENTER</h1>
+      <p class="text-slate-400 text-xs">กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ</p>
+    </div>
+
+    <!-- ERROR ALERT BOX -->
+    <div id="alertBox" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-xl text-xs flex items-center gap-2">
+      <i class="fa-solid fa-circle-exclamation text-sm shrink-0"></i>
+      <span id="alertMessage">อีเมลหรือรหัสผ่านไม่ถูกต้อง</span>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+        <div class="relative">
+          <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+          <input type="email" id="email" required placeholder="it@resort.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+        <div class="relative">
+          <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+          <input type="password" id="password" required placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+        </div>
+      </div>
+
+      <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+        <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ (Log In)
+      </button>
+    </form>
+
+    <div class="text-center border-t border-slate-800 pt-4">
+      <p class="text-[11px] text-slate-500">IT Management Portal & Inspection System</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // เช็กสถานะก่อน หากล็อกอินแล้วให้เข้า index.html ทันที
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnLogin');
+      const alertBox = document.getElementById('alertBox');
+      const alertMessage = document.getElementById('alertMessage');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...`;
+      alertBox.classList.add('hidden');
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (error) throw error;
+
+        window.location.href = 'index.html';
+      } catch (err) {
+        alertMessage.innerText = err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+        alertBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ (Log In)`;
+      }
+    });
+
+    checkAuthStatus();
+  </script>
+</body>
+</html>
