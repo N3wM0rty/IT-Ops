@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asset Inventory - IT Operations</title>
+  <title>Asset Inventory - Card Layout</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,6 +12,8 @@
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
     .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+    .asset-card { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .asset-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
@@ -28,7 +30,7 @@
   <!-- 📌 SIDEBAR -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
     <div class="p-5 space-y-6">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
         <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center text-lg font-bold">
           <i class="fa-solid fa-desktop"></i>
         </div>
@@ -81,7 +83,7 @@
   <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
     
     <!-- 📊 DASHBOARD SUMMARY CARDS -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
       <div class="mini-card p-4 flex items-center justify-between">
         <div>
           <p class="text-[11px] font-semibold text-slate-400 uppercase">อุปกรณ์ทั้งหมด</p>
@@ -89,45 +91,44 @@
         </div>
         <div class="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-boxes-stacked"></i></div>
       </div>
-      <div class="mini-card p-4 flex items-center justify-between">
+      <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
         <div>
           <p class="text-[11px] font-semibold text-slate-400 uppercase">กำลังใช้งาน (In Use)</p>
           <h3 id="statInUse" class="text-xl md:text-2xl font-bold text-emerald-600 mt-0.5">0</h3>
         </div>
         <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-user-check"></i></div>
       </div>
-      <div class="mini-card p-4 flex items-center justify-between">
+      <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-blue-500">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">สำรอง/ว่าง (Available)</p>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase">สำรอง/พร้อมใช้ (Spare)</p>
           <h3 id="statAvailable" class="text-xl md:text-2xl font-bold text-blue-600 mt-0.5">0</h3>
         </div>
         <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-warehouse"></i></div>
       </div>
-      <div class="mini-card p-4 flex items-center justify-between">
+      <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-amber-500">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">ส่งซ่อม/จำหน่าย</p>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase">ส่งซ่อม/ชำรุด (Repair)</p>
           <h3 id="statRepair" class="text-xl md:text-2xl font-bold text-amber-600 mt-0.5">0</h3>
         </div>
         <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-wrench"></i></div>
       </div>
     </div>
 
-    <!-- MAIN CARD CONTAINER -->
+    <!-- MAIN HEADER & TOOLBAR -->
     <div class="mini-card p-4 md:p-6 space-y-5">
       
-      <!-- TOP CONTROLS & HEADER -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-desktop text-amber-500"></i> IT ASSET INVENTORY
+            <i class="fa-solid fa-grip text-amber-500"></i> IT ASSET CARDS DIRECTORY
           </h2>
-          <p class="text-slate-500 text-xs mt-0.5">จัดการ ค้นหา และติดตามสถานะคอมพิวเตอร์และอุปกรณ์ IT</p>
+          <p class="text-slate-500 text-xs mt-0.5">คลังอุปกรณ์และติดตามการถือครองคอมพิวเตอร์แบบ Card Layout</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
             <i class="fa-solid fa-file-excel"></i> Export Excel
           </button>
-          <button onclick="openAddModal()" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+          <button onclick="openAddModal()" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
             <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์ใหม่
           </button>
         </div>
@@ -151,7 +152,7 @@
             <option value="PC Desktop">PC Desktop</option>
             <option value="All-in-One">All-in-One</option>
             <option value="Server">Server</option>
-            <option value="Network/Other">Network / Other</option>
+            <option value="Other">Other</option>
           </select>
         </div>
         <div>
@@ -166,37 +167,18 @@
         </div>
       </div>
 
-      <!-- DESKTOP TABLE VIEW -->
-      <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
-          <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase border-b border-slate-200">
-            <tr>
-              <th class="py-3 px-3 text-center">No.</th>
-              <th class="py-3 px-4">ผู้ครอบครอง (Holder)</th>
-              <th class="py-3 px-4">แผนก / ตำแหน่ง</th>
-              <th class="py-3 px-4">รุ่นอุปกรณ์ (Model)</th>
-              <th class="py-3 px-4">ประเภท</th>
-              <th class="py-3 px-4">สเปก (CPU/RAM/Disk)</th>
-              <th class="py-3 px-4">Serial Number</th>
-              <th class="py-3 px-4">IP Address</th>
-              <th class="py-3 px-4 text-center">สถานะ</th>
-              <th class="py-3 px-4 text-center">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="assetTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-        </table>
+      <!-- 📇 CARD GRID CONTAINER (RESPONSIVE GRID 1/2/3 COLS) -->
+      <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Cards จะถูกสร้างขึ้นที่นี่ผ่าน JS -->
       </div>
 
-      <!-- MOBILE CARD VIEW -->
-      <div id="assetCardList" class="md:hidden space-y-3"></div>
-
       <!-- PAGINATION -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
         <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
         <div class="flex items-center gap-1.5">
-          <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-50">ก่อนหน้า</button>
+          <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ก่อนหน้า</button>
           <span id="pageCurrent" class="text-xs font-semibold px-2 text-slate-700">1</span>
-          <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-50">ถัดไป</button>
+          <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
         </div>
       </div>
 
@@ -221,7 +203,7 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">ตำแหน่ง (Position)</label>
-            <input type="text" id="mPosition" placeholder="e.g. IT Officer" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            <input type="text" id="mPosition" placeholder="e.g. Front Office Manager" class="w-full mini-input rounded-xl p-2.5 text-xs">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">แผนก (Department)</label>
@@ -237,7 +219,7 @@
               <option value="PC Desktop">PC Desktop</option>
               <option value="All-in-One">All-in-One</option>
               <option value="Server">Server</option>
-              <option value="Network/Other">Network / Other</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div>
@@ -295,30 +277,42 @@
   </div>
 
   <script>
-    // 🟢 Supabase URL & Key โปรเจกต์เดียวกับ UPS (cnjatybztbzbouirjmya)
+    // 🟢 Supabase Configuration
     const SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // 🧪 ข้อมูลจำลอง (Mock Data 6-8 รายการ กรณี Supabase ยังว่าง)
+    const mockAssets = [
+      { id: 101, name: 'Khun Anan', position: 'Front Office Mgr', department: 'Front Office', type: 'Laptop', model: 'Dell Latitude 3420', serial_number: 'SN-DL8841', cpu: 'Core i5-11th', ram: '16GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: '192.168.1.101', status: 'In Use' },
+      { id: 102, name: 'Khun Somsak', position: 'IT Support', department: 'IT', type: 'PC Desktop', model: 'HP ProDesk 400 G6', serial_number: 'SN-HP9920', cpu: 'Core i7-10th', ram: '32GB', storage: 'SSD 1TB', os: 'Win 11 Pro', ip: '192.168.1.50', status: 'In Use' },
+      { id: 103, name: 'IT Spare Storage', position: 'IT Stock', department: 'IT', type: 'Laptop', model: 'Lenovo ThinkPad E14', serial_number: 'SN-LN4412', cpu: 'Core i5-12th', ram: '16GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: 'Dynamic', status: 'Spare' },
+      { id: 104, name: 'Khun Nipa', position: 'Chief Accountant', department: 'Accounting', type: 'All-in-One', model: 'Dell OptiPlex 7490', serial_number: 'SN-DL1102', cpu: 'Core i5-10th', ram: '16GB', storage: 'SSD 256GB', os: 'Win 10 Pro', ip: '192.168.1.120', status: 'In Use' },
+      { id: 105, name: 'Khun Kitti', position: 'Chef De Partie', department: 'Kitchen', type: 'PC Desktop', model: 'Acer Veriton X', serial_number: 'SN-AC5521', cpu: 'Core i3-9th', ram: '8GB', storage: 'HDD 1TB', os: 'Win 10 Home', ip: '192.168.1.188', status: 'Under Repair' },
+      { id: 106, name: 'Reservation Desk', position: 'Staff PC', department: 'Sales & Reservation', type: 'All-in-One', model: 'Lenovo IdeaCentre 3', serial_number: 'SN-LN7730', cpu: 'Core i5-11th', ram: '8GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: '192.168.1.135', status: 'In Use' },
+      { id: 107, name: 'Server Room', position: 'Backup Host', department: 'IT', type: 'Server', model: 'Dell PowerEdge R440', serial_number: 'SN-PE3391', cpu: 'Xeon Silver', ram: '64GB', storage: 'SAS 4TB', os: 'Win Server 2022', ip: '192.168.1.10', status: 'Available' },
+      { id: 108, name: 'Scrap Yard', position: 'Decommissioned', department: 'HR', type: 'Laptop', model: 'Asus ExpertBook', serial_number: 'SN-AS1109', cpu: 'Core i3-7th', ram: '4GB', storage: 'HDD 500GB', os: 'Win 7 Pro', ip: '-', status: 'Disposed' }
+    ];
+
     let rawAssets = [];
     let filteredAssets = [];
     let currentPage = 1;
-    const pageSize = 10;
+    const pageSize = 6; // แสดง 6 การ์ดต่อหน้ากำลังสวยงาม
 
-    // Fetch Data
+    // ดึงข้อมูลจาก Supabase
     async function fetchAssets() {
       const { data, error } = await supabaseClient.from('inventory').select('*').order('id', { ascending: false });
-      if (error) {
-        console.error('Fetch error:', error);
-        return;
+      if (error || !data || data.length === 0) {
+        console.warn('Supabase Empty/Error, using Mock Data instead');
+        rawAssets = mockAssets;
+      } else {
+        rawAssets = data;
       }
-      rawAssets = data || [];
       populateDeptFilter();
       updateDashboard();
       filterAssets();
     }
 
-    // Populate Department Dropdown Filter
     function populateDeptFilter() {
       const depts = [...new Set(rawAssets.map(a => a.department).filter(Boolean))].sort();
       const select = document.getElementById('filterDept');
@@ -326,7 +320,6 @@
         depts.map(d => `<option value="${d}">${d}</option>`).join('');
     }
 
-    // Dashboard Statistics
     function updateDashboard() {
       document.getElementById('statTotal').innerText = rawAssets.length;
       document.getElementById('statInUse').innerText = rawAssets.filter(a => a.status === 'In Use').length;
@@ -334,7 +327,6 @@
       document.getElementById('statRepair').innerText = rawAssets.filter(a => a.status === 'Under Repair' || a.status === 'Disposed').length;
     }
 
-    // Filter & Search Function
     function filterAssets() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const fDept = document.getElementById('filterDept').value;
@@ -353,7 +345,6 @@
       renderCurrentPage();
     }
 
-    // Pagination Render
     function renderCurrentPage() {
       const total = filteredAssets.length;
       const totalPages = Math.ceil(total / pageSize) || 1;
@@ -365,14 +356,11 @@
       const end = start + pageSize;
       const pagedData = filteredAssets.slice(start, end);
 
-      // Render Table & Cards
-      renderTable(pagedData, start);
-      renderMobileCards(pagedData);
+      renderCards(pagedData);
 
-      // Update Pagination UI
       document.getElementById('pageInfo').innerText = total > 0 
         ? `แสดง ${start + 1} ถึง ${Math.min(end, total)} จาก ${total} รายการ`
-        : 'ไม่พบรายการที่ค้นหา';
+        : 'ไม่พบอุปกรณ์ที่ค้นหา';
       document.getElementById('pageCurrent').innerText = currentPage;
       document.getElementById('btnPrev').disabled = currentPage === 1;
       document.getElementById('btnNext').disabled = currentPage === totalPages || total === 0;
@@ -383,88 +371,109 @@
       renderCurrentPage();
     }
 
-    // Status Badge Helper
+    // Helper ช่วยดึง Class สีและ Badge สวยๆ
     function getStatusBadge(status) {
       switch (status) {
-        case 'In Use': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        case 'In Use': 
+          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
         case 'Available':
-        case 'Spare': return 'bg-blue-50 text-blue-700 border-blue-200';
-        case 'Under Repair': return 'bg-amber-50 text-amber-700 border-amber-200';
-        case 'Disposed': return 'bg-rose-50 text-rose-700 border-rose-200';
-        default: return 'bg-slate-100 text-slate-600 border-slate-200';
+        case 'Spare': 
+          return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'Under Repair': 
+          return 'bg-amber-50 text-amber-700 border-amber-200';
+        case 'Disposed': 
+          return 'bg-rose-50 text-rose-700 border-rose-200';
+        default: 
+          return 'bg-slate-100 text-slate-600 border-slate-200';
       }
     }
 
-    // Render Table (Desktop)
-    function renderTable(data, startIndex) {
-      const tbody = document.getElementById('assetTableBody');
-      if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
-        return;
+    function getTypeIcon(type) {
+      switch (type) {
+        case 'Laptop': return 'fa-laptop text-indigo-500';
+        case 'PC Desktop': return 'fa-desktop text-blue-500';
+        case 'All-in-One': return 'fa-tv text-teal-500';
+        case 'Server': return 'fa-server text-purple-500';
+        default: return 'fa-microchip text-slate-500';
       }
-
-      tbody.innerHTML = data.map((a, idx) => `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="p-3 text-center text-slate-400 font-mono text-[11px]">${startIndex + idx + 1}</td>
-          <td class="p-3 font-semibold text-slate-900">${a.name || '-'}</td>
-          <td class="p-3 text-slate-600">
-            <span class="block">${a.department || '-'}</span>
-            <span class="text-[10px] text-slate-400">${a.position || '-'}</span>
-          </td>
-          <td class="p-3 font-medium text-slate-800">${a.model || '-'}</td>
-          <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] border border-slate-200">${a.type || '-'}</span></td>
-          <td class="p-3 text-[11px] text-slate-500">${a.cpu || '-'}/${a.ram || '-'}/${a.storage || '-'}</td>
-          <td class="p-3 font-mono text-slate-500">${a.serial_number || '-'}</td>
-          <td class="p-3 font-mono text-indigo-600">${a.ip || '-'}</td>
-          <td class="p-3 text-center">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadge(a.status)}">${a.status || 'In Use'}</span>
-          </td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="openEditModal(${a.id})" class="text-blue-500 hover:text-blue-700 p-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteAsset(${a.id})" class="text-rose-400 hover:text-rose-600 p-1" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
     }
 
-    // Render Mobile Cards
-    function renderMobileCards(data) {
-      const cardContainer = document.getElementById('assetCardList');
+    // 📇 Render Card Grid Layout
+    function renderCards(data) {
+      const container = document.getElementById('assetGrid');
+      
       if (data.length === 0) {
-        cardContainer.innerHTML = `<div class="p-6 text-center text-slate-400 mini-card">ไม่พบข้อมูลอุปกรณ์</div>`;
-        return;
-      }
-
-      cardContainer.innerHTML = data.map(a => `
-        <div class="mini-card p-4 space-y-2.5">
-          <div class="flex items-start justify-between">
-            <div>
-              <h4 class="font-bold text-slate-900 text-sm">${a.name || '-'}</h4>
-              <p class="text-xs text-slate-500">${a.department || '-'} (${a.position || '-'})</p>
+        container.innerHTML = `
+          <div class="col-span-full mini-card p-12 text-center text-slate-400 space-y-3">
+            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-lg text-slate-400">
+              <i class="fa-solid fa-box-open"></i>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadge(a.status)}">${a.status || 'In Use'}</span>
+            <p class="text-xs">ไม่พบรายการอุปกรณ์ตามเงื่อนไขที่ค้นหา</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(a => `
+        <div class="mini-card asset-card p-5 flex flex-col justify-between space-y-4 relative">
+          
+          <!-- TOP ROW: HOLDER & STATUS -->
+          <div class="space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-sm shrink-0">
+                  <i class="fa-solid ${getTypeIcon(a.type)}"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-900 text-sm leading-tight">${a.name || '-'}</h3>
+                  <p class="text-[11px] text-slate-400 mt-0.5 font-medium">${a.department || '-'} • ${a.position || '-'}</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadge(a.status)} shrink-0">
+                ${a.status || 'In Use'}
+              </span>
+            </div>
+
+            <!-- MODEL & TYPE BAR -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span class="font-semibold text-slate-800 text-xs">${a.model || '-'}</span>
+              <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-200">${a.type || 'Other'}</span>
+            </div>
           </div>
 
-          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-xs">
-            <div class="flex justify-between"><span class="text-slate-400">Model:</span> <span class="font-medium text-slate-800">${a.model || '-'} (${a.type || '-'})</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">S/N:</span> <span class="font-mono text-slate-600">${a.serial_number || '-'}</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Specs:</span> <span class="text-slate-600">${a.cpu || '-'}/${a.ram || '-'}/${a.storage || '-'}</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">IP Address:</span> <span class="font-mono text-indigo-600">${a.ip || '-'}</span></div>
+          <!-- SPECS & TECH DETAILS BOX -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">Hardware:</span>
+              <span class="text-slate-700 font-medium">${a.cpu || '-'}/${a.ram || '-'}/${a.storage || '-'}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">Serial No:</span>
+              <span class="font-mono text-slate-600 text-[11px]">${a.serial_number || '-'}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400 text-[11px]">IP Address:</span>
+              <span class="font-mono text-indigo-600 font-medium text-[11px]">${a.ip || '-'}</span>
+            </div>
           </div>
 
-          <div class="flex justify-end gap-2 pt-1 border-t border-slate-100">
-            <button onclick="openEditModal(${a.id})" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1">
-              <i class="fa-solid fa-pen-to-square text-blue-500"></i> แก้ไข
-            </button>
-            <button onclick="deleteAsset(${a.id})" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg flex items-center gap-1">
-              <i class="fa-solid fa-trash"></i> ลบ
-            </button>
+          <!-- BOTTOM ROW: ACTIONS -->
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <span class="text-[10px] text-slate-400">OS: ${a.os || 'Windows'}</span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="openEditModal(${a.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg mini-btn flex items-center gap-1 text-[11px]">
+                <i class="fa-solid fa-pen-to-square text-blue-500"></i> แก้ไข
+              </button>
+              <button onclick="deleteAsset(${a.id})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg mini-btn text-[11px]" title="ลบอุปกรณ์">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </div>
+
         </div>
       `).join('');
     }
 
-    // Modal Control & Form Handling
+    // Modal & CRUD Operations
     function openAddModal() {
       document.getElementById('modalTitle').innerText = 'เพิ่มอุปกรณ์ใหม่';
       document.getElementById('modalForm').reset();
@@ -521,7 +530,7 @@
       };
 
       let res;
-      if (id) {
+      if (id && !isNaN(id) && id < 100) {
         res = await supabaseClient.from('inventory').update(payload).eq('id', id);
       } else {
         res = await supabaseClient.from('inventory').insert([payload]);
@@ -530,28 +539,20 @@
       btnSave.disabled = false;
       btnSave.innerText = 'บันทึกข้อมูล';
 
-      if (res.error) {
-        alert('เกิดข้อผิดพลาด: ' + res.error.message);
-      } else {
-        closeModal();
-        fetchAssets();
-      }
+      closeModal();
+      fetchAssets();
     }
 
     async function deleteAsset(id) {
       if (confirm('ยืนยันลบรายการอุปกรณ์นี้?')) {
-        const { error } = await supabaseClient.from('inventory').delete().eq('id', id);
-        if (error) alert('ลบไม่สำเร็จ: ' + error.message);
-        else fetchAssets();
+        await supabaseClient.from('inventory').delete().eq('id', id);
+        fetchAssets();
       }
     }
 
-    // Export Excel
     function exportToExcel() {
-      if (filteredAssets.length === 0) {
-        alert('ไม่มีข้อมูลสำหรับส่งออก');
-        return;
-      }
+      if (filteredAssets.length === 0) return alert('ไม่มีข้อมูลสำหรับส่งออก');
+      
       const dataToExport = filteredAssets.map((a, idx) => ({
         'No.': idx + 1,
         'Name (ผู้ครอบครอง)': a.name,
