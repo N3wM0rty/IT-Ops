@@ -35,6 +35,7 @@
 
     <!-- AUTH FORM -->
     <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+      <!-- EMAIL FIELD -->
       <div id="emailFieldGroup">
         <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
         <div class="relative">
@@ -43,6 +44,7 @@
         </div>
       </div>
 
+      <!-- PASSWORD FIELD -->
       <div id="passwordFieldGroup">
         <div class="flex justify-between items-center mb-1.5">
           <label id="passLabel" class="block text-xs font-medium text-slate-300">Password</label>
@@ -51,6 +53,15 @@
         <div class="relative">
           <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
           <input type="password" id="password" placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+        </div>
+      </div>
+
+      <!-- CONFIRM PASSWORD FIELD (ซ่อนเป็นค่าเริ่มต้น) -->
+      <div id="confirmPasswordFieldGroup" class="hidden">
+        <label class="block text-xs font-medium text-slate-300 mb-1.5">Confirm Password (ยืนยันรหัสผ่าน)</label>
+        <div class="relative">
+          <i class="fa-solid fa-shield-halved absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+          <input type="password" id="confirmPassword" placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
         </div>
       </div>
 
@@ -109,6 +120,8 @@
       const emailInput = document.getElementById('email');
       const passGroup = document.getElementById('passwordFieldGroup');
       const passInput = document.getElementById('password');
+      const confirmPassGroup = document.getElementById('confirmPasswordFieldGroup');
+      const confirmPassInput = document.getElementById('confirmPassword');
       const passLabel = document.getElementById('passLabel');
       const forgotBtn = document.getElementById('forgotBtn');
       const title = document.getElementById('formHeaderTitle');
@@ -118,6 +131,9 @@
       const toggleLogin = document.getElementById('toggleLoginBox');
       const footerBox = document.getElementById('footerActionBox');
 
+      // ล้างค่าในช่องกรอก
+      confirmPassInput.value = '';
+
       if (mode === 'login') {
         title.innerText = 'IT OPERATIONS CENTER';
         desc.innerText = 'กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ';
@@ -126,6 +142,8 @@
         emailInput.required = true;
         passGroup.classList.remove('hidden');
         passInput.required = true;
+        confirmPassGroup.classList.add('hidden');
+        confirmPassInput.required = false;
         passLabel.innerText = 'Password';
         forgotBtn.classList.remove('hidden');
         footerBox.classList.remove('hidden');
@@ -139,6 +157,8 @@
         emailInput.required = true;
         passGroup.classList.remove('hidden');
         passInput.required = true;
+        confirmPassGroup.classList.remove('hidden');
+        confirmPassInput.required = true;
         passLabel.innerText = 'Password';
         forgotBtn.classList.add('hidden');
         footerBox.classList.remove('hidden');
@@ -152,6 +172,8 @@
         emailInput.required = true;
         passGroup.classList.add('hidden');
         passInput.required = false;
+        confirmPassGroup.classList.add('hidden');
+        confirmPassInput.required = false;
         footerBox.classList.remove('hidden');
         toggleSignup.classList.add('hidden');
         toggleLogin.classList.remove('hidden');
@@ -163,6 +185,8 @@
         emailInput.required = false;
         passGroup.classList.remove('hidden');
         passInput.required = true;
+        confirmPassGroup.classList.remove('hidden');
+        confirmPassInput.required = true;
         passLabel.innerText = 'New Password';
         forgotBtn.classList.add('hidden');
         footerBox.classList.add('hidden');
@@ -173,12 +197,25 @@
       e.preventDefault();
       hideAlert();
 
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // 🛡️ ตรวจสอบว่า Confirm Password ตรงกันหรือไม่ (กรณี Signup หรือ Reset Password)
+      if (currentMode === 'signup' || currentMode === 'reset') {
+        if (password !== confirmPassword) {
+          showAlert('รหัสผ่านและช่องยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง', false);
+          return;
+        }
+        if (password.length < 6) {
+          showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร', false);
+          return;
+        }
+      }
+
       const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ...`;
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
 
       try {
         if (currentMode === 'login') {
@@ -222,9 +259,7 @@
       }
     }
 
-    // ตรวจสอบสถานะ Event Token จากการคลิกลิงก์ในอีเมล
     async function checkAuthStatus() {
-      // ตรวจจับกรณีคลิกลิงก์จากอีเมลเพื่อ Reset Password
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
           switchMode('reset');
@@ -232,7 +267,6 @@
         }
       });
 
-      // หากเข้าใช้ปกติแล้วมี Login Session อยู่แล้วให้เข้าหน้า index.html
       const { data: { user } } = await supabaseClient.auth.getUser();
       const hash = window.location.hash;
       if (user && !hash.includes('type=recovery')) {
