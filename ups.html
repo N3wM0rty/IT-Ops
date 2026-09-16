@@ -3,73 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPS & BATTERY INSPECTOR</title>
+  <title>UPS & Battery Inspector - IT Operations Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- ExcelJS Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-radius: 16px; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .mini-input { background-color: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
-    .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1); }
-    
-    /* แก้ไขปัญหาวันที่บนไอโฟน (iOS/Safari) */
+    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
+    .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15,23,42,0.1); }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+
     input[type="date"] {
       position: relative;
       -webkit-appearance: none;
       min-height: 2.5rem;
     }
     input[type="date"]::-webkit-calendar-picker-indicator {
-      background: transparent;
-      bottom: 0;
-      color: transparent;
-      height: auto;
-      left: 0;
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: auto;
+      background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
     }
 
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-6 relative antialiased text-slate-800">
+<body class="min-h-screen flex bg-slate-50 antialiased">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- HEADER NAV -->
-  <header class="max-w-7xl mx-auto mini-card p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-    <div class="flex items-center gap-3">
-      <a href="index.html" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg hover:bg-slate-800 transition-colors" title="กลับหน้าหลัก">
-        <i class="fa-solid fa-car-battery"></i>
-      </a>
-      <div>
-        <h1 class="text-lg md:text-xl font-semibold text-slate-900 tracking-tight leading-none">UPS & BATTERY INSPECTOR</h1>
-        <p class="text-slate-500 text-xs mt-1">ระบบตรวจเช็กอุปกรณ์ UPS และแบตเตอรี่ประจำงวด</p>
+  <!-- 📌 SIDEBAR ด้านซ้าย (โครงสร้างเดียวกับ index.html) -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
+    <div class="p-5 space-y-6">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div>
+          <h1 class="text-xs font-bold text-slate-900 uppercase">IT OPERATIONS</h1>
+          <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="space-y-1">
+          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+          <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+          </a>
+          <a href="ups.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+            <i class="fa-solid fa-car-battery w-4 text-emerald-400"></i> UPS Inspector
+          </a>
+          <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+          </a>
+        </div>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <a href="index.html" class="bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5">
-        <i class="fa-solid fa-house"></i> หน้าหลัก
-      </a>
-      <button onclick="switchTab('form')" id="tabBtnForm" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
-        <i class="fa-solid fa-plus"></i> บันทึกผลการตรวจ
-      </button>
-      <button onclick="switchTab('list')" id="tabBtnList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
-        <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
-      </button>
-    </div>
-  </header>
 
-  <main class="max-w-7xl mx-auto">
+    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+      <div class="flex items-center justify-between gap-2">
+        <div class="overflow-hidden">
+          <p class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
+      <span class="text-xs font-semibold">UPS INSPECTOR</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+    </div>
+  </div>
+
+  <!-- 🖥️ MAIN CONTENT CONTAINER -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
+    
+    <!-- TOP PAGE TITLE & TAB SWITCHER -->
+    <div class="mini-card p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+          <i class="fa-solid fa-car-battery"></i>
+        </div>
+        <div>
+          <h1 class="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-none">UPS & BATTERY INSPECTOR</h1>
+          <p class="text-slate-500 text-xs mt-1">ระบบตรวจเช็กอุปกรณ์ UPS และแบตเตอรี่ประจำงวด</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="switchTab('form')" id="tabBtnForm" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> บันทึกผลการตรวจ
+        </button>
+        <button onclick="switchTab('list')" id="tabBtnList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+          <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
+        </button>
+      </div>
+    </div>
+
     <!-- FORM SECTION -->
     <div id="viewForm" class="mini-card p-6 md:p-8 space-y-6">
       <h2 class="text-base font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -319,7 +363,7 @@
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-            const max_size = 400; // บีบอัดรูปไม่ให้ใหญ่เกินไปสำหรับเก็บลงฐานข้อมูล
+            const max_size = 400;
 
             if (width > height) {
               if (width > max_size) { height *= max_size / width; width = max_size; }
