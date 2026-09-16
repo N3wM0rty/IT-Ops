@@ -176,8 +176,8 @@
     async function fetchRecords() {
       try {
         if (!supabaseClient) return;
-        // ดึงจากตาราง inventory
-        const { data, error } = await supabaseClient.from('inventory').select('*').order('owner_name', { ascending: true });
+        // ดึงจากตาราง inventory โดยเรียงตามชื่อในคอลัมน์ name
+        const { data, error } = await supabaseClient.from('inventory').select('*').order('name', { ascending: true });
         if (error) throw error;
         rawInventory = data || [];
         
@@ -192,7 +192,7 @@
 
     function updateStats() {
       document.getElementById('statTotal').innerText = rawInventory.length;
-      document.getElementById('statInUse').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'IN USE' || (i.status||'').toUpperCase() === 'INUSE').length;
+      document.getElementById('statInUse').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'IN USE').length;
       document.getElementById('statSpare').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'SPARE').length;
       document.getElementById('statRepair').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'REPAIR').length;
     }
@@ -200,11 +200,11 @@
     function groupDataByUser() {
       groupedUsers = {};
       rawInventory.forEach(item => {
-        const owner = item.owner_name || item.user_name || 'Unassigned / Spare';
+        const owner = (item.name && item.name.trim()) ? item.name.trim() : 'Unassigned / Spare';
         if (!groupedUsers[owner]) {
           groupedUsers[owner] = {
             owner_name: owner,
-            dept: item.dept || item.department || '-',
+            dept: item.department || '-',
             position: item.position || '-',
             items: []
           };
@@ -215,7 +215,7 @@
 
     function populateDeptFilter() {
       const select = document.getElementById('filterDept');
-      const depts = [...new Set(rawInventory.map(i => i.dept || i.department).filter(Boolean))].sort();
+      const depts = [...new Set(rawInventory.map(i => i.department).filter(Boolean))].sort();
       select.innerHTML = '<option value="">ทุกแผนก (All Depts)</option>';
       depts.forEach(d => {
         select.innerHTML += `<option value="${d}">${d}</option>`;
@@ -244,7 +244,7 @@
 
         // Filter Search Text
         if (search) {
-          const itemSearchStr = user.items.map(i => `${i.model} ${i.serial_no} ${i.device_type}`).join(' ').toLowerCase();
+          const itemSearchStr = user.items.map(i => `${i.model} ${i.serial_number} ${i.type}`).join(' ').toLowerCase();
           const userSearchStr = `${user.owner_name} ${user.dept} ${user.position}`.toLowerCase();
           if (!userSearchStr.includes(search) && !itemSearchStr.includes(search)) return;
         }
@@ -255,13 +255,13 @@
         const itemsListHTML = user.items.map(item => `
           <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
             <div class="flex items-center justify-between">
-              <span class="font-semibold text-slate-800">${item.model || item.device_name || 'ไม่ระบุรุ่น'}</span>
+              <span class="font-semibold text-slate-800">${item.model || 'ไม่ระบุรุ่น'}</span>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'Spare' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}">${item.status || 'In Use'}</span>
             </div>
             <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5">
-              <span>S/N: <b class="text-slate-700">${item.serial_no || '-'}</b></span>
-              <span>IP: <b class="text-slate-700">${item.ip_address || '-'}</b></span>
-              <span>Type: <b class="text-slate-700">${item.device_type || '-'}</b></span>
+              <span>S/N: <b class="text-slate-700">${item.serial_number || '-'}</b></span>
+              <span>IP: <b class="text-slate-700">${item.ip || '-'}</b></span>
+              <span>Type: <b class="text-slate-700">${item.type || '-'}</b></span>
             </div>
           </div>
         `).join('');
