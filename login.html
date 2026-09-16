@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - IT Operations Portal</title>
+  <title>Login & Authentication - IT Operations Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,41 +23,52 @@
       <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-lg shadow-blue-500/20">
         <i class="fa-solid fa-microchip"></i>
       </div>
-      <h1 class="text-xl font-bold tracking-tight text-white uppercase">IT OPERATIONS CENTER</h1>
-      <p class="text-slate-400 text-xs">กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ</p>
+      <h1 id="formHeaderTitle" class="text-xl font-bold tracking-tight text-white uppercase">IT OPERATIONS CENTER</h1>
+      <p id="formHeaderDesc" class="text-slate-400 text-xs">กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ</p>
     </div>
 
-    <!-- ERROR ALERT BOX -->
-    <div id="alertBox" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-xl text-xs flex items-center gap-2">
-      <i class="fa-solid fa-circle-exclamation text-sm shrink-0"></i>
-      <span id="alertMessage">อีเมลหรือรหัสผ่านไม่ถูกต้อง</span>
+    <!-- ALERT BOX -->
+    <div id="alertBox" class="hidden p-3 rounded-xl text-xs flex items-center gap-2">
+      <i id="alertIcon" class="fa-solid text-sm shrink-0"></i>
+      <span id="alertMessage">ข้อความแจ้งเตือน</span>
     </div>
 
-    <!-- LOGIN FORM -->
-    <form id="loginForm" class="space-y-4">
+    <!-- AUTH FORM -->
+    <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
       <div>
         <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
         <div class="relative">
           <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="email" id="email" required placeholder="it@resort.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+          <input type="email" id="email" required placeholder="name@company.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+      <div id="passwordFieldGroup">
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block text-xs font-medium text-slate-300">Password</label>
+          <button type="button" onclick="switchMode('forgot')" class="text-[11px] text-blue-400 hover:underline">ลืมรหัสผ่าน?</button>
+        </div>
         <div class="relative">
           <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="password" id="password" required placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+          <input type="password" id="password" placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
         </div>
       </div>
 
-      <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-        <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ (Log In)
+      <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+        <i class="fa-solid fa-right-to-bracket"></i> <span id="btnSubmitText">เข้าสู่ระบบ (Log In)</span>
       </button>
     </form>
 
-    <div class="text-center border-t border-slate-800 pt-4">
-      <p class="text-[11px] text-slate-500">IT Management Portal & Inspection System</p>
+    <!-- FOOTER TOGGLE MODE -->
+    <div class="text-center border-t border-slate-800 pt-4 space-y-2 text-xs">
+      <div id="toggleSignupBox">
+        <span class="text-slate-400">ยังไม่มีบัญชีใช่ไหม?</span>
+        <button type="button" onclick="switchMode('signup')" class="text-blue-400 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
+      </div>
+      <div id="toggleLoginBox" class="hidden">
+        <span class="text-slate-400">มีบัญชีอยู่แล้ว?</span>
+        <button type="button" onclick="switchMode('login')" class="text-blue-400 font-semibold hover:underline ml-1">กลับไปเข้าสู่ระบบ</button>
+      </div>
     </div>
   </div>
 
@@ -66,44 +77,116 @@
     const SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // เช็กสถานะก่อน หากล็อกอินแล้วให้เข้า index.html ทันที
-    async function checkAuthStatus() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        window.location.href = 'index.html';
+    let currentMode = 'login'; // login | signup | forgot
+
+    function showAlert(msg, isSuccess = false) {
+      const box = document.getElementById('alertBox');
+      const text = document.getElementById('alertMessage');
+      const icon = document.getElementById('alertIcon');
+
+      text.innerText = msg;
+      box.classList.remove('hidden', 'bg-rose-500/10', 'border-rose-500/30', 'text-rose-400', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+      icon.classList.remove('fa-circle-exclamation', 'fa-circle-check');
+
+      if (isSuccess) {
+        box.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-400');
+        icon.classList.add('fa-circle-check');
+      } else {
+        box.classList.add('bg-rose-500/10', 'border', 'border-rose-500/30', 'text-rose-400');
+        icon.classList.add('fa-circle-exclamation');
       }
     }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    function hideAlert() {
+      document.getElementById('alertBox').classList.add('hidden');
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      hideAlert();
+
+      const passGroup = document.getElementById('passwordFieldGroup');
+      const passInput = document.getElementById('password');
+      const title = document.getElementById('formHeaderTitle');
+      const desc = document.getElementById('formHeaderDesc');
+      const btnText = document.getElementById('btnSubmitText');
+      const toggleSignup = document.getElementById('toggleSignupBox');
+      const toggleLogin = document.getElementById('toggleLoginBox');
+
+      if (mode === 'login') {
+        title.innerText = 'IT OPERATIONS CENTER';
+        desc.innerText = 'กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ';
+        btnText.innerText = 'เข้าสู่ระบบ (Log In)';
+        passGroup.classList.remove('hidden');
+        passInput.required = true;
+        toggleSignup.classList.remove('hidden');
+        toggleLogin.classList.add('hidden');
+      } else if (mode === 'signup') {
+        title.innerText = 'CREATE NEW ACCOUNT';
+        desc.innerText = 'สมัครสมาชิกใหม่สำหรับเจ้าหน้าที่ IT';
+        btnText.innerText = 'ยืนยันการสมัครสมาชิก (Sign Up)';
+        passGroup.classList.remove('hidden');
+        passInput.required = true;
+        toggleSignup.classList.add('hidden');
+        toggleLogin.classList.remove('hidden');
+      } else if (mode === 'forgot') {
+        title.innerText = 'RESET PASSWORD';
+        desc.innerText = 'ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปยัง Email ของคุณ';
+        btnText.innerText = 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)';
+        passGroup.classList.add('hidden');
+        passInput.required = false;
+        toggleSignup.classList.add('hidden');
+        toggleLogin.classList.remove('hidden');
+      }
+    }
+
+    async function handleAuthSubmit(e) {
       e.preventDefault();
-      const btn = document.getElementById('btnLogin');
-      const alertBox = document.getElementById('alertBox');
-      const alertMessage = document.getElementById('alertMessage');
+      hideAlert();
 
+      const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...`;
-      alertBox.classList.add('hidden');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ...`;
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
       try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-        if (error) throw error;
-
-        window.location.href = 'index.html';
+        if (currentMode === 'login') {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          window.location.href = 'index.html';
+        } 
+        else if (currentMode === 'signup') {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          showAlert('สมัครสมาชิกสำเร็จ! หากมีระบบยืนยันอีเมล โปรดเช็ก Inbox ของคุณ', true);
+        } 
+        else if (currentMode === 'forgot') {
+          const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/IT-Ops/login.html',
+          });
+          if (error) throw error;
+          showAlert('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลเรียบร้อยแล้ว!', true);
+        }
       } catch (err) {
-        alertMessage.innerText = err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
-        alertBox.classList.remove('hidden');
+        let errorMsg = err.message || 'เกิดข้อผิดพลาดในการทำรายการ';
+        if (errorMsg.includes('Invalid login credentials')) {
+          errorMsg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง (หากยังไม่มีบัญชีให้กด สมัครสมาชิก)';
+        }
+        showAlert(errorMsg, false);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ (Log In)`;
+        const labelMap = { login: 'เข้าสู่ระบบ (Log In)', signup: 'ยืนยันการสมัครสมาชิก (Sign Up)', forgot: 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)' };
+        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>${labelMap[currentMode]}</span>`;
       }
-    });
+    }
+
+    // เช็กว่าถ้าล็อกอินอยู่แล้วให้ข้ามไปหน้า index.html
+    async function checkAuthStatus() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) window.location.href = 'index.html';
+    }
 
     checkAuthStatus();
   </script>
