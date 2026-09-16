@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IT Task & Shift Tracker - Operations Portal</title>
+  <title>IT Operations & Task Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,6 +19,9 @@
     .sidebar-link { transition: all 0.2s; }
     .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
     .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    .filter-btn { transition: all 0.2s ease; }
+    .filter-btn.active { background-color: #0f172a; color: #ffffff; font-weight: 600; }
+    .filter-btn:not(.active) { background-color: #ffffff; color: #64748b; border: 1px solid #cbd5e1; }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
     .animate-fadeIn { animation: fadeIn 0.15s ease-out forwards; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -32,7 +35,7 @@
   <!-- 📌 SIDEBAR -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
     <div class="p-5 space-y-6">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
         <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
           <i class="fa-solid fa-microchip"></i>
         </div>
@@ -61,7 +64,7 @@
     <div class="p-4 border-t border-slate-100 bg-slate-50/80">
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
           <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
         </div>
         <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
@@ -93,7 +96,7 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <h3 class="text-sm font-semibold tracking-wide text-slate-200 uppercase">
+            <h3 class="text-xs font-semibold tracking-wide text-slate-200 uppercase">
               TODAY ON-DUTY SHIFT (<span id="todayDateStr">-</span>)
             </h3>
           </div>
@@ -121,41 +124,89 @@
             <i class="fa-solid fa-user-pen"></i> จัดการกะปฏิบัติงาน
           </button>
           <button onclick="openTaskModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm font-semibold">
-            <i class="fa-solid fa-plus"></i> สร้าง Task ใหม่
+            <i class="fa-solid fa-plus"></i> บันทึก Task ใหม่
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 📊 DASHBOARD SUMMARY METRICS -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-      <div class="mini-card p-4 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">งานทั้งหมด (Total)</p>
-          <h3 id="statTotal" class="text-xl md:text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+    <!-- 📊 DASHBOARD ANALYTICS SECTION -->
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-indigo-600"></i> Operations Performance Analytics
+        </h3>
+        <!-- Time Range Selector -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
+          <button onclick="setTimeRange('today')" id="btnToday" class="filter-btn px-3 py-1 rounded-lg">วันนี้</button>
+          <button onclick="setTimeRange('month')" id="btnMonth" class="filter-btn active px-3 py-1 rounded-lg">เดือนนี้</button>
+          <button onclick="setTimeRange('all')" id="btnAll" class="filter-btn px-3 py-1 rounded-lg">ทั้งหมด</button>
         </div>
-        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-list-check"></i></div>
       </div>
-      <div class="mini-card p-4 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">เสร็จสิ้น (Completed)</p>
-          <h3 id="statCompleted" class="text-xl md:text-2xl font-bold text-emerald-600 mt-0.5">0</h3>
+
+      <!-- 5 KPI CARDS -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+        <div class="mini-card p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">งานทั้งหมด</span>
+            <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
+          </div>
+          <div class="mt-2"><h3 id="statTotal" class="text-2xl font-bold text-slate-900">0</h3></div>
         </div>
-        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-circle-check"></i></div>
+
+        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">เสร็จสิ้น (Completed)</span>
+            <div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+          <div class="mt-2"><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600">0</h3></div>
+        </div>
+
+        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-sky-500">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">กำลังทำ (In Progress)</span>
+            <div class="w-7 h-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
+          </div>
+          <div class="mt-2"><h3 id="statInProgress" class="text-2xl font-bold text-sky-600">0</h3></div>
+        </div>
+
+        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-amber-500">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">รอดำเนินการ (Pending)</span>
+            <div class="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-clock"></i></div>
+          </div>
+          <div class="mt-2"><h3 id="statPending" class="text-2xl font-bold text-amber-500">0</h3></div>
+        </div>
+
+        <div class="mini-card p-4 flex flex-col justify-between col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-300 uppercase">Completion Rate</span>
+            <div class="w-7 h-7 bg-slate-700 text-emerald-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
+          </div>
+          <div class="mt-2 flex items-baseline justify-between">
+            <h3 id="statRate" class="text-2xl font-bold text-emerald-400">0%</h3>
+          </div>
+          <div class="w-full bg-slate-700 h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div id="statRateBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
       </div>
-      <div class="mini-card p-4 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">กำลังดำเนินการ</p>
-          <h3 id="statInProgress" class="text-xl md:text-2xl font-bold text-sky-600 mt-0.5">0</h3>
+
+      <!-- 📈 2-COLUMN BREAKDOWN: CATEGORIES & TOP PERFORMERS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="mini-card p-4 space-y-3">
+          <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+            <i class="fa-solid fa-tags text-indigo-500"></i> สัดส่วนปัญหาจำแนกตาม Category
+          </h4>
+          <div id="categoryContainer" class="space-y-2.5"></div>
         </div>
-        <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-spinner"></i></div>
-      </div>
-      <div class="mini-card p-4 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">รอดำเนินการ (Pending)</p>
-          <h3 id="statPending" class="text-xl md:text-2xl font-bold text-amber-500 mt-0.5">0</h3>
+
+        <div class="mini-card p-4 space-y-3">
+          <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+            <i class="fa-solid fa-trophy text-amber-500"></i> TOP IT PERFORMERS (ผลงานปิดเคสสำเร็จ)
+          </h4>
+          <div id="performerContainer" class="space-y-2.5"></div>
         </div>
-        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-clock"></i></div>
       </div>
     </div>
 
@@ -178,7 +229,7 @@
       </div>
 
       <!-- SEARCH & FILTER TOOLBAR -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
         <div class="relative sm:col-span-2 md:col-span-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
           <input type="text" id="searchInput" onkeyup="filterTasks()" placeholder="ค้นหา Case ID, หัวข้อ..." class="w-full mini-input pl-8 rounded-xl p-2 text-xs">
@@ -208,13 +259,6 @@
             <option value="Radisson">Radisson</option>
             <option value="Laya Suites">Laya Suites</option>
             <option value="BB Horizon">BB Horizon</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterRange" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="all">ทั้งหมด (All Time)</option>
-            <option value="today">เฉพาะวันนี้ (Today)</option>
-            <option value="month">เดือนนี้ (This Month)</option>
           </select>
         </div>
       </div>
@@ -407,6 +451,7 @@
     let currentPage = 1;
     const pageSize = 10;
     let currentUser = null;
+    let currentFilterRange = 'month';
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -475,21 +520,126 @@
       }
     }
 
-    // --- TASK MANAGEMENT ---
+    // --- TASK MANAGEMENT & ANALYTICS ---
     async function fetchTasks() {
       const { data, error } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
       if (!error) {
         rawTasks = data || [];
-        updateDashboard();
+        renderAnalytics();
         filterTasks();
       }
     }
 
-    function updateDashboard() {
-      document.getElementById('statTotal').innerText = rawTasks.length;
-      document.getElementById('statCompleted').innerText = rawTasks.filter(t => t.status === 'Completed').length;
-      document.getElementById('statInProgress').innerText = rawTasks.filter(t => t.status === 'In Progress').length;
-      document.getElementById('statPending').innerText = rawTasks.filter(t => t.status === 'Pending').length;
+    function setTimeRange(range) {
+      currentFilterRange = range;
+      ['btnToday', 'btnMonth', 'btnAll'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      const btnMap = { today: 'btnToday', month: 'btnMonth', all: 'btnAll' };
+      document.getElementById(btnMap[range]).classList.add('active');
+
+      renderAnalytics();
+      filterTasks();
+    }
+
+    function renderAnalytics() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const monthPrefix = todayStr.substring(0, 7);
+
+      const tasksForAnalytics = rawTasks.filter(t => {
+        const tDate = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
+        if (currentFilterRange === 'today') return tDate === todayStr;
+        if (currentFilterRange === 'month') return tDate.startsWith(monthPrefix);
+        return true;
+      });
+
+      const total = tasksForAnalytics.length;
+      const completed = tasksForAnalytics.filter(t => t.status === 'Completed').length;
+      const inProgress = tasksForAnalytics.filter(t => t.status === 'In Progress').length;
+      const pending = tasksForAnalytics.filter(t => t.status === 'Pending').length;
+
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statCompleted').innerText = completed;
+      document.getElementById('statInProgress').innerText = inProgress;
+      document.getElementById('statPending').innerText = pending;
+      document.getElementById('statRate').innerText = `${rate}%`;
+      document.getElementById('statRateBar').style.width = `${rate}%`;
+
+      renderCategories(tasksForAnalytics);
+      renderTopPerformers(tasksForAnalytics);
+    }
+
+    function renderCategories(tasks) {
+      const counts = {};
+      tasks.forEach(t => { 
+        const cat = t.category || 'General work';
+        counts[cat] = (counts[cat] || 0) + 1; 
+      });
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const container = document.getElementById('categoryContainer');
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ไม่มีข้อมูลในสัปดาห์/เดือนนี้</p>`;
+        return;
+      }
+
+      const maxCount = sorted[0][1] || 1;
+      container.innerHTML = sorted.map(([cat, count]) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between font-medium">
+              <span class="text-slate-700">${cat}</span>
+              <span class="text-slate-500 font-mono">${count} เคส</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTopPerformers(tasks) {
+      const completedTasks = tasks.filter(t => t.status === 'Completed');
+      const counts = {};
+      completedTasks.forEach(t => { 
+        if (t.assignee && t.assignee !== '-') {
+          counts[t.assignee] = (counts[t.assignee] || 0) + 1; 
+        }
+      });
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const container = document.getElementById('performerContainer');
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ยังไม่มีผลงานปิดเคสสำเร็จ</p>`;
+        return;
+      }
+
+      const maxCount = sorted[0][1] || 1;
+      const rankBadges = ['bg-amber-400 text-white', 'bg-slate-300 text-slate-700', 'bg-amber-600 text-white', 'bg-slate-100 text-slate-600', 'bg-slate-100 text-slate-600'];
+
+      container.innerHTML = sorted.map(([name, count], idx) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="flex items-center gap-2.5 text-xs">
+            <span class="w-4 h-4 rounded-full ${rankBadges[idx]} flex items-center justify-center font-bold text-[9px] shrink-0">${idx + 1}</span>
+            <div class="flex-1 space-y-1">
+              <div class="flex justify-between font-medium">
+                <span class="text-slate-800">${name}</span>
+                <span class="text-emerald-600 font-semibold font-mono">${count} เคส</span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function filterTasks() {
@@ -497,7 +647,6 @@
       const fStatus = document.getElementById('filterStatus').value;
       const fCategory = document.getElementById('filterCategory').value;
       const fLocation = document.getElementById('filterLocation').value;
-      const fRange = document.getElementById('filterRange').value;
 
       const todayStr = new Date().toISOString().split('T')[0];
       const monthPrefix = todayStr.substring(0, 7);
@@ -513,8 +662,8 @@
 
         let matchRange = true;
         const tDate = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
-        if (fRange === 'today') matchRange = (tDate === todayStr);
-        if (fRange === 'month') matchRange = tDate.startsWith(monthPrefix);
+        if (currentFilterRange === 'today') matchRange = (tDate === todayStr);
+        if (currentFilterRange === 'month') matchRange = tDate.startsWith(monthPrefix);
 
         return matchSearch && matchStatus && matchCategory && matchLocation && matchRange;
       });
