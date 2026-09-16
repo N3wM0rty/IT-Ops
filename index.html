@@ -7,952 +7,116 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
     .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
-    .sidebar-link { transition: all 0.2s; }
-    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
-    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
-    
-    input[type="date"], input[type="month"] { position: relative; -webkit-appearance: none; min-height: 2.5rem; }
-    input[type="date"]::-webkit-calendar-picker-indicator, input[type="month"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
-
-    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased">
 
-  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
-
-  <!-- ✏️ EDIT TASK MODAL (ป๊อปอัพแก้ไขเคส) -->
-  <div id="editTaskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden space-y-4 p-6">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-indigo-600"></i> แก้ไขข้อมูลเคสงาน (<span id="editModalCaseId" class="font-mono text-indigo-600">#</span>)
-        </h3>
-        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 text-sm"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="editTaskForm" class="space-y-4">
-        <input type="hidden" id="editTaskId">
-        
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Task Title / Name</label>
-          <input type="text" id="editTitle" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Location</label>
-            <select id="editLocation" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="Radisson">Radisson</option>
-              <option value="Laya Suites">Laya Suites</option>
-              <option value="BB Horizon">BB Horizon</option>
-              <option value="Other Location">Other Location</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Date</label>
-            <input type="date" id="editTaskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Reporter</label>
-            <input type="text" id="editReporter" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Dept</label>
-            <input type="text" id="editDepartment" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Assignee (Fixer)</label>
-            <input type="text" id="editAssignee" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Category</label>
-            <select id="editCategory" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="POS">POS</option>
-              <option value="PC/ Laptop">PC/ Laptop</option>
-              <option value="Opera Cloud">Opera Cloud</option>
-              <option value="MC">MC</option>
-              <option value="Door">Door</option>
-              <option value="SUN">SUN</option>
-              <option value="Wi-Fi">Wi-Fi</option>
-              <option value="Passport">Passport</option>
-              <option value="CCTV">CCTV</option>
-              <option value="TV">TV</option>
-              <option value="Phone">Phone</option>
-              <option value="Silverman">Silverman</option>
-              <option value="Interface">Interface</option>
-              <option value="Print">Print</option>
-              <option value="other">other</option>
-              <option value="General work">General work</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
-            <select id="editStatus" class="w-full mini-input rounded-xl p-2.5 text-xs font-semibold">
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Priority</label>
-            <select id="editPriority" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="Normal">Normal</option>
-              <option value="High">High</option>
-              <option value="Urgent">Urgent</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Description / Outcome</label>
-          <textarea id="editDescription" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button type="button" onclick="closeEditModal()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs mini-btn">อัปเดตข้อมูลเคส</button>
-        </div>
-      </form>
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-list-check"></i></div>
+      <span class="text-xs font-semibold">IT MANAGEMENT</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      <a href="index.html" class="bg-indigo-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="max-w-md mx-auto my-20 mini-card p-8 space-y-6 w-full">
-    <div class="text-center space-y-3">
-      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
-        <i class="fa-solid fa-laptop-code"></i>
-      </div>
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">IT TRACKER</h1>
-        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks</p>
-      </div>
-    </div>
-
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
-        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-key mr-1"></i> Password</label>
-        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
-      </div>
-      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
-      </button>
-    </form>
-    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
-  </div>
-
-  <!-- MAIN APP WITH SIDEBAR -->
-  <div id="mainDashboard" class="hidden flex w-full min-h-screen">
-    
-    <!-- 📌 SIDEBAR NAVIGATION -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start">
-      <div class="p-5 space-y-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-            <i class="fa-solid fa-microchip"></i>
-          </div>
-          <div>
-            <h1 class="text-sm font-semibold text-slate-900 leading-none">IT OPERATIONS</h1>
-            <p class="text-[11px] text-slate-400 mt-1">Management Portal</p>
-          </div>
+  <!-- 📌 SIDEBAR: IT TASK & SHIFT TRACKER -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
+    <div class="p-5 space-y-6">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+        <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg font-bold shadow-sm">
+          <i class="fa-solid fa-list-check"></i>
         </div>
+        <div>
+          <h1 class="text-xs font-bold text-slate-900 tracking-wide uppercase">IT TASK TRACKER</h1>
+          <p class="text-[11px] text-slate-400 mt-0.5">Laya Resort Portal</p>
+        </div>
+      </div>
 
+      <div class="space-y-4">
         <div class="space-y-1">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
-          <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
-          </a>
-          <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
-          </a>
-          <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-desktop w-4 text-indigo-600"></i> Asset Inventory
-          </a>
-        </div>
-
-        <div class="space-y-1 border-t border-slate-100 pt-4">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">TASK NAVIGATION</p>
-          <button onclick="switchTab('tasks')" id="sideBtnTasks" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-folder-open w-4"></i> Task Directory
-          </button>
-          <button onclick="switchTab('createTask')" id="sideBtnCreateTask" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-plus w-4"></i> Create New Task
-          </button>
-          <button onclick="switchTab('shifts')" id="sideBtnShifts" class="w-full text-left flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-slate-600 hover:bg-slate-50">
-            <i class="fa-solid fa-user-clock w-4"></i> Shift Management
-          </button>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-slate-100 bg-slate-50/80">
-        <div class="flex items-center justify-between gap-2">
-          <div class="overflow-hidden">
-            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
-            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+          <div class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-list-check w-4"></i>
+              <span>IT Task & Shift</span>
+            </div>
+            <i class="fa-solid fa-chevron-down text-[10px]"></i>
           </div>
-          <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </button>
+          
+          <div class="ml-4 pl-3 border-l-2 border-indigo-100 space-y-1 pt-1">
+            <a href="index.html" class="flex items-center justify-between text-[11px] font-semibold text-indigo-600 py-1 transition-colors">
+              <span>• งานทั้งหมด (All Tasks)</span>
+            </a>
+            <a href="index.html#pending" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
+              <span>• งานค้างชำระ (Pending)</span>
+            </a>
+            <a href="index.html#shift" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
+              <span>• บันทึกส่งเวร (Shift Log)</span>
+            </a>
+          </div>
         </div>
-      </div>
-    </aside>
 
-    <!-- 📱 MOBILE HEADER -->
-    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
-        <span class="text-xs font-semibold">IT TASK TRACKER</span>
-      </div>
-      <div class="flex gap-1.5 items-center">
-        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
-        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
-        <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
-        <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+        <div class="pt-2 space-y-1">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1">Other Applications</p>
+          <a href="ups.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i>
+            <span>UPS Inspector</span>
+          </a>
+          <a href="inventory.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+            <i class="fa-solid fa-desktop w-4 text-amber-500"></i>
+            <span>Asset Inventory</span>
+          </a>
+        </div>
       </div>
     </div>
 
-    <!-- 🖥️ MAIN CONTENT -->
-    <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
-      
-      <!-- PAGE 1: CREATE TASK PAGE -->
-      <div id="viewCreateTask" class="hidden max-w-2xl mx-auto space-y-6">
-        <div class="mini-card p-6 md:p-8 space-y-5">
-          <h2 class="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-pen-to-square text-slate-500"></i> Record New Task
-          </h2>
-          <form id="taskForm" class="space-y-4">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-heading mr-1"></i> Task Title / Name</label>
-              <input type="text" id="title" required placeholder="e.g. Reset Password" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Location</label>
-                <select id="location" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Radisson" selected>Radisson</option>
-                  <option value="Laya Suites">Laya Suites</option>
-                  <option value="BB Horizon">BB Horizon</option>
-                  <option value="Other Location">Other Location</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-calendar-day mr-1"></i> Date</label>
-                <input type="date" id="taskDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user mr-1"></i> Reporter</label>
-                <input type="text" id="reporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-building mr-1"></i> Dept</label>
-                <input type="text" id="department" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-user-gear mr-1"></i> Assignee</label>
-                <input type="text" id="assignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-layer-group mr-1"></i> Category</label>
-              <select id="category" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="POS">POS</option>
-                <option value="PC/ Laptop">PC/ Laptop</option>
-                <option value="Opera Cloud">Opera Cloud</option>
-                <option value="MC">MC</option>
-                <option value="Door">Door</option>
-                <option value="SUN">SUN</option>
-                <option value="Wi-Fi">Wi-Fi</option>
-                <option value="Passport">Passport</option>
-                <option value="CCTV">CCTV</option>
-                <option value="TV">TV</option>
-                <option value="Phone">Phone</option>
-                <option value="Silverman">Silverman</option>
-                <option value="Interface">Interface</option>
-                <option value="Print">Print</option>
-                <option value="other">other</option>
-                <option value="General work" selected>General work</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-bars-progress mr-1"></i> Status</label>
-                <select id="status" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Pending" selected>Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Priority</label>
-                <select id="priority" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                  <option value="Normal">Normal</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-align-left mr-1"></i> Description</label>
-              <textarea id="description" rows="3" class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
-            </div>
-
-            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Save Task
-            </button>
-          </form>
+    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+      <div class="flex items-center justify-between gap-2">
+        <div class="overflow-hidden">
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
+          <span class="text-[9px] text-indigo-600 bg-indigo-50 border border-indigo-200 font-semibold px-2 py-0.5 rounded uppercase tracking-wider">STAFF</span>
         </div>
+        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
+    </div>
+  </aside>
 
-      <!-- PAGE 2: TASKS LIST VIEW -->
-      <div id="viewTasks" class="space-y-6">
-        <div class="mini-card p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h3 class="text-sm font-medium tracking-wide flex items-center gap-2 text-slate-200">
-                <i class="fa-solid fa-clock text-slate-400"></i> TODAY ON-DUTY SHIFT (<span id="todayDateStr"></span>)
-              </h3>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-sun mr-1 text-amber-400"></i>MORNING</span>
-                  <span id="summaryMorning" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-moon mr-1 text-indigo-400"></i>EVENING</span>
-                  <span id="summaryEvening" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-phone-volume mr-1 text-emerald-400"></i>ON-CALL</span>
-                  <span id="summaryOnCall" class="text-sm font-semibold text-white">-</span>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/50">
-                  <span class="text-slate-400 block text-[10px]"><i class="fa-solid fa-user-slash mr-1 text-rose-400"></i>LEAVE</span>
-                  <span id="summaryLeave" class="text-sm font-semibold text-white">-</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex sm:flex-col gap-2 justify-end">
-              <button onclick="sendLineShiftAlertFromUI()" class="bg-emerald-600 hover:bg-emerald-500 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-                <i class="fa-brands fa-line"></i> Push Line
-              </button>
-              <button onclick="switchTab('shifts')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-user-pen"></i> Edit Shift
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Total Tasks</p><p id="statTotal" class="text-2xl font-semibold text-slate-900 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-folder-open"></i></div>
-          </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Completed</p><p id="statCompleted" class="text-2xl font-semibold text-emerald-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
-          </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">In Progress</p><p id="statInProgress" class="text-2xl font-semibold text-sky-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-spinner"></i></div>
-          </div>
-          <div class="mini-card p-4 flex items-center justify-between">
-            <div><p class="text-xs font-medium text-slate-500">Pending</p><p id="statPending" class="text-2xl font-semibold text-amber-600 mt-0.5">0</p></div>
-            <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-hourglass-start"></i></div>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <div class="mini-card p-4 flex flex-wrap items-end gap-3 text-xs">
-            <div class="w-[140px]">
-              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-filter mr-1"></i> Filter View</label>
-              <select id="dateRangeMode" onchange="toggleDateInputs(); applyFilters();" class="w-full mini-input rounded-xl p-2 text-xs">
-                <option value="today">Today</option>
-                <option value="month" selected>This Month</option>
-                <option value="selectMonth">Select Month...</option>
-                <option value="all">All Time</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
-
-            <div id="selectMonthGroup" class="hidden">
-              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-calendar mr-1"></i> Select Month</label>
-              <input type="month" id="monthPicker" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-            </div>
-
-            <div class="flex-1 min-w-[140px]">
-              <label class="block text-xs font-medium text-slate-500 mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> Search Task / Case</label>
-              <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search title, case ID (#2026-00001)..." class="w-full mini-input rounded-xl p-2 text-xs">
-            </div>
-
-            <div id="customDateGroup" class="hidden flex gap-2">
-              <input type="date" id="startDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-              <input type="date" id="endDate" onchange="applyFilters()" class="mini-input rounded-xl p-2 text-xs">
-            </div>
-
-            <div>
-              <button onclick="resetFilter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn px-3 py-2 rounded-xl text-xs flex items-center gap-1">
-                <i class="fa-solid fa-rotate-left"></i> Reset
-              </button>
-            </div>
-          </div>
-
-          <div class="mini-card p-5 space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                  <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
-                </h2>
-                <span id="taskCount" class="bg-slate-100 text-slate-600 text-[11px] font-medium px-2.5 py-0.5 rounded-full">0 items</span>
-              </div>
-              <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-                <i class="fa-solid fa-file-excel"></i> Export Excel
-              </button>
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-slate-100">
-              <table class="w-full text-left text-xs text-slate-700">
-                <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
-                  <tr>
-                    <th class="p-3">Case ID</th>
-                    <th class="p-3">Task & Location</th>
-                    <th class="p-3">Personnel</th>
-                    <th class="p-3">Category</th>
-                    <th class="p-3">Status</th>
-                    <th class="p-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-              </table>
-            </div>
-
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
-              <div id="pageInfo" class="font-medium">Showing 0-0 of 0 tasks</div>
-              <div class="flex items-center gap-1" id="paginationButtons"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PAGE 3: SHIFTS MANAGEMENT VIEW -->
-      <div id="viewShifts" class="hidden space-y-6">
-        <div class="mini-card p-6 md:p-8 space-y-6">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-user-clock text-slate-500"></i> Shift Management System
-              </h2>
-              <p class="text-slate-500 text-xs mt-0.5">Select date to view or update daily shift duty</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="date" id="manageShiftDate" onchange="loadShiftForDate()" class="mini-input rounded-xl p-2 text-xs">
-              <button onclick="loadShiftForDate()" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1">
-                <i class="fa-solid fa-rotate"></i> Load
-              </button>
-            </div>
-          </div>
-
-          <form id="shiftManageForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-sun text-amber-500"></i> Morning Shift (08:00 - 17:00)
-              </h4>
-              <input type="text" id="mMorning" required placeholder="e.g. New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-moon text-indigo-500"></i> Evening Shift (13:00 - 22:00)
-              </h4>
-              <input type="text" id="mEvening" placeholder="e.g. P'Puen ITM" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-phone-volume text-emerald-600"></i> Standby On-Call
-              </h4>
-              <input type="text" id="mOnCall" required placeholder="e.g. New / P'Puen" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-xl space-y-2">
-              <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-user-slash text-rose-500"></i> Leave & Day Off
-              </h4>
-              <input type="text" id="mLeave" placeholder="e.g. None" class="w-full mini-input rounded-xl p-2.5 text-xs">
-            </div>
-
-            <div class="md:col-span-2 flex items-center justify-end gap-3 pt-2">
-              <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn px-6 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Save Shift Schedule
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-    </main>
-  </div>
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full">
+    <div class="mini-card p-6 md:p-8">
+      <h2 class="text-lg font-bold text-slate-900 mb-2">IT Task & Shift Management</h2>
+      <p class="text-slate-500 text-xs">ส่วนจัดการงานประจำวันและลงบันทึกการเปลี่ยนเวร IT</p>
+    </div>
+  </main>
 
   <script>
     const TASK_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
     const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
 
-    let currentUser = null, rawTasks = [], currentTasks = [];
-    let currentPage = 1, itemsPerPage = 15;
-    let todayShiftCache = { morning: '-', evening: '-', onCall: '-', leave: 'ไม่มี' };
-
-    function switchTab(tabName) {
-      document.getElementById('viewCreateTask').classList.add('hidden');
-      document.getElementById('viewTasks').classList.add('hidden');
-      document.getElementById('viewShifts').classList.add('hidden');
-
-      if (tabName === 'createTask') document.getElementById('viewCreateTask').classList.remove('hidden');
-      if (tabName === 'tasks') document.getElementById('viewTasks').classList.remove('hidden');
-      if (tabName === 'shifts') {
-        document.getElementById('viewShifts').classList.remove('hidden');
-        if (!document.getElementById('manageShiftDate').value) {
-          document.getElementById('manageShiftDate').value = new Date().toISOString().split('T')[0];
-        }
-        loadShiftForDate();
-      }
-    }
-
-    function showToast(title, message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
-      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
-    }
-
     async function checkAuth() {
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
-        currentUser = user;
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('mainDashboard').classList.remove('hidden');
         document.getElementById('userEmailDisplay').innerText = user.email;
-        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-        fetchTodayShiftSummary();
-        fetchTasks();
-        switchTab('tasks');
-      } else {
-        document.getElementById('loginPage').classList.remove('hidden');
       }
     }
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('loginEmail').value,
-        password: document.getElementById('loginPassword').value
-      });
-      if (error) {
-        document.getElementById('loginError').innerText = error.message;
-        document.getElementById('loginError').classList.remove('hidden');
-      } else { checkAuth(); }
-    });
 
     async function handleLogout() {
       await supabaseClient.auth.signOut();
-      location.reload();
+      window.location.reload();
     }
-
-    async function fetchTodayShiftSummary() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      document.getElementById('todayDateStr').innerText = todayStr;
-
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', todayStr)
-        .maybeSingle();
-
-      if (data) {
-        todayShiftCache = {
-          morning: data.morning_staff || '-',
-          evening: data.evening_staff || '-',
-          onCall: data.on_call_staff || '-',
-          leave: data.leave_info || 'ไม่มี'
-        };
-      }
-
-      document.getElementById('summaryMorning').innerText = todayShiftCache.morning;
-      document.getElementById('summaryEvening').innerText = todayShiftCache.evening;
-      document.getElementById('summaryOnCall').innerText = todayShiftCache.onCall;
-      document.getElementById('summaryLeave').innerText = todayShiftCache.leave;
-    }
-
-    async function loadShiftForDate() {
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      if (!selectedDate) return;
-
-      const { data } = await supabaseClient
-        .from('shifts')
-        .select('*')
-        .eq('shift_date', selectedDate)
-        .maybeSingle();
-
-      if (data) {
-        document.getElementById('mMorning').value = data.morning_staff || '';
-        document.getElementById('mEvening').value = data.evening_staff || '';
-        document.getElementById('mOnCall').value = data.on_call_staff || '';
-        document.getElementById('mLeave').value = data.leave_info || '';
-      } else {
-        document.getElementById('mMorning').value = '';
-        document.getElementById('mEvening').value = '';
-        document.getElementById('mOnCall').value = '';
-        document.getElementById('mLeave').value = '';
-      }
-    }
-
-    document.getElementById('shiftManageForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const selectedDate = document.getElementById('manageShiftDate').value;
-      
-      const shiftPayload = {
-        shift_date: selectedDate,
-        morning_staff: document.getElementById('mMorning').value,
-        evening_staff: document.getElementById('mEvening').value,
-        on_call_staff: document.getElementById('mOnCall').value,
-        leave_info: document.getElementById('mLeave').value || 'ไม่มีผู้แจ้งลา'
-      };
-
-      const { error } = await supabaseClient
-        .from('shifts')
-        .upsert(shiftPayload, { onConflict: 'shift_date' });
-
-      if (error) {
-        showToast('ERROR', error.message, 'error');
-      } else {
-        showToast('SUCCESS!', `Updated shift schedule for ${selectedDate}`, 'success');
-        fetchTodayShiftSummary();
-      }
-    });
-
-    async function sendLineShiftAlertFromUI() {
-      try {
-        const { error } = await supabaseClient.rpc('send_line_shift_now');
-        if (error) {
-          showToast('PUSH FAILED', error.message, 'error');
-        } else {
-          showToast('LINE PUSHED!', 'Shift schedule sent to LINE group', 'success');
-        }
-      } catch (err) {
-        showToast('ERROR', err.message, 'error');
-      }
-    }
-
-    async function fetchTasks() {
-      const { data } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
-      rawTasks = data || [];
-      applyFilters();
-    }
-
-    function toggleDateInputs() {
-      const mode = document.getElementById('dateRangeMode').value;
-      document.getElementById('customDateGroup').classList.toggle('hidden', mode !== 'custom');
-      document.getElementById('selectMonthGroup').classList.toggle('hidden', mode !== 'selectMonth');
-      
-      if (mode === 'selectMonth' && !document.getElementById('monthPicker').value) {
-        document.getElementById('monthPicker').value = new Date().toISOString().substring(0, 7);
-      }
-    }
-
-    function resetFilter() {
-      document.getElementById('dateRangeMode').value = 'month';
-      document.getElementById('searchInput').value = '';
-      document.getElementById('startDate').value = '';
-      document.getElementById('endDate').value = '';
-      document.getElementById('monthPicker').value = '';
-      toggleDateInputs();
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const mode = document.getElementById('dateRangeMode').value;
-      const todayStr = new Date().toISOString().split('T')[0];
-      const currentMonthPrefix = todayStr.substring(0, 7);
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const selectedMonthVal = document.getElementById('monthPicker').value;
-      const startDateVal = document.getElementById('startDate').value;
-      const endDateVal = document.getElementById('endDate').value;
-
-      currentTasks = rawTasks.filter(t => {
-        let matchDate = true;
-        const taskDateStr = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
-        
-        if (mode === 'today') {
-          matchDate = (taskDateStr === todayStr);
-        } else if (mode === 'month') {
-          matchDate = taskDateStr.startsWith(currentMonthPrefix);
-        } else if (mode === 'selectMonth') {
-          matchDate = selectedMonthVal ? taskDateStr.startsWith(selectedMonthVal) : true;
-        } else if (mode === 'custom') {
-          if (startDateVal && endDateVal) {
-            matchDate = (taskDateStr >= startDateVal && taskDateStr <= endDateVal);
-          } else if (startDateVal) {
-            matchDate = (taskDateStr >= startDateVal);
-          } else if (endDateVal) {
-            matchDate = (taskDateStr <= endDateVal);
-          }
-        }
-        
-        const caseIdStr = (t.case_id || `#2026-${String(t.id).padStart(5, '0')}`).toLowerCase();
-        const taskTitle = t.title || t.task_name || '';
-        const taskLoc = t.location || '';
-        const matchSearch = !search || caseIdStr.includes(search) || taskTitle.toLowerCase().includes(search) || taskLoc.toLowerCase().includes(search) || (t.reporter && t.reporter.toLowerCase().includes(search));
-        
-        return matchDate && matchSearch;
-      });
-
-      document.getElementById('statTotal').innerText = currentTasks.length;
-      document.getElementById('statCompleted').innerText = currentTasks.filter(t => t.status === 'Completed').length;
-      document.getElementById('statInProgress').innerText = currentTasks.filter(t => t.status === 'In Progress').length;
-      document.getElementById('statPending').innerText = currentTasks.filter(t => t.status === 'Pending').length;
-      document.getElementById('taskCount').innerText = `${currentTasks.length} items`;
-
-      currentPage = 1;
-      renderTablePage();
-    }
-
-    function renderTablePage() {
-      const tbody = document.getElementById('taskTableBody');
-      tbody.innerHTML = '';
-
-      const totalItems = currentTasks.length;
-      const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
-      if (currentPage > totalPages) currentPage = totalPages;
-      if (currentPage < 1) currentPage = 1;
-
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-
-      const pageTasks = currentTasks.slice(startIndex, endIndex);
-
-      pageTasks.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/80 transition-colors";
-        const caseIdStr = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
-        const taskTitle = t.title || t.task_name || '-';
-        const locationStr = t.location || 'Radisson';
-        
-        let statusColorClass = 'bg-amber-50 text-amber-700 border-amber-200';
-        if (t.status === 'Completed') statusColorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        if (t.status === 'In Progress') statusColorClass = 'bg-sky-50 text-sky-700 border-sky-200';
-
-        tr.innerHTML = `
-          <td class="p-3">
-            <span class="bg-slate-100 text-slate-700 font-mono text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200 inline-block">${caseIdStr}</span>
-          </td>
-          <td class="p-3">
-            <span class="text-xs font-semibold text-slate-900 block">${taskTitle}</span>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[10px] text-slate-500 flex items-center gap-1">
-                <i class="fa-solid fa-location-dot text-slate-400"></i> ${locationStr}
-              </span>
-              <span class="text-slate-300">•</span>
-              <span class="text-[11px] text-slate-500 truncate max-w-[180px]">${t.description || ''}</span>
-            </div>
-          </td>
-          <td class="p-3 text-[11px]">
-            <span class="text-slate-700 block font-medium"><i class="fa-solid fa-user text-slate-400 mr-1"></i>${t.reporter || '-'}</span>
-            <span class="text-slate-400">Dept: ${t.department || '-'} | Fixer: ${t.assignee || '-'}</span>
-          </td>
-          <td class="p-3">
-            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md text-[10px] font-medium border border-slate-200">${t.category || 'General work'}</span>
-          </td>
-          <td class="p-3">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusColorClass}">${t.status}</span>
-          </td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="editTask(${t.id})" class="text-slate-400 hover:text-slate-900 p-1.5 hover:bg-slate-100 rounded-lg text-xs transition-colors" title="Edit Task">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg text-xs transition-colors" title="Delete">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
-      document.getElementById('pageInfo').innerText = `Showing ${startDisplay}-${endIndex} of ${totalItems} tasks (Page ${currentPage}/${totalPages})`;
-
-      renderPaginationControls(totalPages);
-    }
-
-    function renderPaginationControls(totalPages) {
-      const container = document.getElementById('paginationButtons');
-      container.innerHTML = '';
-
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
-      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-[10px]"></i> Prev';
-      prevBtn.disabled = (currentPage === 1);
-      prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTablePage(); } };
-      container.appendChild(prevBtn);
-
-      for (let i = 1; i <= totalPages; i++) {
-        if (totalPages > 7 && Math.abs(i - currentPage) > 2 && i !== 1 && i !== totalPages) {
-          if (i === 2 && currentPage > 4) {
-            const dots = document.createElement('span');
-            dots.className = 'px-1 text-slate-400';
-            dots.innerText = '...';
-            container.appendChild(dots);
-          }
-          continue;
-        }
-
-        const numBtn = document.createElement('button');
-        numBtn.className = `mini-btn px-2.5 py-1 text-xs rounded-lg ${i === currentPage ? 'bg-slate-900 text-white font-medium' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`;
-        numBtn.innerText = i;
-        numBtn.onclick = () => { currentPage = i; renderTablePage(); };
-        container.appendChild(numBtn);
-      }
-
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'mini-btn px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 disabled:opacity-40';
-      nextBtn.innerHTML = 'Next <i class="fa-solid fa-chevron-right text-[10px]"></i>';
-      nextBtn.disabled = (currentPage === totalPages || totalPages === 0);
-      nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTablePage(); } };
-      container.appendChild(nextBtn);
-    }
-
-    document.getElementById('taskForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newTask = {
-        user_id: currentUser.id,
-        date: document.getElementById('taskDate').value,
-        title: document.getElementById('title').value,
-        location: document.getElementById('location').value,
-        reporter: document.getElementById('reporter').value,
-        department: document.getElementById('department').value,
-        assignee: document.getElementById('assignee').value,
-        category: document.getElementById('category').value,
-        priority: document.getElementById('priority').value,
-        status: document.getElementById('status').value,
-        description: document.getElementById('description').value
-      };
-      await supabaseClient.from('tasks').insert([newTask]);
-      showToast('SUCCESS', 'บันทึก Task เรียบร้อย');
-      fetchTasks(); switchTab('tasks');
-    });
-
-    // ✏️ EDIT TASK FUNCTIONS (ดึงข้อมูลใส่ Modal และสั่ง Update เข้า Supabase)
-    function editTask(id) {
-      const task = rawTasks.find(t => t.id === id);
-      if (!task) return;
-
-      const caseIdStr = task.case_id || `#2026-${String(task.id).padStart(5, '0')}`;
-      document.getElementById('editModalCaseId').innerText = caseIdStr;
-      document.getElementById('editTaskId').value = task.id;
-      document.getElementById('editTitle').value = task.title || task.task_name || '';
-      document.getElementById('editLocation').value = task.location || 'Radisson';
-      document.getElementById('editTaskDate').value = task.date || (task.created_at ? task.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
-      document.getElementById('editReporter').value = task.reporter || '';
-      document.getElementById('editDepartment').value = task.department || '';
-      document.getElementById('editAssignee').value = task.assignee || '';
-      document.getElementById('editCategory').value = task.category || 'General work';
-      document.getElementById('editStatus').value = task.status || 'Pending';
-      document.getElementById('editPriority').value = task.priority || 'Normal';
-      document.getElementById('editDescription').value = task.description || '';
-
-      document.getElementById('editTaskModal').classList.remove('hidden');
-    }
-
-    function closeEditModal() {
-      document.getElementById('editTaskModal').classList.add('hidden');
-    }
-
-    document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('editTaskId').value;
-      
-      const updatedPayload = {
-        title: document.getElementById('editTitle').value,
-        location: document.getElementById('editLocation').value,
-        date: document.getElementById('editTaskDate').value,
-        reporter: document.getElementById('editReporter').value,
-        department: document.getElementById('editDepartment').value,
-        assignee: document.getElementById('editAssignee').value,
-        category: document.getElementById('editCategory').value,
-        status: document.getElementById('editStatus').value,
-        priority: document.getElementById('editPriority').value,
-        description: document.getElementById('editDescription').value
-      };
-
-      const { error } = await supabaseClient.from('tasks').update(updatedPayload).eq('id', id);
-
-      if (error) {
-        showToast('ERROR', error.message, 'error');
-      } else {
-        showToast('UPDATED', 'อัปเดตข้อมูลเคสงานเรียบร้อย');
-        closeEditModal();
-        fetchTasks();
-      }
-    });
-
-    async function deleteTask(id) {
-      if (confirm('ยืนยันลบเคสนี้?')) {
-        await supabaseClient.from('tasks').delete().eq('id', id);
-        showToast('DELETED', 'ลบเคสงานเรียบร้อย');
-        fetchTasks();
-      }
-    }
-
-    function exportToExcel() {
-      if (currentTasks.length === 0) return showToast('EMPTY DATA', 'No tasks available to export', 'error');
-
-      const excelData = currentTasks.map(t => ({
-        'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
-        'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
-        'Location': t.location || 'Radisson',
-        'Category': t.category || 'General work',
-        'Task Name': t.title || t.task_name || '',
-        'Priority': t.priority || 'Normal',
-        'Status': t.status || 'Pending',
-        'Description / Outcome': t.description || '-',
-        'Dept': t.department || '-',
-        'Reporter': t.reporter || '-',
-        'Fix By': t.assignee || '-'
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks_Report");
-      XLSX.writeFile(workbook, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
-      showToast('EXPORT COMPLETE!', 'Excel file downloaded', 'success');
-    }
-
     checkAuth();
   </script>
 </body>
