@@ -35,18 +35,18 @@
 
     <!-- AUTH FORM -->
     <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-      <div>
+      <div id="emailFieldGroup">
         <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
         <div class="relative">
           <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="email" id="email" required placeholder="name@company.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
+          <input type="email" id="email" placeholder="name@company.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
         </div>
       </div>
 
       <div id="passwordFieldGroup">
         <div class="flex justify-between items-center mb-1.5">
-          <label class="block text-xs font-medium text-slate-300">Password</label>
-          <button type="button" onclick="switchMode('forgot')" class="text-[11px] text-blue-400 hover:underline">ลืมรหัสผ่าน?</button>
+          <label id="passLabel" class="block text-xs font-medium text-slate-300">Password</label>
+          <button type="button" id="forgotBtn" onclick="switchMode('forgot')" class="text-[11px] text-blue-400 hover:underline">ลืมรหัสผ่าน?</button>
         </div>
         <div class="relative">
           <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
@@ -60,7 +60,7 @@
     </form>
 
     <!-- FOOTER TOGGLE MODE -->
-    <div class="text-center border-t border-slate-800 pt-4 space-y-2 text-xs">
+    <div id="footerActionBox" class="text-center border-t border-slate-800 pt-4 space-y-2 text-xs">
       <div id="toggleSignupBox">
         <span class="text-slate-400">ยังไม่มีบัญชีใช่ไหม?</span>
         <button type="button" onclick="switchMode('signup')" class="text-blue-400 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
@@ -77,7 +77,7 @@
     const SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentMode = 'login'; // login | signup | forgot
+    let currentMode = 'login'; // login | signup | forgot | reset
 
     function showAlert(msg, isSuccess = false) {
       const box = document.getElementById('alertBox');
@@ -105,38 +105,67 @@
       currentMode = mode;
       hideAlert();
 
+      const emailGroup = document.getElementById('emailFieldGroup');
+      const emailInput = document.getElementById('email');
       const passGroup = document.getElementById('passwordFieldGroup');
       const passInput = document.getElementById('password');
+      const passLabel = document.getElementById('passLabel');
+      const forgotBtn = document.getElementById('forgotBtn');
       const title = document.getElementById('formHeaderTitle');
       const desc = document.getElementById('formHeaderDesc');
       const btnText = document.getElementById('btnSubmitText');
       const toggleSignup = document.getElementById('toggleSignupBox');
       const toggleLogin = document.getElementById('toggleLoginBox');
+      const footerBox = document.getElementById('footerActionBox');
 
       if (mode === 'login') {
         title.innerText = 'IT OPERATIONS CENTER';
         desc.innerText = 'กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ';
         btnText.innerText = 'เข้าสู่ระบบ (Log In)';
+        emailGroup.classList.remove('hidden');
+        emailInput.required = true;
         passGroup.classList.remove('hidden');
         passInput.required = true;
+        passLabel.innerText = 'Password';
+        forgotBtn.classList.remove('hidden');
+        footerBox.classList.remove('hidden');
         toggleSignup.classList.remove('hidden');
         toggleLogin.classList.add('hidden');
       } else if (mode === 'signup') {
         title.innerText = 'CREATE NEW ACCOUNT';
         desc.innerText = 'สมัครสมาชิกใหม่สำหรับเจ้าหน้าที่ IT';
         btnText.innerText = 'ยืนยันการสมัครสมาชิก (Sign Up)';
+        emailGroup.classList.remove('hidden');
+        emailInput.required = true;
         passGroup.classList.remove('hidden');
         passInput.required = true;
+        passLabel.innerText = 'Password';
+        forgotBtn.classList.add('hidden');
+        footerBox.classList.remove('hidden');
         toggleSignup.classList.add('hidden');
         toggleLogin.classList.remove('hidden');
       } else if (mode === 'forgot') {
         title.innerText = 'RESET PASSWORD';
         desc.innerText = 'ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปยัง Email ของคุณ';
         btnText.innerText = 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)';
+        emailGroup.classList.remove('hidden');
+        emailInput.required = true;
         passGroup.classList.add('hidden');
         passInput.required = false;
+        footerBox.classList.remove('hidden');
         toggleSignup.classList.add('hidden');
         toggleLogin.classList.remove('hidden');
+      } else if (mode === 'reset') {
+        title.innerText = 'SET NEW PASSWORD';
+        desc.innerText = 'กรุณากรอกรหัสผ่านใหม่ที่คุณต้องการใช้งาน';
+        btnText.innerText = 'บันทึกรหัสผ่านใหม่ (Save Password)';
+        emailGroup.classList.add('hidden');
+        emailInput.required = false;
+        passGroup.classList.remove('hidden');
+        passInput.required = true;
+        passLabel.innerText = 'New Password';
+        forgotBtn.classList.add('hidden');
+        footerBox.classList.add('hidden');
       }
     }
 
@@ -153,21 +182,27 @@
 
       try {
         if (currentMode === 'login') {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           window.location.href = 'index.html';
         } 
         else if (currentMode === 'signup') {
-          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          const { error } = await supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
-          showAlert('สมัครสมาชิกสำเร็จ! หากมีระบบยืนยันอีเมล โปรดเช็ก Inbox ของคุณ', true);
+          showAlert('สมัครสมาชิกสำเร็จ! โปรดเช็ก Inbox ในอีเมลของคุณ', true);
         } 
         else if (currentMode === 'forgot') {
-          const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/IT-Ops/login.html',
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname,
           });
           if (error) throw error;
           showAlert('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลเรียบร้อยแล้ว!', true);
+        }
+        else if (currentMode === 'reset') {
+          const { error } = await supabaseClient.auth.updateUser({ password: password });
+          if (error) throw error;
+          showAlert('อัปเดตรหัสผ่านใหม่เรียบร้อยแล้ว! กำลังพาท่านเข้าสู่ระบบ...', true);
+          setTimeout(() => { window.location.href = 'index.html'; }, 1500);
         }
       } catch (err) {
         let errorMsg = err.message || 'เกิดข้อผิดพลาดในการทำรายการ';
@@ -177,15 +212,32 @@
         showAlert(errorMsg, false);
       } finally {
         btn.disabled = false;
-        const labelMap = { login: 'เข้าสู่ระบบ (Log In)', signup: 'ยืนยันการสมัครสมาชิก (Sign Up)', forgot: 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)' };
+        const labelMap = { 
+          login: 'เข้าสู่ระบบ (Log In)', 
+          signup: 'ยืนยันการสมัครสมาชิก (Sign Up)', 
+          forgot: 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)',
+          reset: 'บันทึกรหัสผ่านใหม่ (Save Password)'
+        };
         btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>${labelMap[currentMode]}</span>`;
       }
     }
 
-    // เช็กว่าถ้าล็อกอินอยู่แล้วให้ข้ามไปหน้า index.html
+    // ตรวจสอบสถานะ Event Token จากการคลิกลิงก์ในอีเมล
     async function checkAuthStatus() {
+      // ตรวจจับกรณีคลิกลิงก์จากอีเมลเพื่อ Reset Password
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          switchMode('reset');
+          return;
+        }
+      });
+
+      // หากเข้าใช้ปกติแล้วมี Login Session อยู่แล้วให้เข้าหน้า index.html
       const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) window.location.href = 'index.html';
+      const hash = window.location.hash;
+      if (user && !hash.includes('type=recovery')) {
+        window.location.href = 'index.html';
+      }
     }
 
     checkAuthStatus();
