@@ -31,7 +31,21 @@
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR NAVIGATION -->
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-car-battery"></i></div>
+      <span class="text-xs font-semibold">UPS INSPECTOR</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-900 text-white text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
+      <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+
+  <!-- 📌 SIDEBAR NAVIGATION (แถบเมนูด้านข้าง) -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
@@ -58,7 +72,7 @@
       </div>
     </div>
 
-    <!-- 👤 USER PROFILE -->
+    <!-- 👤 USER PROFILE & LOGOUT -->
     <div class="p-4 border-t border-slate-100 bg-slate-50/80">
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
@@ -73,7 +87,7 @@
   </aside>
 
   <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full">
     
     <div class="mini-card p-6 md:p-8 space-y-6">
       
@@ -95,7 +109,36 @@
         </div>
       </div>
 
-      <!-- 📝 FORM (ซ่อนไว้ เริ่มต้น) -->
+      <!-- 🔍 SEARCH & FILTER BAR (ตัวกรองค้นหาที่เพิ่มเข้ามา) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-building text-slate-400 mr-1"></i> อาคาร (Build)</label>
+          <select id="filterBuild" onchange="filterRecords()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+            <option value="">ทุกอาคาร (All Builds)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-layer-group text-slate-400 mr-1"></i> ชั้น (Floor)</label>
+          <select id="filterFloor" onchange="filterRecords()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+            <option value="">ทุกชั้น (All Floors)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-heart-pulse text-slate-400 mr-1"></i> สถานะ (Status)</label>
+          <select id="filterStatus" onchange="filterRecords()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+            <option value="">ทุกสถานะ (All Statuses)</option>
+            <option value="OK">OK (ปกติ)</option>
+            <option value="Need Replace">Need Replace (ต้องเปลี่ยน)</option>
+            <option value="Fault">Fault (ชำรุด)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block"><i class="fa-solid fa-magnifying-glass text-slate-400 mr-1"></i> ค้นหาข้อมูล</label>
+          <input type="text" id="searchInput" onkeyup="filterRecords()" placeholder="ค้นหา UPS, S/N, ผู้ตรวจ..." class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+        </div>
+      </div>
+
+      <!-- 📝 FORM (แบบฟอร์มบันทึก) -->
       <div id="formCard" class="hidden bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-200 space-y-6">
         <h3 class="text-sm font-semibold text-slate-900 border-b border-slate-200 pb-3 flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-slate-500"></i> แบบฟอร์มบันทึกการตรวจสอบ UPS
@@ -217,6 +260,7 @@
     const supabaseUps = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
 
     let rawRecords = [];
+    let filteredRecords = [];
     let currentBase64Image = '';
 
     function showToast(title, message, type = 'success') {
@@ -300,18 +344,55 @@
       const { data, error } = await supabaseUps.from('ups_inspections').select('*').order('created_at', { ascending: false });
       if (!error) {
         rawRecords = data || [];
-        renderTable();
+        populateFilterDropdowns();
+        filterRecords();
       }
+    }
+
+    function populateFilterDropdowns() {
+      const buildSelect = document.getElementById('filterBuild');
+      const floorSelect = document.getElementById('filterFloor');
+      
+      const builds = [...new Set(rawRecords.map(r => r.build).filter(Boolean))].sort();
+      const floors = [...new Set(rawRecords.map(r => r.floor).filter(Boolean))].sort();
+
+      const currentBuild = buildSelect.value;
+      const currentFloor = floorSelect.value;
+
+      buildSelect.innerHTML = '<option value="">ทุกอาคาร (All Builds)</option>';
+      builds.forEach(b => { buildSelect.innerHTML += `<option value="${b}">${b}</option>`; });
+      buildSelect.value = currentBuild;
+
+      floorSelect.innerHTML = '<option value="">ทุกชั้น (All Floors)</option>';
+      floors.forEach(f => { floorSelect.innerHTML += `<option value="${f}">${f}</option>`; });
+      floorSelect.value = currentFloor;
+    }
+
+    function filterRecords() {
+      const build = document.getElementById('filterBuild').value;
+      const floor = document.getElementById('filterFloor').value;
+      const status = document.getElementById('filterStatus').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredRecords = rawRecords.filter(r => {
+        const matchBuild = !build || r.build === build;
+        const matchFloor = !floor || r.floor === floor;
+        const matchStatus = !status || r.status === status;
+        const matchSearch = !search || [r.ups, r.model_serial_no, r.battery, r.battery_model_serial_no, r.inspector, r.side].join(' ').toLowerCase().includes(search);
+        return matchBuild && matchFloor && matchStatus && matchSearch;
+      });
+
+      renderTable();
     }
 
     function renderTable() {
       const tbody = document.getElementById('upsTableBody');
-      if (rawRecords.length === 0) {
+      if (filteredRecords.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">ไม่พบรายการบันทึกการตรวจเช็ก</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = rawRecords.map(r => {
+      tbody.innerHTML = filteredRecords.map(r => {
         let statusBadge = 'bg-slate-100 text-slate-700 border-slate-200';
         if (r.status === 'OK') statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
         if (r.status === 'Need Replace') statusBadge = 'bg-amber-50 text-amber-700 border-amber-200';
@@ -356,9 +437,9 @@
       }
     }
 
-    // 🎯 EXPORT EXCEL พร้อมฝั่งรูปภาพพิกัดเป๊ะ
     async function exportToExcel() {
-      if (rawRecords.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลให้ส่งออก', 'error');
+      const recordsToExport = filteredRecords.length > 0 ? filteredRecords : rawRecords;
+      if (recordsToExport.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลให้ส่งออก', 'error');
 
       showToast('EXPORTING', 'กำลังสร้างไฟล์ Excel พร้อมรูปภาพ...', 'info');
 
@@ -382,7 +463,7 @@
         { header: 'Priority', key: 'priority', width: 12 },
         { header: 'Inspection Date', key: 'inspection_date', width: 16 },
         { header: 'Next PM Date', key: 'next_pm_date', width: 16 },
-        { header: 'Picture', key: 'picture_placeholder', width: 22 }, // คอลัมน์ Q (Index 16)
+        { header: 'Picture', key: 'picture_placeholder', width: 22 },
         { header: 'Inspector', key: 'inspector', width: 15 },
         { header: 'Remark', key: 'remark', width: 25 }
       ];
@@ -392,8 +473,8 @@
       headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F172A' } };
       headerRow.height = 25;
 
-      for (let i = 0; i < rawRecords.length; i++) {
-        const r = rawRecords[i];
+      for (let i = 0; i < recordsToExport.length; i++) {
+        const r = recordsToExport[i];
         const rowNumber = i + 2;
 
         worksheet.addRow({
@@ -419,7 +500,7 @@
         });
 
         const currentRow = worksheet.getRow(rowNumber);
-        currentRow.height = 70; // ขยายความสูงแถวเพื่อให้รูปภาพแสดงผลได้สวยงาม
+        currentRow.height = 70;
 
         if (r.picture && r.picture.startsWith('data:image')) {
           try {
@@ -432,7 +513,7 @@
             });
 
             worksheet.addImage(imageId, {
-              tl: { col: 16, row: rowNumber - 1 }, // ล็อกช่อง Col Q แบบแม่นยำ
+              tl: { col: 16, row: rowNumber - 1 },
               ext: { width: 85, height: 85 },
               editAs: 'oneCell'
             });
