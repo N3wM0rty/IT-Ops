@@ -61,12 +61,16 @@
       </div>
     </div>
 
+    <!-- USER INFO & LOGOUT -->
     <div class="p-4 border-t border-slate-100 bg-slate-50/80">
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">Loading...</p>
           <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
         </div>
+        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Log Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
     </div>
   </aside>
@@ -81,6 +85,7 @@
       <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
       <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
       <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+      <button onclick="handleLogout()" class="bg-rose-50 text-rose-600 border border-rose-200 text-[11px] px-2 py-1.5 rounded-lg"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </div>
 
@@ -133,7 +138,6 @@
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-chart-line text-indigo-600"></i> Operations Performance Analytics
         </h3>
-        <!-- Time Range Selector -->
         <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
           <button onclick="setTimeRange('today')" id="btnToday" class="filter-btn px-3 py-1 rounded-lg">วันนี้</button>
           <button onclick="setTimeRange('month')" id="btnMonth" class="filter-btn active px-3 py-1 rounded-lg">เดือนนี้</button>
@@ -189,7 +193,7 @@
         </div>
       </div>
 
-      <!-- 📈 2-COLUMN BREAKDOWN: CATEGORIES & TOP PERFORMERS -->
+      <!-- 📈 2-COLUMN BREAKDOWN -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="mini-card p-4 space-y-3">
           <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
@@ -209,8 +213,6 @@
 
     <!-- MAIN DIRECTORY CARD -->
     <div class="mini-card p-4 md:p-6 space-y-5">
-      
-      <!-- TOP CONTROL HEADER & EXPORT -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div class="flex items-center gap-2">
           <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -225,7 +227,7 @@
         </div>
       </div>
 
-      <!-- SEARCH & FILTER TOOLBAR -->
+      <!-- TOOLBAR -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
         <div class="relative sm:col-span-2 md:col-span-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
@@ -260,7 +262,7 @@
         </div>
       </div>
 
-      <!-- DESKTOP TABLE VIEW -->
+      <!-- TABLE VIEW -->
       <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
           <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase border-b border-slate-200">
@@ -277,10 +279,10 @@
         </table>
       </div>
 
-      <!-- MOBILE CARDS VIEW -->
+      <!-- MOBILE CARDS -->
       <div id="taskCardList" class="md:hidden space-y-3"></div>
 
-      <!-- PAGINATION BAR -->
+      <!-- PAGINATION -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
         <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
         <div class="flex items-center gap-1.5">
@@ -289,11 +291,10 @@
           <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
         </div>
       </div>
-
     </div>
   </main>
 
-  <!-- 🪟 MODAL: ADD / EDIT TASK -->
+  <!-- MODALS -->
   <div id="taskModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn p-6 space-y-5">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -303,12 +304,10 @@
 
       <form id="taskForm" onsubmit="handleSaveTask(event)" class="space-y-4">
         <input type="hidden" id="taskId">
-        
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">หัวข้องาน (Task Title) *</label>
           <input type="text" id="tTitle" required placeholder="เช่น รีเซ็ต รหัสผ่าน / เครื่องพิมพ์ขัดข้อง" class="w-full mini-input rounded-xl p-2.5 text-xs">
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">สถานที่ (Location)</label>
@@ -323,22 +322,11 @@
             <input type="date" id="tDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
           </div>
         </div>
-
         <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ผู้แจ้งงาน</label>
-            <input type="text" id="tReporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">แผนก</label>
-            <input type="text" id="tDepartment" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ผู้รับผิดชอบ</label>
-            <input type="text" id="tAssignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">ผู้แจ้งงาน</label><input type="text" id="tReporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">แผนก</label><input type="text" id="tDepartment" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div><label class="block text-xs font-medium text-slate-600 mb-1">ผู้รับผิดชอบ</label><input type="text" id="tAssignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">หมวดหมู่ (Category)</label>
@@ -360,12 +348,10 @@
             </select>
           </div>
         </div>
-
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">รายละเอียดเพิ่มเติม</label>
           <textarea id="tDescription" rows="3" placeholder="รายละเอียดหรือแนวทางการแก้ไข..." class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
         </div>
-
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeTaskModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
           <button type="submit" id="btnSaveTask" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูล</button>
@@ -374,7 +360,6 @@
     </div>
   </div>
 
-  <!-- 🪟 MODAL: VIEW TASK DETAILS -->
   <div id="viewModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full animate-fadeIn p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -402,7 +387,6 @@
     </div>
   </div>
 
-  <!-- 🪟 MODAL: SHIFT MANAGEMENT -->
   <div id="shiftModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full animate-fadeIn p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -410,26 +394,11 @@
         <button onclick="closeShiftModal()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="shiftForm" onsubmit="handleSaveShift(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block font-medium text-slate-600 mb-1">วันที่</label>
-          <input type="date" id="sDate" required class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-600 mb-1">Morning Shift (08:00 - 17:00)</label>
-          <input type="text" id="sMorning" placeholder="ชื่อผู้เข้ากะเช้า" class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-600 mb-1">Evening Shift (13:00 - 22:00)</label>
-          <input type="text" id="sEvening" placeholder="ชื่อผู้เข้ากะบ่าย" class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-600 mb-1">Standby On-Call</label>
-          <input type="text" id="sOnCall" placeholder="ชื่อผู้ Standby" class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
-        <div>
-          <label class="block font-medium text-slate-600 mb-1">Leave & Day Off</label>
-          <input type="text" id="sLeave" placeholder="ชื่อผู้ลางาน" class="w-full mini-input rounded-xl p-2 text-xs">
-        </div>
+        <div><label class="block font-medium text-slate-600 mb-1">วันที่</label><input type="date" id="sDate" required class="w-full mini-input rounded-xl p-2 text-xs"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">Morning Shift (08:00 - 17:00)</label><input type="text" id="sMorning" placeholder="ชื่อผู้เข้ากะเช้า" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">Evening Shift (13:00 - 22:00)</label><input type="text" id="sEvening" placeholder="ชื่อผู้เข้ากะบ่าย" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">Standby On-Call</label><input type="text" id="sOnCall" placeholder="ชื่อผู้ Standby" class="w-full mini-input rounded-xl p-2 text-xs"></div>
+        <div><label class="block font-medium text-slate-600 mb-1">Leave & Day Off</label><input type="text" id="sLeave" placeholder="ชื่อผู้ลางาน" class="w-full mini-input rounded-xl p-2 text-xs"></div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button type="button" onclick="closeShiftModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
           <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกกะปฏิบัติงาน</button>
@@ -448,6 +417,25 @@
     let currentPage = 1;
     const pageSize = 10;
     let currentFilterRange = 'month';
+
+    // 🔒 AUTH GUARD & LOGOUT
+    async function checkAuthGuard() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        fetchTodayShift();
+        fetchTasks();
+      }
+    }
+
+    async function handleLogout() {
+      if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+        await supabaseClient.auth.signOut();
+        window.location.href = 'login.html';
+      }
+    }
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -889,9 +877,8 @@
       XLSX.writeFile(wb, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
-    // โหลดข้อมูลทันที
-    fetchTodayShift();
-    fetchTasks();
+    // เริ่มตรวจสอบสิทธิ์การล็อกอิน
+    checkAuthGuard();
   </script>
 </body>
 </html>
