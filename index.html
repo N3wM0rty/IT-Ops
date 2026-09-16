@@ -13,15 +13,19 @@
     .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased">
+
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- 📱 MOBILE HEADER -->
   <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-list-check"></i></div>
-      <span class="text-xs font-semibold">IT MANAGEMENT</span>
+      <span class="text-xs font-semibold">IT TASK TRACKER</span>
     </div>
     <div class="flex gap-1.5 items-center">
       <a href="index.html" class="bg-indigo-600 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
@@ -55,13 +59,13 @@
           </div>
           
           <div class="ml-4 pl-3 border-l-2 border-indigo-100 space-y-1 pt-1">
-            <a href="index.html" class="flex items-center justify-between text-[11px] font-semibold text-indigo-600 py-1 transition-colors">
+            <a href="javascript:void(0)" onclick="filterTasks('')" class="flex items-center justify-between text-[11px] font-semibold text-indigo-600 py-1 transition-colors">
               <span>• งานทั้งหมด (All Tasks)</span>
             </a>
-            <a href="index.html#pending" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
+            <a href="javascript:void(0)" onclick="filterTasks('Pending')" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
               <span>• งานค้างชำระ (Pending)</span>
             </a>
-            <a href="index.html#shift" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
+            <a href="javascript:void(0)" onclick="filterTasks('Shift')" class="flex items-center justify-between text-[11px] text-slate-500 hover:text-indigo-600 py-1 transition-colors">
               <span>• บันทึกส่งเวร (Shift Log)</span>
             </a>
           </div>
@@ -94,10 +98,106 @@
     </div>
   </aside>
 
+  <!-- 🖥️ MAIN CONTENT -->
   <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full">
-    <div class="mini-card p-6 md:p-8">
-      <h2 class="text-lg font-bold text-slate-900 mb-2">IT Task & Shift Management</h2>
-      <p class="text-slate-500 text-xs">ส่วนจัดการงานประจำวันและลงบันทึกการเปลี่ยนเวร IT</p>
+    
+    <div class="mini-card p-6 md:p-8 space-y-6">
+      
+      <!-- HEADER -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
+            <i class="fa-solid fa-list-check text-indigo-600"></i> IT TASK & SHIFT MANAGEMENT
+          </h2>
+          <p class="text-slate-500 text-xs mt-1">ส่วนจัดการงานประจำวัน ลงบันทึกการเปลี่ยนเวร และติดตามงาน IT Support</p>
+        </div>
+        <button onclick="toggleForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 self-start sm:self-auto">
+          <i class="fa-solid fa-plus text-xs"></i> สร้างรายการงานใหม่
+        </button>
+      </div>
+
+      <!-- 📝 FORM CREATE TASK -->
+      <div id="taskFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-pen"></i> บันทึกงานใหม่ / ส่งเวร
+        </h3>
+        <form id="taskForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ประเภทงาน (Type)</label>
+              <select id="tType" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs">
+                <option value="Task">General Task (งานทั่วไป)</option>
+                <option value="Shift">Shift Handover (ส่งเวร)</option>
+                <option value="Incident">Incident (แจ้งปัญหา)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ความสำคัญ (Priority)</label>
+              <select id="tPriority" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs">
+                <option value="Normal">Normal (ปกติ)</option>
+                <option value="Urgent">Urgent (ด่วน)</option>
+                <option value="Critical">Critical (ด่วนที่สุด)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ผู้รับผิดชอบ (Assignee)</label>
+              <input type="text" id="tAssignee" placeholder="ชื่อเจ้าหน้าที่ IT" required class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">หัวข้องาน / รายละเอียด (Title & Details)</label>
+            <textarea id="tTitle" rows="3" required placeholder="ระบุรายละเอียดงานหรือข้อความส่งเวร..." class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs"></textarea>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="toggleForm()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+            <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs mini-btn font-medium">บันทึกข้อมูล</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- SEARCH & FILTER -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">กรองตามประเภท</label>
+          <select id="filterCategory" onchange="renderTasks()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+            <option value="">ทั้งหมด (All Types)</option>
+            <option value="Task">General Task</option>
+            <option value="Shift">Shift Handover</option>
+            <option value="Incident">Incident</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">สถานะงาน</label>
+          <select id="filterStatus" onchange="renderTasks()" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+            <option value="">ทุกสถานะ (All Status)</option>
+            <option value="Pending">Pending (รอดำเนินการ)</option>
+            <option value="Completed">Completed (เสร็จสิ้น)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">ค้นหา</label>
+          <input type="text" id="searchTask" onkeyup="renderTasks()" placeholder="ค้นหาชื่องาน, ผู้รับผิดชอบ..." class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs">
+        </div>
+      </div>
+
+      <!-- 📊 TABLE -->
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table class="w-full text-left text-xs text-slate-700">
+          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider">
+            <tr>
+              <th class="py-3.5 px-4">วันที่ / เวลา</th>
+              <th class="py-3.5 px-4">ประเภท</th>
+              <th class="py-3.5 px-4">รายละเอียดงาน</th>
+              <th class="py-3.5 px-4">ผู้รับผิดชอบ</th>
+              <th class="py-3.5 px-4 text-center">ความสำคัญ</th>
+              <th class="py-3.5 px-4 text-center">สถานะ</th>
+              <th class="py-3.5 px-4 text-center">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+        </table>
+      </div>
+
     </div>
   </main>
 
@@ -106,10 +206,24 @@
     const TASK_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(TASK_SUPABASE_URL, TASK_SUPABASE_KEY);
 
+    let rawTasks = [];
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-md flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+
     async function checkAuth() {
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
         document.getElementById('userEmailDisplay').innerText = user.email;
+        fetchTasks();
+      } else {
+        fetchTasks(); // โหลดหน้าเว็บปกติ
       }
     }
 
@@ -117,6 +231,99 @@
       await supabaseClient.auth.signOut();
       window.location.reload();
     }
+
+    function toggleForm() {
+      document.getElementById('taskFormCard').classList.toggle('hidden');
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        type: document.getElementById('tType').value,
+        priority: document.getElementById('tPriority').value,
+        assignee: document.getElementById('tAssignee').value,
+        title: document.getElementById('tTitle').value,
+        status: 'Pending',
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient.from('tasks').insert([payload]);
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'สร้างรายการงานใหม่เรียบร้อย');
+        e.target.reset();
+        toggleForm();
+        fetchTasks();
+      }
+    });
+
+    async function fetchTasks() {
+      const { data, error } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
+      if (!error) {
+        rawTasks = data || [];
+        renderTasks();
+      }
+    }
+
+    function filterTasks(status) {
+      document.getElementById('filterStatus').value = status;
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const cat = document.getElementById('filterCategory').value;
+      const st = document.getElementById('filterStatus').value;
+      const search = document.getElementById('searchTask').value.toLowerCase();
+
+      const filtered = rawTasks.filter(t => {
+        const matchCat = !cat || t.type === cat;
+        const matchSt = !st || t.status === st;
+        const matchSearch = !search || [t.title, t.assignee, t.type].join(' ').toLowerCase().includes(search);
+        return matchCat && matchSt && matchSearch;
+      });
+
+      const tbody = document.getElementById('taskTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">ไม่พบข้อมูลรายการงาน</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(t => {
+        let stBadge = t.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+        let prioBadge = 'bg-slate-100 text-slate-700';
+        if (t.priority === 'Urgent') prioBadge = 'bg-orange-100 text-orange-700';
+        if (t.priority === 'Critical') prioBadge = 'bg-rose-100 text-rose-700 font-bold';
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3.5 px-4 font-mono text-[11px] text-slate-500">${new Date(t.created_at).toLocaleString('th-TH')}</td>
+            <td class="py-3.5 px-4"><span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-semibold border border-indigo-100">${t.type}</span></td>
+            <td class="py-3.5 px-4 font-medium text-slate-800">${t.title}</td>
+            <td class="py-3.5 px-4 text-slate-600">${t.assignee}</td>
+            <td class="py-3.5 px-4 text-center"><span class="px-2 py-0.5 rounded text-[10px] ${prioBadge}">${t.priority}</span></td>
+            <td class="py-3.5 px-4 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${stBadge}">${t.status}</span></td>
+            <td class="py-3.5 px-4 text-center space-x-1">
+              ${t.status !== 'Completed' ? `<button onclick="toggleTaskStatus(${t.id}, 'Completed')" class="text-emerald-600 hover:text-emerald-800 p-1" title="Mark Done"><i class="fa-solid fa-check"></i></button>` : `<button onclick="toggleTaskStatus(${t.id}, 'Pending')" class="text-amber-600 hover:text-amber-800 p-1" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>`}
+              <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600 p-1" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleTaskStatus(id, newStatus) {
+      await supabaseClient.from('tasks').update({ status: newStatus }).eq('id', id);
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      if (confirm('ยืนยันลบรายการนี้?')) {
+        await supabaseClient.from('tasks').delete().eq('id', id);
+        fetchTasks();
+      }
+    }
+
     checkAuth();
   </script>
 </body>
