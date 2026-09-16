@@ -43,7 +43,7 @@
           <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
             <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
           </a>
-          <a href="Inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
             <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
           </a>
         </div>
@@ -53,31 +53,15 @@
     <div class="p-4 border-t border-slate-100 bg-slate-50/80">
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
+          <p class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
           <span class="text-[10px] text-amber-600 uppercase font-semibold">STAFF</span>
         </div>
-        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
       </div>
     </div>
   </aside>
 
-  <!-- 📱 MOBILE HEADER -->
-  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
-      <span class="text-xs font-semibold">ASSET INVENTORY</span>
-    </div>
-    <div class="flex gap-1.5 items-center">
-      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1.5 rounded-lg">UPS</a>
-      <a href="Inventory.html" class="bg-slate-900 text-white text-[11px] px-2 py-1.5 rounded-lg">Assets</a>
-    </div>
-  </div>
-
   <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[95%] mx-auto space-y-6 w-full">
     <div class="mini-card p-6 md:p-8 space-y-6">
       
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -96,47 +80,68 @@
       <div id="assetFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
         <h3 class="text-xs font-bold text-slate-700 uppercase">เพิ่มอุปกรณ์ใหม่</h3>
         <form id="assetForm" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Asset Tag</label><input type="text" id="aTag" required placeholder="e.g. IT-NB-001" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Device Name</label><input type="text" id="aName" required placeholder="e.g. Dell Latitude 3420" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Serial Number</label><input type="text" id="aSerial" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Name (ชื่อผู้ครอบครอง)</label><input type="text" id="aName" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Position (ตำแหน่ง)</label><input type="text" id="aPosition" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Department (แผนก)</label><input type="text" id="aDept" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div>
+              <label class="block text-xs font-medium mb-1">Type (ประเภท)</label>
+              <select id="aType" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="Laptop">Laptop</option>
+                <option value="PC Desktop">PC Desktop</option>
+                <option value="All-in-One">All-in-One</option>
+                <option value="Server">Server</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Holder (ผู้ถือครอง)</label><input type="text" id="aHolder" placeholder="e.g. Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Department</label><input type="text" id="aDept" placeholder="e.g. Front Office" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Model (รุ่น)</label><input type="text" id="aModel" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">Serial Number</label><input type="text" id="aSerial" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">CPU</label><input type="text" id="aCpu" placeholder="e.g. Core i5" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">RAM</label><input type="text" id="aRam" placeholder="e.g. 16GB" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="block text-xs font-medium mb-1">Storage</label><input type="text" id="aStorage" placeholder="e.g. SSD 512GB" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">OS</label><input type="text" id="aOs" placeholder="e.g. Windows 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div><label class="block text-xs font-medium mb-1">IP Address</label><input type="text" id="aIp" placeholder="e.g. 192.168.1.50" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
             <div>
               <label class="block text-xs font-medium mb-1">Status</label>
               <select id="aStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
                 <option value="In Use">In Use</option>
-                <option value="Unassigned">Unassigned (สำรอง)</option>
+                <option value="Spare">Spare (สำรอง)</option>
                 <option value="Repair">Repair</option>
               </select>
             </div>
           </div>
           <div class="flex justify-end gap-2">
             <button type="button" onclick="toggleForm()" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-            <button type="submit" class="bg-amber-500 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึก</button>
+            <button type="submit" class="bg-amber-500 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกอุปกรณ์</button>
           </div>
         </form>
       </div>
 
       <!-- FILTER -->
       <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-        <input type="text" id="searchAsset" onkeyup="renderAssets()" placeholder="ค้นหา Asset Tag, Serial, ผู้ถือครอง, แผนก..." class="w-full mini-input rounded-xl p-2 text-xs">
+        <input type="text" id="searchAsset" onkeyup="renderAssets()" placeholder="ค้นหา ชื่อผู้ครอบครอง, Model, Serial, IP Address..." class="w-full mini-input rounded-xl p-2 text-xs">
       </div>
 
       <!-- TABLE -->
-      <div class="overflow-x-auto rounded-xl border border-slate-100">
-        <table class="w-full text-left text-xs text-slate-700">
-          <thead class="bg-slate-50 text-[11px] uppercase border-b border-slate-100">
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+          <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase tracking-wider border-b border-slate-200">
             <tr>
-              <th class="p-3">ASSET TAG</th>
-              <th class="p-3">DEVICE NAME</th>
-              <th class="p-3">SERIAL NO.</th>
-              <th class="p-3">HOLDER</th>
-              <th class="p-3">DEPARTMENT</th>
-              <th class="p-3 text-center">STATUS</th>
-              <th class="p-3 text-center">ACTION</th>
+              <th class="py-3 px-3 text-center">No.</th>
+              <th class="py-3 px-4">Name (ผู้ครอบครอง)</th>
+              <th class="py-3 px-4">Position</th>
+              <th class="py-3 px-4">Department</th>
+              <th class="py-3 px-4">Model</th>
+              <th class="py-3 px-4">Type</th>
+              <th class="py-3 px-4">CPU / RAM / Storage</th>
+              <th class="py-3 px-4">Serial Number</th>
+              <th class="py-3 px-4">IP Address</th>
+              <th class="py-3 px-4 text-center">Status</th>
+              <th class="py-3 px-4 text-center">Action</th>
             </tr>
           </thead>
           <tbody id="assetTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -147,24 +152,13 @@
   </main>
 
   <script>
-    const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
-    const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
-    const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+    // 🟢 ใช้ Supabase โปรเจกต์เดียวกับ UPS (cnjatybztbzbouirjmya)
+    const SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let rawAssets = [];
-
-    async function checkAuth() {
-      const { data: { user } } = await supabaseAuth.auth.getUser();
-      if (user) {
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        fetchAssets();
-      } else { fetchAssets(); }
-    }
-
-    async function handleLogout() {
-      await supabaseAuth.auth.signOut();
-      window.location.href = 'index.html';
-    }
 
     function toggleForm() {
       document.getElementById('assetFormCard').classList.toggle('hidden');
@@ -173,42 +167,60 @@
     document.getElementById('assetForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
-        tag: document.getElementById('aTag').value,
         name: document.getElementById('aName').value,
-        serial: document.getElementById('aSerial').value,
-        holder: document.getElementById('aHolder').value || 'Unassigned',
+        position: document.getElementById('aPosition').value,
         department: document.getElementById('aDept').value,
+        type: document.getElementById('aType').value,
+        model: document.getElementById('aModel').value,
+        serial_number: document.getElementById('aSerial').value,
+        cpu: document.getElementById('aCpu').value,
+        ram: document.getElementById('aRam').value,
+        storage: document.getElementById('aStorage').value,
+        os: document.getElementById('aOs').value,
+        ip: document.getElementById('aIp').value,
         status: document.getElementById('aStatus').value
       };
-      await supabaseAuth.from('assets').insert([payload]);
-      e.target.reset();
-      toggleForm();
-      fetchAssets();
+      
+      const { error } = await supabaseClient.from('inventory').insert([payload]);
+      if (error) {
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+      } else {
+        e.target.reset();
+        toggleForm();
+        fetchAssets();
+      }
     });
 
     async function fetchAssets() {
-      const { data } = await supabaseAuth.from('assets').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabaseClient.from('inventory').select('*').order('id', { ascending: true });
+      if (error) {
+        console.error('Fetch error:', error);
+      }
       rawAssets = data || [];
       renderAssets();
     }
 
     function renderAssets() {
       const search = document.getElementById('searchAsset').value.toLowerCase();
-      const filtered = rawAssets.filter(a => !search || [a.tag, a.name, a.serial, a.holder, a.department].join(' ').toLowerCase().includes(search));
+      const filtered = rawAssets.filter(a => !search || [a.name, a.model, a.serial_number, a.department, a.ip, a.position].join(' ').toLowerCase().includes(search));
 
       const tbody = document.getElementById('assetTableBody');
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(a => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-bold text-slate-900">${a.tag || '-'}</td>
-          <td class="p-3 font-medium text-slate-800">${a.name || '-'}</td>
-          <td class="p-3 font-mono text-slate-500">${a.serial || '-'}</td>
-          <td class="p-3 font-medium text-indigo-600">${a.holder || 'Unassigned'}</td>
+      tbody.innerHTML = filtered.map((a, idx) => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="p-3 text-center text-slate-400 font-mono text-[11px]">${idx + 1}</td>
+          <td class="p-3 font-semibold text-slate-900">${a.name || '-'}</td>
+          <td class="p-3 text-slate-600">${a.position || '-'}</td>
           <td class="p-3 text-slate-600">${a.department || '-'}</td>
+          <td class="p-3 font-medium text-slate-800">${a.model || '-'}</td>
+          <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] border border-slate-200">${a.type || '-'}</span></td>
+          <td class="p-3 text-[11px] text-slate-500">${a.cpu || '-'} / ${a.ram || '-'} / ${a.storage || '-'}</td>
+          <td class="p-3 font-mono text-slate-500">${a.serial_number || '-'}</td>
+          <td class="p-3 font-mono text-indigo-600">${a.ip || '-'}</td>
           <td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${a.status==='In Use'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-amber-50 text-amber-700 border-amber-200'}">${a.status || 'In Use'}</span></td>
           <td class="p-3 text-center"><button onclick="deleteAsset(${a.id})" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
@@ -217,12 +229,12 @@
 
     async function deleteAsset(id) {
       if (confirm('ยืนยันลบรายการนี้?')) {
-        await supabaseAuth.from('assets').delete().eq('id', id);
+        await supabaseClient.from('inventory').delete().eq('id', id);
         fetchAssets();
       }
     }
 
-    checkAuth();
+    fetchAssets();
   </script>
 </body>
 </html>
