@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asset Inventory - Card Layout</title>
+  <title>Asset Inventory - IT Operations Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
     .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
-    .asset-card { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-    .asset-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
@@ -21,21 +20,24 @@
     .sidebar-link { transition: all 0.2s; }
     .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
     .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
-    @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-    .animate-fadeIn { animation: fadeIn 0.15s ease-out forwards; }
+
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased">
 
-  <!-- 📌 SIDEBAR -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- 📌 SIDEBAR ด้านซ้าย -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-        <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-          <i class="fa-solid fa-desktop"></i>
+        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+          <i class="fa-solid fa-microchip"></i>
         </div>
         <div>
-          <h1 class="text-xs font-bold text-slate-900 uppercase">ASSET INVENTORY</h1>
+          <h1 class="text-xs font-bold text-slate-900 uppercase">IT OPERATIONS</h1>
           <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
         </div>
       </div>
@@ -47,10 +49,10 @@
             <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
           </a>
           <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+            <i class="fa-solid fa-car-battery w-4 text-emerald-500"></i> UPS Inspector
           </a>
           <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+            <i class="fa-solid fa-desktop w-4 text-amber-400"></i> Asset Inventory
           </a>
         </div>
       </div>
@@ -60,7 +62,7 @@
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
           <p class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
-          <span class="text-[10px] text-amber-600 uppercase font-semibold">STAFF</span>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
         </div>
       </div>
     </div>
@@ -69,7 +71,7 @@
   <!-- 📱 MOBILE HEADER -->
   <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center shadow-sm">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
+      <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-desktop"></i></div>
       <span class="text-xs font-semibold">ASSET INVENTORY</span>
     </div>
     <div class="flex gap-1.5 items-center">
@@ -79,503 +81,228 @@
     </div>
   </div>
 
-  <!-- 🖥️ MAIN CONTENT -->
+  <!-- 🖥️ MAIN CONTENT CONTAINER -->
   <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
     
-    <!-- 📊 DASHBOARD SUMMARY CARDS -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+    <!-- TOP STATS CARDS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="mini-card p-4 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">อุปกรณ์ทั้งหมด</p>
-          <h3 id="statTotal" class="text-xl md:text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+          <p class="text-[11px] font-medium text-slate-400 uppercase">อุปกรณ์ทั้งหมด</p>
+          <h3 id="statTotal" class="text-xl font-bold text-slate-900 mt-1">0</h3>
         </div>
-        <div class="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-boxes-stacked"></i></div>
+        <div class="w-9 h-9 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-boxes-stacked"></i></div>
       </div>
       <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">กำลังใช้งาน (In Use)</p>
-          <h3 id="statInUse" class="text-xl md:text-2xl font-bold text-emerald-600 mt-0.5">0</h3>
+          <p class="text-[11px] font-medium text-slate-400 uppercase">กำลังใช้งาน (IN USE)</p>
+          <h3 id="statInUse" class="text-xl font-bold text-emerald-600 mt-1">0</h3>
         </div>
-        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-user-check"></i></div>
+        <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-user-check"></i></div>
       </div>
       <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-blue-500">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">สำรอง/พร้อมใช้ (Spare)</p>
-          <h3 id="statAvailable" class="text-xl md:text-2xl font-bold text-blue-600 mt-0.5">0</h3>
+          <p class="text-[11px] font-medium text-slate-400 uppercase">สำรอง/พร้อมใช้ (SPARE)</p>
+          <h3 id="statSpare" class="text-xl font-bold text-blue-600 mt-1">0</h3>
         </div>
-        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-warehouse"></i></div>
+        <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-warehouse"></i></div>
       </div>
       <div class="mini-card p-4 flex items-center justify-between border-l-4 border-l-amber-500">
         <div>
-          <p class="text-[11px] font-semibold text-slate-400 uppercase">ส่งซ่อม/ชำรุด (Repair)</p>
-          <h3 id="statRepair" class="text-xl md:text-2xl font-bold text-amber-600 mt-0.5">0</h3>
+          <p class="text-[11px] font-medium text-slate-400 uppercase">ส่งซ่อม/ชำรุด (REPAIR)</p>
+          <h3 id="statRepair" class="text-xl font-bold text-amber-600 mt-1">0</h3>
         </div>
-        <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-base"><i class="fa-solid fa-wrench"></i></div>
+        <div class="w-9 h-9 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-wrench"></i></div>
       </div>
     </div>
 
-    <!-- MAIN HEADER & TOOLBAR -->
-    <div class="mini-card p-4 md:p-6 space-y-5">
-      
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+    <!-- MAIN CARDS SECTION BY USER -->
+    <div class="mini-card p-5 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-grip text-amber-500"></i> IT ASSET CARDS DIRECTORY
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-users text-amber-500"></i> รายชื่อผู้ถือครองอุปกรณ์ (USER ASSET DIRECTORY)
           </h2>
-          <p class="text-slate-500 text-xs mt-0.5">คลังอุปกรณ์และติดตามการถือครองคอมพิวเตอร์แบบ Card Layout</p>
+          <p class="text-xs text-slate-400 mt-0.5">จัดกลุ่มรายการไอทีตามผู้ถือครองและพนักงาน</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-file-excel"></i> Export Excel
-          </button>
-          <button onclick="openAddModal()" class="bg-slate-900 hover:bg-slate-800 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์ใหม่
+          <button onclick="fetchRecords()" class="bg-slate-100 text-slate-700 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate"></i> รีเฟรช
           </button>
         </div>
       </div>
 
-      <!-- SEARCH & FILTER TOOLBAR -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-          <input type="text" id="searchInput" onkeyup="filterAssets()" placeholder="ค้นหา ชื่อ, Model, Serial, IP..." class="w-full mini-input pl-8 rounded-xl p-2 text-xs">
+      <!-- SEARCH & FILTERS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+        <div class="md:col-span-2">
+          <label class="block text-[11px] font-medium text-slate-500 mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> ค้นหาพนักงาน / รุ่น / Serial No.</label>
+          <input type="text" id="searchInput" onkeyup="filterUserCards()" placeholder="พิมพ์ชื่อผู้ถือครอง, แผนก, รุ่นอุปกรณ์..." class="w-full mini-input rounded-xl p-2 text-xs">
         </div>
         <div>
-          <select id="filterDept" onchange="filterAssets()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกแผนก (All Depts) --</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterType" onchange="filterAssets()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกประเภท (All Types) --</option>
-            <option value="Laptop">Laptop</option>
-            <option value="PC Desktop">PC Desktop</option>
-            <option value="All-in-One">All-in-One</option>
-            <option value="Server">Server</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterStatus" onchange="filterAssets()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกสถานะ (All Status) --</option>
-            <option value="In Use">In Use (กำลังใช้งาน)</option>
-            <option value="Available">Available (พร้อมใช้งาน)</option>
-            <option value="Spare">Spare (สำรอง)</option>
-            <option value="Under Repair">Under Repair (ส่งซ่อม)</option>
-            <option value="Disposed">Disposed (ตัดชำรุด)</option>
+          <label class="block text-[11px] font-medium text-slate-500 mb-1"><i class="fa-solid fa-sitemap mr-1"></i> กรองตามแผนก</label>
+          <select id="filterDept" onchange="filterUserCards()" class="w-full mini-input rounded-xl p-2 text-xs">
+            <option value="">ทุกแผนก (All Depts)</option>
           </select>
         </div>
       </div>
 
-      <!-- 📇 CARD GRID CONTAINER (RESPONSIVE GRID 1/2/3 COLS) -->
-      <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Cards จะถูกสร้างขึ้นที่นี่ผ่าน JS -->
+      <!-- CARDS CONTAINER (GRID) -->
+      <div id="userCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+        <!-- Render cards dynamically via JS -->
       </div>
-
-      <!-- PAGINATION -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
-        <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
-        <div class="flex items-center gap-1.5">
-          <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ก่อนหน้า</button>
-          <span id="pageCurrent" class="text-xs font-semibold px-2 text-slate-700">1</span>
-          <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
-        </div>
-      </div>
-
     </div>
+
   </main>
 
-  <!-- 🪟 MODAL FORM (ADD / EDIT) -->
-  <div id="assetModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn p-6 space-y-5">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 id="modalTitle" class="text-base font-semibold text-slate-900">เพิ่มอุปกรณ์ใหม่</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="modalForm" onsubmit="handleSaveAsset(event)" class="space-y-4">
-        <input type="hidden" id="assetId">
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อผู้ครอบครอง *</label>
-            <input type="text" id="mName" required placeholder="e.g. Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ตำแหน่ง (Position)</label>
-            <input type="text" id="mPosition" placeholder="e.g. Front Office Manager" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">แผนก (Department)</label>
-            <input type="text" id="mDept" placeholder="e.g. Front Office" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ประเภทอุปกรณ์ *</label>
-            <select id="mType" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="Laptop">Laptop</option>
-              <option value="PC Desktop">PC Desktop</option>
-              <option value="All-in-One">All-in-One</option>
-              <option value="Server">Server</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">รุ่นอุปกรณ์ (Model) *</label>
-            <input type="text" id="mModel" required placeholder="e.g. Dell Latitude 3420" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Serial Number</label>
-            <input type="text" id="mSerial" placeholder="e.g. SN-987654" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">CPU</label>
-            <input type="text" id="mCpu" placeholder="Core i5-11th" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">RAM</label>
-            <input type="text" id="mRam" placeholder="16GB" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Storage</label>
-            <input type="text" id="mStorage" placeholder="SSD 512GB" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">OS</label>
-            <input type="text" id="mOs" placeholder="Win 11 Pro" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">IP Address</label>
-            <input type="text" id="mIp" placeholder="192.168.1.50" class="w-full mini-input rounded-xl p-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">สถานะใช้งาน *</label>
-            <select id="mStatus" required class="w-full mini-input rounded-xl p-2.5 text-xs">
-              <option value="In Use">In Use (กำลังใช้งาน)</option>
-              <option value="Available">Available (พร้อมใช้งาน)</option>
-              <option value="Spare">Spare (สำรอง)</option>
-              <option value="Under Repair">Under Repair (ส่งซ่อม)</option>
-              <option value="Disposed">Disposed (ตัดชำรุด)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-          <button type="submit" id="btnSave" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูล</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <script>
-    // 🟢 Supabase Configuration
     const SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 🧪 ข้อมูลจำลอง (Mock Data 6-8 รายการ กรณี Supabase ยังว่าง)
-    const mockAssets = [
-      { id: 101, name: 'Khun Anan', position: 'Front Office Mgr', department: 'Front Office', type: 'Laptop', model: 'Dell Latitude 3420', serial_number: 'SN-DL8841', cpu: 'Core i5-11th', ram: '16GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: '192.168.1.101', status: 'In Use' },
-      { id: 102, name: 'Khun Somsak', position: 'IT Support', department: 'IT', type: 'PC Desktop', model: 'HP ProDesk 400 G6', serial_number: 'SN-HP9920', cpu: 'Core i7-10th', ram: '32GB', storage: 'SSD 1TB', os: 'Win 11 Pro', ip: '192.168.1.50', status: 'In Use' },
-      { id: 103, name: 'IT Spare Storage', position: 'IT Stock', department: 'IT', type: 'Laptop', model: 'Lenovo ThinkPad E14', serial_number: 'SN-LN4412', cpu: 'Core i5-12th', ram: '16GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: 'Dynamic', status: 'Spare' },
-      { id: 104, name: 'Khun Nipa', position: 'Chief Accountant', department: 'Accounting', type: 'All-in-One', model: 'Dell OptiPlex 7490', serial_number: 'SN-DL1102', cpu: 'Core i5-10th', ram: '16GB', storage: 'SSD 256GB', os: 'Win 10 Pro', ip: '192.168.1.120', status: 'In Use' },
-      { id: 105, name: 'Khun Kitti', position: 'Chef De Partie', department: 'Kitchen', type: 'PC Desktop', model: 'Acer Veriton X', serial_number: 'SN-AC5521', cpu: 'Core i3-9th', ram: '8GB', storage: 'HDD 1TB', os: 'Win 10 Home', ip: '192.168.1.188', status: 'Under Repair' },
-      { id: 106, name: 'Reservation Desk', position: 'Staff PC', department: 'Sales & Reservation', type: 'All-in-One', model: 'Lenovo IdeaCentre 3', serial_number: 'SN-LN7730', cpu: 'Core i5-11th', ram: '8GB', storage: 'SSD 512GB', os: 'Win 11 Pro', ip: '192.168.1.135', status: 'In Use' },
-      { id: 107, name: 'Server Room', position: 'Backup Host', department: 'IT', type: 'Server', model: 'Dell PowerEdge R440', serial_number: 'SN-PE3391', cpu: 'Xeon Silver', ram: '64GB', storage: 'SAS 4TB', os: 'Win Server 2022', ip: '192.168.1.10', status: 'Available' },
-      { id: 108, name: 'Scrap Yard', position: 'Decommissioned', department: 'HR', type: 'Laptop', model: 'Asus ExpertBook', serial_number: 'SN-AS1109', cpu: 'Core i3-7th', ram: '4GB', storage: 'HDD 500GB', os: 'Win 7 Pro', ip: '-', status: 'Disposed' }
-    ];
+    let supabaseClient = null;
+    try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) {}
 
-    let rawAssets = [];
-    let filteredAssets = [];
-    let currentPage = 1;
-    const pageSize = 6; // แสดง 6 การ์ดต่อหน้ากำลังสวยงาม
+    let rawInventory = [];
+    let groupedUsers = {};
 
-    // ดึงข้อมูลจาก Supabase
-    async function fetchAssets() {
-      const { data, error } = await supabaseClient.from('inventory').select('*').order('id', { ascending: false });
-      if (error || !data || data.length === 0) {
-        console.warn('Supabase Empty/Error, using Mock Data instead');
-        rawAssets = mockAssets;
-      } else {
-        rawAssets = data;
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-400'} pt-0.5"></i><div><h4 class="text-xs font-semibold">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    async function fetchRecords() {
+      try {
+        if (!supabaseClient) return;
+        // ดึงจากตาราง inventory
+        const { data, error } = await supabaseClient.from('inventory').select('*').order('owner_name', { ascending: true });
+        if (error) throw error;
+        rawInventory = data || [];
+        
+        updateStats();
+        groupDataByUser();
+        populateDeptFilter();
+        renderUserCards();
+      } catch (err) {
+        showToast('ERROR', err.message || 'ดึงข้อมูลไม่สำเร็จ', 'error');
       }
-      populateDeptFilter();
-      updateDashboard();
-      filterAssets();
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').innerText = rawInventory.length;
+      document.getElementById('statInUse').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'IN USE' || (i.status||'').toUpperCase() === 'INUSE').length;
+      document.getElementById('statSpare').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'SPARE').length;
+      document.getElementById('statRepair').innerText = rawInventory.filter(i => (i.status||'').toUpperCase() === 'REPAIR').length;
+    }
+
+    function groupDataByUser() {
+      groupedUsers = {};
+      rawInventory.forEach(item => {
+        const owner = item.owner_name || item.user_name || 'Unassigned / Spare';
+        if (!groupedUsers[owner]) {
+          groupedUsers[owner] = {
+            owner_name: owner,
+            dept: item.dept || item.department || '-',
+            position: item.position || '-',
+            items: []
+          };
+        }
+        groupedUsers[owner].items.push(item);
+      });
     }
 
     function populateDeptFilter() {
-      const depts = [...new Set(rawAssets.map(a => a.department).filter(Boolean))].sort();
       const select = document.getElementById('filterDept');
-      select.innerHTML = '<option value="">-- ทุกแผนก (All Depts) --</option>' + 
-        depts.map(d => `<option value="${d}">${d}</option>`).join('');
+      const depts = [...new Set(rawInventory.map(i => i.dept || i.department).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">ทุกแผนก (All Depts)</option>';
+      depts.forEach(d => {
+        select.innerHTML += `<option value="${d}">${d}</option>`;
+      });
     }
 
-    function updateDashboard() {
-      document.getElementById('statTotal').innerText = rawAssets.length;
-      document.getElementById('statInUse').innerText = rawAssets.filter(a => a.status === 'In Use').length;
-      document.getElementById('statAvailable').innerText = rawAssets.filter(a => a.status === 'Available' || a.status === 'Spare').length;
-      document.getElementById('statRepair').innerText = rawAssets.filter(a => a.status === 'Under Repair' || a.status === 'Disposed').length;
+    function filterUserCards() {
+      renderUserCards();
     }
 
-    function filterAssets() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const fDept = document.getElementById('filterDept').value;
-      const fType = document.getElementById('filterType').value;
-      const fStatus = document.getElementById('filterStatus').value;
+    function renderUserCards() {
+      const grid = document.getElementById('userCardsGrid');
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const selectedDept = document.getElementById('filterDept').value;
 
-      filteredAssets = rawAssets.filter(a => {
-        const matchSearch = !search || [a.name, a.model, a.serial_number, a.ip, a.position].join(' ').toLowerCase().includes(search);
-        const matchDept = !fDept || a.department === fDept;
-        const matchType = !fType || a.type === fType;
-        const matchStatus = !fStatus || a.status === fStatus;
-        return matchSearch && matchDept && matchType && matchStatus;
+      grid.innerHTML = '';
+
+      const userKeys = Object.keys(groupedUsers);
+      let countMatches = 0;
+
+      userKeys.forEach(key => {
+        const user = groupedUsers[key];
+        
+        // Filter Dept
+        if (selectedDept && user.dept !== selectedDept) return;
+
+        // Filter Search Text
+        if (search) {
+          const itemSearchStr = user.items.map(i => `${i.model} ${i.serial_no} ${i.device_type}`).join(' ').toLowerCase();
+          const userSearchStr = `${user.owner_name} ${user.dept} ${user.position}`.toLowerCase();
+          if (!userSearchStr.includes(search) && !itemSearchStr.includes(search)) return;
+        }
+
+        countMatches++;
+
+        // Build HTML for items under this user
+        const itemsListHTML = user.items.map(item => `
+          <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800">${item.model || item.device_name || 'ไม่ระบุรุ่น'}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'Spare' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}">${item.status || 'In Use'}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5">
+              <span>S/N: <b class="text-slate-700">${item.serial_no || '-'}</b></span>
+              <span>IP: <b class="text-slate-700">${item.ip_address || '-'}</b></span>
+              <span>Type: <b class="text-slate-700">${item.device_type || '-'}</b></span>
+            </div>
+          </div>
+        `).join('');
+
+        const cardHTML = `
+          <div class="mini-card p-4 space-y-3 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div>
+              <!-- CARD HEADER: USER INFO -->
+              <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    ${user.owner_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900 leading-tight">${user.owner_name}</h3>
+                    <p class="text-[11px] text-slate-400">${user.dept} • ${user.position}</p>
+                  </div>
+                </div>
+                <span class="bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                  ถือครอง ${user.items.length} เครื่อง
+                </span>
+              </div>
+
+              <!-- CARD BODY: ITEMS HELD -->
+              <div class="mt-3 space-y-2">
+                ${itemsListHTML}
+              </div>
+            </div>
+          </div>
+        `;
+
+        grid.innerHTML += cardHTML;
       });
 
-      currentPage = 1;
-      renderCurrentPage();
-    }
-
-    function renderCurrentPage() {
-      const total = filteredAssets.length;
-      const totalPages = Math.ceil(total / pageSize) || 1;
-      
-      if (currentPage > totalPages) currentPage = totalPages;
-      if (currentPage < 1) currentPage = 1;
-
-      const start = (currentPage - 1) * pageSize;
-      const end = start + pageSize;
-      const pagedData = filteredAssets.slice(start, end);
-
-      renderCards(pagedData);
-
-      document.getElementById('pageInfo').innerText = total > 0 
-        ? `แสดง ${start + 1} ถึง ${Math.min(end, total)} จาก ${total} รายการ`
-        : 'ไม่พบอุปกรณ์ที่ค้นหา';
-      document.getElementById('pageCurrent').innerText = currentPage;
-      document.getElementById('btnPrev').disabled = currentPage === 1;
-      document.getElementById('btnNext').disabled = currentPage === totalPages || total === 0;
-    }
-
-    function changePage(delta) {
-      currentPage += delta;
-      renderCurrentPage();
-    }
-
-    // Helper ช่วยดึง Class สีและ Badge สวยๆ
-    function getStatusBadge(status) {
-      switch (status) {
-        case 'In Use': 
-          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        case 'Available':
-        case 'Spare': 
-          return 'bg-blue-50 text-blue-700 border-blue-200';
-        case 'Under Repair': 
-          return 'bg-amber-50 text-amber-700 border-amber-200';
-        case 'Disposed': 
-          return 'bg-rose-50 text-rose-700 border-rose-200';
-        default: 
-          return 'bg-slate-100 text-slate-600 border-slate-200';
+      if (countMatches === 0) {
+        grid.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400 text-xs">ไม่พบข้อมูลผู้ถือครองอุปกรณ์ตามเงื่อนไขที่เลือก</div>`;
       }
     }
 
-    function getTypeIcon(type) {
-      switch (type) {
-        case 'Laptop': return 'fa-laptop text-indigo-500';
-        case 'PC Desktop': return 'fa-desktop text-blue-500';
-        case 'All-in-One': return 'fa-tv text-teal-500';
-        case 'Server': return 'fa-server text-purple-500';
-        default: return 'fa-microchip text-slate-500';
-      }
-    }
-
-    // 📇 Render Card Grid Layout
-    function renderCards(data) {
-      const container = document.getElementById('assetGrid');
-      
-      if (data.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full mini-card p-12 text-center text-slate-400 space-y-3">
-            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-lg text-slate-400">
-              <i class="fa-solid fa-box-open"></i>
-            </div>
-            <p class="text-xs">ไม่พบรายการอุปกรณ์ตามเงื่อนไขที่ค้นหา</p>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = data.map(a => `
-        <div class="mini-card asset-card p-5 flex flex-col justify-between space-y-4 relative">
-          
-          <!-- TOP ROW: HOLDER & STATUS -->
-          <div class="space-y-2">
-            <div class="flex items-start justify-between gap-2">
-              <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-sm shrink-0">
-                  <i class="fa-solid ${getTypeIcon(a.type)}"></i>
-                </div>
-                <div>
-                  <h3 class="font-bold text-slate-900 text-sm leading-tight">${a.name || '-'}</h3>
-                  <p class="text-[11px] text-slate-400 mt-0.5 font-medium">${a.department || '-'} • ${a.position || '-'}</p>
-                </div>
-              </div>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadge(a.status)} shrink-0">
-                ${a.status || 'In Use'}
-              </span>
-            </div>
-
-            <!-- MODEL & TYPE BAR -->
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-              <span class="font-semibold text-slate-800 text-xs">${a.model || '-'}</span>
-              <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-200">${a.type || 'Other'}</span>
-            </div>
-          </div>
-
-          <!-- SPECS & TECH DETAILS BOX -->
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5 text-xs">
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">Hardware:</span>
-              <span class="text-slate-700 font-medium">${a.cpu || '-'}/${a.ram || '-'}/${a.storage || '-'}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">Serial No:</span>
-              <span class="font-mono text-slate-600 text-[11px]">${a.serial_number || '-'}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400 text-[11px]">IP Address:</span>
-              <span class="font-mono text-indigo-600 font-medium text-[11px]">${a.ip || '-'}</span>
-            </div>
-          </div>
-
-          <!-- BOTTOM ROW: ACTIONS -->
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-            <span class="text-[10px] text-slate-400">OS: ${a.os || 'Windows'}</span>
-            <div class="flex items-center gap-1.5">
-              <button onclick="openEditModal(${a.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg mini-btn flex items-center gap-1 text-[11px]">
-                <i class="fa-solid fa-pen-to-square text-blue-500"></i> แก้ไข
-              </button>
-              <button onclick="deleteAsset(${a.id})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1.5 rounded-lg mini-btn text-[11px]" title="ลบอุปกรณ์">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      `).join('');
-    }
-
-    // Modal & CRUD Operations
-    function openAddModal() {
-      document.getElementById('modalTitle').innerText = 'เพิ่มอุปกรณ์ใหม่';
-      document.getElementById('modalForm').reset();
-      document.getElementById('assetId').value = '';
-      document.getElementById('assetModal').classList.remove('hidden');
-    }
-
-    function openEditModal(id) {
-      const item = rawAssets.find(a => a.id === id);
-      if (!item) return;
-
-      document.getElementById('modalTitle').innerText = 'แก้ไขข้อมูลอุปกรณ์';
-      document.getElementById('assetId').value = item.id;
-      document.getElementById('mName').value = item.name || '';
-      document.getElementById('mPosition').value = item.position || '';
-      document.getElementById('mDept').value = item.department || '';
-      document.getElementById('mType').value = item.type || 'Laptop';
-      document.getElementById('mModel').value = item.model || '';
-      document.getElementById('mSerial').value = item.serial_number || '';
-      document.getElementById('mCpu').value = item.cpu || '';
-      document.getElementById('mRam').value = item.ram || '';
-      document.getElementById('mStorage').value = item.storage || '';
-      document.getElementById('mOs').value = item.os || '';
-      document.getElementById('mIp').value = item.ip || '';
-      document.getElementById('mStatus').value = item.status || 'In Use';
-
-      document.getElementById('assetModal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('assetModal').classList.add('hidden');
-    }
-
-    async function handleSaveAsset(e) {
-      e.preventDefault();
-      const btnSave = document.getElementById('btnSave');
-      btnSave.disabled = true;
-      btnSave.innerText = 'กำลังบันทึก...';
-
-      const id = document.getElementById('assetId').value;
-      const payload = {
-        name: document.getElementById('mName').value,
-        position: document.getElementById('mPosition').value,
-        department: document.getElementById('mDept').value,
-        type: document.getElementById('mType').value,
-        model: document.getElementById('mModel').value,
-        serial_number: document.getElementById('mSerial').value,
-        cpu: document.getElementById('mCpu').value,
-        ram: document.getElementById('mRam').value,
-        storage: document.getElementById('mStorage').value,
-        os: document.getElementById('mOs').value,
-        ip: document.getElementById('mIp').value,
-        status: document.getElementById('mStatus').value
-      };
-
-      let res;
-      if (id && !isNaN(id) && id < 100) {
-        res = await supabaseClient.from('inventory').update(payload).eq('id', id);
-      } else {
-        res = await supabaseClient.from('inventory').insert([payload]);
-      }
-
-      btnSave.disabled = false;
-      btnSave.innerText = 'บันทึกข้อมูล';
-
-      closeModal();
-      fetchAssets();
-    }
-
-    async function deleteAsset(id) {
-      if (confirm('ยืนยันลบรายการอุปกรณ์นี้?')) {
-        await supabaseClient.from('inventory').delete().eq('id', id);
-        fetchAssets();
-      }
-    }
-
-    function exportToExcel() {
-      if (filteredAssets.length === 0) return alert('ไม่มีข้อมูลสำหรับส่งออก');
-      
-      const dataToExport = filteredAssets.map((a, idx) => ({
-        'No.': idx + 1,
-        'Name (ผู้ครอบครอง)': a.name,
-        'Position': a.position,
-        'Department': a.department,
-        'Type': a.type,
-        'Model': a.model,
-        'Serial Number': a.serial_number,
-        'CPU': a.cpu,
-        'RAM': a.ram,
-        'Storage': a.storage,
-        'OS': a.os,
-        'IP Address': a.ip,
-        'Status': a.status
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Assets");
-      XLSX.writeFile(wb, `Asset_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
-    }
-
-    fetchAssets();
+    // Initial Fetch
+    fetchRecords();
   </script>
 </body>
 </html>
