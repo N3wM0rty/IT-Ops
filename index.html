@@ -14,6 +14,7 @@
     .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-btn:active { transform: translateY(0); }
     .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
     .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15,23,42,0.1); }
     .sidebar-link { transition: all 0.2s; }
@@ -28,281 +29,365 @@
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex bg-slate-50 antialiased">
+<body class="min-h-screen bg-slate-50 antialiased">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
-    <div class="p-5 space-y-6">
-      <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
-        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-          <i class="fa-solid fa-microchip"></i>
-        </div>
-        <div>
-          <h1 class="text-xs font-bold text-slate-900 uppercase">IT OPERATIONS</h1>
-          <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
-        </div>
+  <!-- 🔒 LOGIN PAGE -->
+  <div id="loginPage" class="max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 hidden w-full">
+    <div class="text-center space-y-3">
+      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
+        <i class="fa-solid fa-laptop-code"></i>
       </div>
-
-      <div class="space-y-4">
-        <div class="space-y-1">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
-          <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
-          </a>
-          <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
-          </a>
-          <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
-          </a>
-        </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">IT TRACKER</h1>
+        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks & shifts</p>
       </div>
     </div>
 
-    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
-      <div class="flex items-center justify-between gap-2">
-        <div class="overflow-hidden">
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
-        </div>
-        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
       </div>
-    </div>
-  </aside>
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block text-xs font-medium text-slate-600"><i class="fa-solid fa-key mr-1"></i> Password</label>
+          <button type="button" onclick="showForgotPasswordPage()" class="text-[11px] text-slate-500 hover:text-slate-900 underline">Forgot?</button>
+        </div>
+        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
+      </button>
+    </form>
+    
+    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
 
-  <!-- 📱 MOBILE HEADER -->
-  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center shadow-sm">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
-      <span class="text-xs font-semibold">IT TASK TRACKER</span>
-    </div>
-    <div class="flex gap-1.5 items-center">
-      <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
-      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
-      <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+    <div class="text-center pt-2 border-t border-slate-100">
+      <button type="button" onclick="showRegisterPage()" class="text-xs text-slate-600 hover:text-slate-900 font-medium">
+        ยังไม่มีบัญชี? <span class="underline text-indigo-600">ลงทะเบียนที่นี่</span>
+      </button>
     </div>
   </div>
 
-  <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
+  <!-- 📝 REGISTER PAGE -->
+  <div id="registerPage" class="hidden max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 w-full">
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl mx-auto border border-indigo-100">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">Create Account</h1>
+      <p class="text-slate-500 text-xs">สร้างบัญชีผู้ใช้ใหม่สำหรับเจ้าหน้าที่ IT</p>
+    </div>
+    <form id="registerForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="regEmail" required placeholder="user@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-lock mr-1"></i> Password (อย่างน้อย 6 ตัวอักษร)</label>
+        <input type="password" id="regPassword" required minlength="6" placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-user-check text-xs"></i> Create Account
+      </button>
+      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Back to Login
+      </button>
+    </form>
+  </div>
+
+  <!-- 🔑 FORGOT PASSWORD PAGE -->
+  <div id="forgotPasswordPage" class="hidden max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 w-full">
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl mx-auto border border-amber-100">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">Reset Password</h1>
+      <p class="text-slate-500 text-xs">ระบุอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน</p>
+    </div>
+    <form id="forgotPasswordForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="forgotEmail" required placeholder="user@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-paper-plane text-xs"></i> Send Reset Link
+      </button>
+      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Back to Login
+      </button>
+    </form>
+  </div>
+
+  <!-- 🖥️ MAIN APPLICATION DASHBOARD -->
+  <div id="mainDashboard" class="hidden flex w-full min-h-screen">
     
-    <!-- 🗓️ SHIFT SUMMARY & ACTIONS BANNER -->
-    <div class="mini-card p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <h3 class="text-xs font-semibold tracking-wide text-slate-200 uppercase">
-              TODAY ON-DUTY SHIFT (<span id="todayDateStr">-</span>)
-            </h3>
+    <!-- 📌 SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
+      <div class="p-5 space-y-6">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+            <i class="fa-solid fa-microchip"></i>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-            <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
-              <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-sun text-amber-400 mr-1"></i>MORNING</span>
-              <span id="shiftMorning" class="text-xs font-semibold text-white truncate block">-</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
-              <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-moon text-indigo-400 mr-1"></i>EVENING</span>
-              <span id="shiftEvening" class="text-xs font-semibold text-white truncate block">-</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
-              <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1"></i>ON-CALL</span>
-              <span id="shiftOnCall" class="text-xs font-semibold text-white truncate block">-</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
-              <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-user-slash text-rose-400 mr-1"></i>LEAVE</span>
-              <span id="shiftLeave" class="text-xs font-semibold text-white truncate block">-</span>
-            </div>
+          <div>
+            <h1 class="text-xs font-bold text-slate-900 uppercase">IT OPERATIONS</h1>
+            <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
           </div>
         </div>
-        <div class="flex items-center gap-2 self-start lg:self-center">
-          <button onclick="openShiftModal()" class="bg-slate-700 hover:bg-slate-600 text-white mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 border border-slate-600">
-            <i class="fa-solid fa-user-pen"></i> จัดการกะปฏิบัติงาน
-          </button>
-          <button onclick="openTaskModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm font-semibold">
-            <i class="fa-solid fa-plus"></i> บันทึก Task ใหม่
+
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+            <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+              <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+            </a>
+            <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+              <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+            </a>
+            <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+              <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+        <div class="flex items-center justify-between gap-2">
+          <div class="overflow-hidden">
+            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
+            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+          </div>
+          <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
           </button>
         </div>
+      </div>
+    </aside>
+
+    <!-- 📱 MOBILE HEADER -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center shadow-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
+        <span class="text-xs font-semibold">IT TASK TRACKER</span>
+      </div>
+      <div class="flex gap-1.5 items-center">
+        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+        <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+        <button onclick="handleLogout()" class="bg-rose-50 text-rose-600 text-[11px] px-2 py-1.5 rounded-lg border border-rose-200"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
 
-    <!-- 📊 DASHBOARD ANALYTICS SECTION -->
-    <div class="space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-chart-line text-indigo-600"></i> Operations Performance Analytics
-        </h3>
-        <!-- Time Range Selector -->
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
-          <button onclick="setTimeRange('today')" id="btnToday" class="filter-btn px-3 py-1 rounded-lg">วันนี้</button>
-          <button onclick="setTimeRange('month')" id="btnMonth" class="filter-btn active px-3 py-1 rounded-lg">เดือนนี้</button>
-          <button onclick="setTimeRange('all')" id="btnAll" class="filter-btn px-3 py-1 rounded-lg">ทั้งหมด</button>
-        </div>
-      </div>
-
-      <!-- 5 KPI CARDS -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-        <div class="mini-card p-4 flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">งานทั้งหมด</span>
-            <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
-          </div>
-          <div class="mt-2"><h3 id="statTotal" class="text-2xl font-bold text-slate-900">0</h3></div>
-        </div>
-
-        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-emerald-500">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">เสร็จสิ้น (Completed)</span>
-            <div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
-          </div>
-          <div class="mt-2"><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600">0</h3></div>
-        </div>
-
-        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-sky-500">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">กำลังทำ (In Progress)</span>
-            <div class="w-7 h-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
-          </div>
-          <div class="mt-2"><h3 id="statInProgress" class="text-2xl font-bold text-sky-600">0</h3></div>
-        </div>
-
-        <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-amber-500">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">รอดำเนินการ (Pending)</span>
-            <div class="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-clock"></i></div>
-          </div>
-          <div class="mt-2"><h3 id="statPending" class="text-2xl font-bold text-amber-500">0</h3></div>
-        </div>
-
-        <div class="mini-card p-4 flex flex-col justify-between col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-300 uppercase">Completion Rate</span>
-            <div class="w-7 h-7 bg-slate-700 text-emerald-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
-          </div>
-          <div class="mt-2 flex items-baseline justify-between">
-            <h3 id="statRate" class="text-2xl font-bold text-emerald-400">0%</h3>
-          </div>
-          <div class="w-full bg-slate-700 h-1.5 rounded-full mt-1.5 overflow-hidden">
-            <div id="statRateBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 📈 2-COLUMN BREAKDOWN: CATEGORIES & TOP PERFORMERS -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="mini-card p-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
-            <i class="fa-solid fa-tags text-indigo-500"></i> สัดส่วนปัญหาจำแนกตาม Category
-          </h4>
-          <div id="categoryContainer" class="space-y-2.5"></div>
-        </div>
-
-        <div class="mini-card p-4 space-y-3">
-          <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
-            <i class="fa-solid fa-trophy text-amber-500"></i> TOP IT PERFORMERS (ผลงานปิดเคสสำเร็จ)
-          </h4>
-          <div id="performerContainer" class="space-y-2.5"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN DIRECTORY CARD -->
-    <div class="mini-card p-4 md:p-6 space-y-5">
+    <!-- 🖥️ MAIN CONTENT AREA -->
+    <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
       
-      <!-- TOP CONTROL HEADER & EXPORT -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-        <div class="flex items-center gap-2">
-          <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
-          </h2>
-          <span id="taskCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">0 รายการ</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-file-excel"></i> Export Excel
-          </button>
-        </div>
-      </div>
-
-      <!-- SEARCH & FILTER TOOLBAR -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-        <div class="relative sm:col-span-2 md:col-span-1">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-          <input type="text" id="searchInput" onkeyup="filterTasks()" placeholder="ค้นหา Case ID, หัวข้อ..." class="w-full mini-input pl-8 rounded-xl p-2 text-xs">
-        </div>
-        <div>
-          <select id="filterStatus" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกสถานะ (Status) --</option>
-            <option value="Pending">Pending (รอดำเนินการ)</option>
-            <option value="In Progress">In Progress (กำลังทำ)</option>
-            <option value="Completed">Completed (เสร็จสิ้น)</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterCategory" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกหมวดหมู่ (All Categories) --</option>
-            <option value="POS">POS</option>
-            <option value="PC/ Laptop">PC/ Laptop</option>
-            <option value="Opera V.5">Opera V.5</option>
-            <option value="Opera Cloud">Opera Cloud</option>
-            <option value="Sun">Sun</option>
-            <option value="Wi-Fi">Wi-Fi</option>
-            <option value="Print">Print</option>
-            <option value="TV">TV</option>
-            <option value="CCTV">CCTV</option>
-            <option value="Phone / PABX">Phone / PABX</option>
-            <option value="Network / System">Network / System</option>
-            <option value="Sound / Audio">Sound / Audio</option>
-            <option value="General work">General work</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterLocation" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">-- ทุกสถานที่ (Location) --</option>
-            <option value="Radisson">Radisson</option>
-            <option value="Laya Suites">Laya Suites</option>
-            <option value="BB Horizon">BB Horizon</option>
-          </select>
+      <!-- 🗓️ SHIFT SUMMARY & ACTIONS BANNER -->
+      <div class="mini-card p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h3 class="text-xs font-semibold tracking-wide text-slate-200 uppercase">
+                TODAY ON-DUTY SHIFT (<span id="todayDateStr">-</span>)
+              </h3>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-sun text-amber-400 mr-1"></i>MORNING</span>
+                <span id="shiftMorning" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-moon text-indigo-400 mr-1"></i>EVENING</span>
+                <span id="shiftEvening" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1"></i>ON-CALL</span>
+                <span id="shiftOnCall" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-user-slash text-rose-400 mr-1"></i>LEAVE</span>
+                <span id="shiftLeave" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start lg:self-center">
+            <button onclick="openShiftModal()" class="bg-slate-700 hover:bg-slate-600 text-white mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 border border-slate-600">
+              <i class="fa-solid fa-user-pen"></i> จัดการกะปฏิบัติงาน
+            </button>
+            <button onclick="openTaskModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm font-semibold">
+              <i class="fa-solid fa-plus"></i> บันทึก Task ใหม่
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- DESKTOP TABLE VIEW -->
-      <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
-          <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase border-b border-slate-200">
-            <tr>
-              <th class="py-3.5 px-4">Case ID</th>
-              <th class="py-3.5 px-4">Task & Location</th>
-              <th class="py-3.5 px-4">Personnel</th>
-              <th class="py-3.5 px-4">Category</th>
-              <th class="py-3.5 px-4 text-center">Status</th>
-              <th class="py-3.5 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-        </table>
-      </div>
+      <!-- 📊 DASHBOARD ANALYTICS SECTION -->
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-indigo-600"></i> Operations Performance Analytics
+          </h3>
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
+            <button onclick="setTimeRange('today')" id="btnToday" class="filter-btn px-3 py-1 rounded-lg">วันนี้</button>
+            <button onclick="setTimeRange('month')" id="btnMonth" class="filter-btn active px-3 py-1 rounded-lg">เดือนนี้</button>
+            <button onclick="setTimeRange('all')" id="btnAll" class="filter-btn px-3 py-1 rounded-lg">ทั้งหมด</button>
+          </div>
+        </div>
 
-      <!-- MOBILE CARDS VIEW -->
-      <div id="taskCardList" class="md:hidden space-y-3"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+          <div class="mini-card p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">งานทั้งหมด</span>
+              <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statTotal" class="text-2xl font-bold text-slate-900">0</h3></div>
+          </div>
 
-      <!-- PAGINATION BAR -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
-        <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
-        <div class="flex items-center gap-1.5">
-          <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ก่อนหน้า</button>
-          <span id="pageCurrent" class="text-xs font-semibold px-2 text-slate-700">1</span>
-          <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-emerald-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">เสร็จสิ้น (Completed)</span>
+              <div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-sky-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">กำลังทำ (In Progress)</span>
+              <div class="w-7 h-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statInProgress" class="text-2xl font-bold text-sky-600">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-amber-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">รอดำเนินการ (Pending)</span>
+              <div class="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-clock"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statPending" class="text-2xl font-bold text-amber-500">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-300 uppercase">Completion Rate</span>
+              <div class="w-7 h-7 bg-slate-700 text-emerald-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
+            </div>
+            <div class="mt-2 flex items-baseline justify-between">
+              <h3 id="statRate" class="text-2xl font-bold text-emerald-400">0%</h3>
+            </div>
+            <div class="w-full bg-slate-700 h-1.5 rounded-full mt-1.5 overflow-hidden">
+              <div id="statRateBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="mini-card p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+              <i class="fa-solid fa-tags text-indigo-500"></i> สัดส่วนปัญหาจำแนกตาม Category
+            </h4>
+            <div id="categoryContainer" class="space-y-2.5"></div>
+          </div>
+
+          <div class="mini-card p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+              <i class="fa-solid fa-trophy text-amber-500"></i> TOP IT PERFORMERS (ผลงานปิดเคสสำเร็จ)
+            </h4>
+            <div id="performerContainer" class="space-y-2.5"></div>
+          </div>
         </div>
       </div>
 
-    </div>
-  </main>
+      <!-- MAIN DIRECTORY CARD -->
+      <div class="mini-card p-4 md:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
+            </h2>
+            <span id="taskCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">0 รายการ</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <div class="relative sm:col-span-2 md:col-span-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" onkeyup="filterTasks()" placeholder="ค้นหา Case ID, หัวข้อ..." class="w-full mini-input pl-8 rounded-xl p-2 text-xs">
+          </div>
+          <div>
+            <select id="filterStatus" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกสถานะ (Status) --</option>
+              <option value="Pending">Pending (รอดำเนินการ)</option>
+              <option value="In Progress">In Progress (กำลังทำ)</option>
+              <option value="Completed">Completed (เสร็จสิ้น)</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterCategory" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกหมวดหมู่ (All Categories) --</option>
+              <option value="POS">POS</option>
+              <option value="PC/ Laptop">PC/ Laptop</option>
+              <option value="Opera V.5">Opera V.5</option>
+              <option value="Opera Cloud">Opera Cloud</option>
+              <option value="Sun">Sun</option>
+              <option value="Wi-Fi">Wi-Fi</option>
+              <option value="Print">Print</option>
+              <option value="TV">TV</option>
+              <option value="CCTV">CCTV</option>
+              <option value="Phone / PABX">Phone / PABX</option>
+              <option value="Network / System">Network / System</option>
+              <option value="Sound / Audio">Sound / Audio</option>
+              <option value="General work">General work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterLocation" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกสถานที่ (Location) --</option>
+              <option value="Radisson">Radisson</option>
+              <option value="Laya Suites">Laya Suites</option>
+              <option value="BB Horizon">BB Horizon</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+            <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-3.5 px-4">Case ID</th>
+                <th class="py-3.5 px-4">Task & Location</th>
+                <th class="py-3.5 px-4">Personnel</th>
+                <th class="py-3.5 px-4">Category</th>
+                <th class="py-3.5 px-4 text-center">Status</th>
+                <th class="py-3.5 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+
+        <div id="taskCardList" class="md:hidden space-y-3"></div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
+          <div class="flex items-center gap-1.5">
+            <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ก่อนหน้า</button>
+            <span id="pageCurrent" class="text-xs font-semibold px-2 text-slate-700">1</span>
+            <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
 
   <!-- 🪟 MODAL: ADD / EDIT TASK -->
   <div id="taskModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -478,19 +563,82 @@
       setTimeout(() => toast.remove(), 3500);
     }
 
+    // --- AUTHENTICATION PAGE SWITCHING ---
+    function hideAllAuthPages() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('registerPage').classList.add('hidden');
+      document.getElementById('forgotPasswordPage').classList.add('hidden');
+      document.getElementById('mainDashboard').classList.add('hidden');
+    }
+
+    function showLoginPage() { hideAllAuthPages(); document.getElementById('loginPage').classList.remove('hidden'); }
+    function showRegisterPage() { hideAllAuthPages(); document.getElementById('registerPage').classList.remove('hidden'); }
+    function showForgotPasswordPage() { hideAllAuthPages(); document.getElementById('forgotPasswordPage').classList.remove('hidden'); }
+
     async function checkAuth() {
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
         currentUser = user;
+        hideAllAuthPages();
+        document.getElementById('mainDashboard').classList.remove('hidden');
         document.getElementById('userEmailDisplay').innerText = user.email;
         fetchTodayShift();
         fetchTasks();
+      } else {
+        showLoginPage();
       }
     }
 
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loginError = document.getElementById('loginError');
+      loginError.classList.add('hidden');
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      });
+
+      if (error) {
+        loginError.innerText = error.message;
+        loginError.classList.remove('hidden');
+      } else {
+        checkAuth();
+      }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { error } = await supabaseClient.auth.signUp({
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value
+      });
+
+      if (error) {
+        showToast('REGISTER FAILED', error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'สร้างบัญชีเรียบร้อย โปรดตรวจสอบอีเมลเพื่อยืนยันตัวตน', 'success');
+        showLoginPage();
+      }
+    });
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value;
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว', 'success');
+        showLoginPage();
+      }
+    });
+
     async function handleLogout() {
       await supabaseClient.auth.signOut();
-      location.reload();
+      currentUser = null;
+      showLoginPage();
     }
 
     // --- SHIFT MANAGEMENT ---
@@ -543,6 +691,8 @@
         rawTasks = data || [];
         renderAnalytics();
         filterTasks();
+      } else {
+        showToast('FETCH ERROR', error.message, 'error');
       }
     }
 
@@ -598,7 +748,7 @@
       const container = document.getElementById('categoryContainer');
 
       if (sorted.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ไม่มีข้อมูลในสัปดาห์/เดือนนี้</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ไม่มีข้อมูลในช่วงเวลานี้</p>`;
         return;
       }
 
@@ -923,6 +1073,7 @@
       XLSX.writeFile(wb, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
+    // เริ่มต้นเช็ก Auth เพื่อสลับหน้า Login / Dashboard
     checkAuth();
   </script>
 </body>
