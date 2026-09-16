@@ -3,260 +3,781 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPS & Battery Inspector</title>
+  <title>UPS & BATTERY INSPECTOR</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- ExcelJS Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-radius: 16px; }
     .mini-btn { transition: all 0.2s ease; font-weight: 500; }
     .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
-    .sidebar-link { transition: all 0.2s; }
-    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
-    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    .mini-input { background-color: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
+    .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1); }
+    
+    /* แก้ไขปัญหาวันที่บนไอโฟน (iOS/Safari) */
+    input[type="date"] {
+      position: relative;
+      -webkit-appearance: none;
+      min-height: 2.5rem;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      background: transparent;
+      bottom: 0;
+      color: transparent;
+      height: auto;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: auto;
+    }
+
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex bg-slate-50 antialiased">
+<body class="min-h-screen p-4 md:p-6 relative antialiased text-slate-800">
 
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR -->
-  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
-    <div class="p-5 space-y-6">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-          <i class="fa-solid fa-car-battery"></i>
-        </div>
-        <div>
-          <h1 class="text-xs font-bold text-slate-900 uppercase">UPS INSPECTOR</h1>
-          <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div class="space-y-1">
-          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
-          <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
-          </a>
-          <a href="ups.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
-            <i class="fa-solid fa-car-battery w-4 text-emerald-400"></i> UPS Inspector
-          </a>
-          <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-            <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
-          </a>
-        </div>
+  <!-- HEADER NAV -->
+  <header class="max-w-7xl mx-auto mini-card p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg hover:bg-slate-800 transition-colors" title="กลับหน้าหลัก">
+        <i class="fa-solid fa-car-battery"></i>
+      </a>
+      <div>
+        <h1 class="text-lg md:text-xl font-semibold text-slate-900 tracking-tight leading-none">UPS & BATTERY INSPECTOR</h1>
+        <p class="text-slate-500 text-xs mt-1">ระบบตรวจเช็กอุปกรณ์ UPS และแบตเตอรี่ประจำงวด</p>
       </div>
     </div>
-
-    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
-      <div class="flex items-center justify-between gap-2">
-        <div class="overflow-hidden">
-          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
-          <span class="text-[10px] text-emerald-600 uppercase font-semibold">STAFF</span>
-        </div>
-        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
-      </div>
+    <div class="flex items-center gap-2">
+      <a href="index.html" class="bg-slate-100 text-slate-700 mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-house"></i> หน้าหลัก
+      </a>
+      <button onclick="switchTab('form')" id="tabBtnForm" class="bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-plus"></i> บันทึกผลการตรวจ
+      </button>
+      <button onclick="switchTab('list')" id="tabBtnList" class="bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+        <i class="fa-solid fa-table-list"></i> ประวัติการตรวจ
+      </button>
     </div>
-  </aside>
+  </header>
 
-  <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
-    <div class="mini-card p-6 md:p-8 space-y-6">
-      
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-car-battery text-emerald-600"></i> UPS & BATTERY INSPECTOR
-          </h2>
-          <p class="text-slate-500 text-xs mt-0.5">ระบบบันทึก ตรวจสอบพารามิเตอร์ไฟฟ้า และประวัติอุปกรณ์ UPS</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-file-excel"></i> Export Excel
-          </button>
-          <button onclick="toggleForm()" class="bg-slate-900 text-white mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-plus"></i> บันทึกผลตรวจ
-          </button>
-        </div>
-      </div>
+  <main class="max-w-7xl mx-auto">
+    <!-- FORM SECTION -->
+    <div id="viewForm" class="mini-card p-6 md:p-8 space-y-6">
+      <h2 class="text-base font-semibold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+        <i class="fa-solid fa-pen-to-square text-slate-500"></i> แบบฟอร์มบันทึกการตรวจสอบ
+      </h2>
 
-      <!-- FORM -->
-      <div id="upsFormCard" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
-        <h3 class="text-xs font-bold text-slate-700 uppercase">บันทึกการตรวจเช็ก UPS ใหม่</h3>
-        <form id="upsForm" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div><label class="block text-xs font-medium mb-1">Build (อาคาร)</label><input type="text" id="uBuild" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Floor (ชั้น)</label><input type="text" id="uFloor" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Side (ตำแหน่ง)</label><input type="text" id="uSide" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div><label class="block text-xs font-medium mb-1">UPS Model</label><input type="text" id="uUps" required value="SRVPM2KRIL" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">UPS Serial No.</label><input type="text" id="uModelSerial" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Battery Model</label><input type="text" id="uBattery" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Battery Serial No.</label><input type="text" id="uBatterySerial" class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-          </div>
+      <form id="inspectionForm" class="space-y-4">
+        <!-- 1. LOCATION -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase">1. ข้อมูลสถานที่ (Location)</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label class="block text-xs font-medium mb-1">Status</label>
-              <select id="uStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
-                <option value="OK">OK</option>
-                <option value="Need Replace">Need Replace</option>
-                <option value="Fault">Fault</option>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Build (อาคาร)</label>
+              <input type="text" id="build" required placeholder="e.g. Main Building" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Floor (ชั้น)</label>
+              <input type="text" id="floor" required placeholder="e.g. 2nd Floor" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Side (ฝั่ง/ตำแหน่ง)</label>
+              <input type="text" id="side" placeholder="e.g. Server Room" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. DEVICE SPECS -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase">2. ข้อมูลอุปกรณ์ (UPS & Battery)</h3>
+            <button type="button" onclick="applyModelPreset()" class="text-[11px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-lg transition-colors font-medium">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-1"></i> เติมรุ่นอัตโนมัติ
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">UPS (รุ่น)</label>
+              <input type="text" id="ups" required value="SRVPM2KRIL" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">UPS Model / Serial No.</label>
+              <input type="text" id="modelSerial" placeholder="e.g. 852221400268" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Battery (รุ่น)</label>
+              <input type="text" id="battery" value="SRV72RLBP-9A" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Battery Model / Serial No.</label>
+              <input type="text" id="batteryModelSerial" placeholder="e.g. 852203A02477" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. TECHNICAL METRICS -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase">3. ค่าทางไฟฟ้าและผลการทดสอบ</h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Capacity (VA/kVA)</label>
+              <input type="text" id="capacity" placeholder="2 kVA" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Input Voltage (V)</label>
+              <input type="text" id="inputVoltage" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Output Voltage (V)</label>
+              <input type="text" id="outputVoltage" placeholder="220" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Runtime Test (min)</label>
+              <input type="text" id="runtimeTest" placeholder="15" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div class="col-span-2 md:col-span-1">
+              <label class="block text-xs font-medium text-slate-600 mb-1">Load (%)</label>
+              <input type="text" id="load" placeholder="100%" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. STATUS & SCHEDULE -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase">4. สถานะและกำหนดการ</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Status (สถานะ)</label>
+              <select id="status" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="OK">OK (ปกติ)</option>
+                <option value="Need Replace">Need Replace (ต้องเปลี่ยน)</option>
+                <option value="Warning">Warning (เตือน)</option>
+                <option value="Fault">Fault (ชำรุด)</option>
               </select>
             </div>
-            <div><label class="block text-xs font-medium mb-1">Inspector</label><input type="text" id="uInspector" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
-            <div><label class="block text-xs font-medium mb-1">Inspection Date</label><input type="date" id="uDate" required class="w-full mini-input rounded-xl p-2.5 text-xs"></div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Priority (ความสำคัญ)</label>
+              <select id="priority" class="w-full mini-input rounded-xl p-2.5 text-xs">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Inspection Date</label>
+              <input type="date" id="inspectionDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Next PM Date</label>
+              <input type="date" id="nextPmDate" class="w-full mini-input rounded-xl p-2.5 text-xs">
+            </div>
           </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" onclick="toggleForm()" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
-            <button type="submit" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึก</button>
+        </div>
+
+        <!-- 5. PHOTO UPLOAD & REMARKS -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase">5. รูปถ่ายและผู้ตรวจ (Picture & Inspector)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-camera mr-1"></i> ถ่ายรูป/อัปโหลดภาพ</label>
+              <input type="file" id="pictureInput" accept="image/*" capture="environment" onchange="previewImage(event)" class="w-full mini-input rounded-xl p-2 text-xs">
+              
+              <div id="imagePreviewContainer" class="hidden mt-3 relative">
+                <img id="imagePreview" class="w-full h-40 object-cover rounded-xl border border-slate-200">
+                <button type="button" onclick="removeImage()" class="absolute top-2 right-2 bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Inspector (ผู้ตรวจสอบ)</label>
+                <input type="text" id="inspector" required placeholder="ชื่อผู้ตรวจ" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Remark (หมายเหตุ)</label>
+                <textarea id="remark" rows="2" placeholder="รายละเอียดเพิ่มเติม..." class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
-
-      <!-- FILTER -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-        <div>
-          <label class="text-[11px] font-medium text-slate-500 mb-1 block">กรองตามอาคาร</label>
-          <select id="filterBuild" onchange="renderTable()" class="w-full mini-input rounded-xl p-2 text-xs">
-            <option value="">ทั้งหมดทุกอาคาร</option>
-          </select>
         </div>
-        <div>
-          <label class="text-[11px] font-medium text-slate-500 mb-1 block">ค้นหาข้อมูล</label>
-          <input type="text" id="searchUps" onkeyup="renderTable()" placeholder="ค้นหา S/N, ผู้ตรวจ, รุ่น..." class="w-full mini-input rounded-xl p-2 text-xs">
+
+        <button type="submit" id="submitBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลการตรวจสอบ
+        </button>
+      </form>
+    </div>
+
+    <!-- LIST SECTION -->
+    <div id="viewList" class="hidden space-y-4">
+      <div class="mini-card p-5 space-y-4">
+        <!-- HEADER ACTION -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold text-slate-900">รายการประวัติการตรวจสอบ</h2>
+            <span id="recordCount" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">0 รายการ</span>
+          </div>
+          <div class="flex items-center gap-2 self-start md:self-auto">
+            <label class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-file-import"></i> Import Excel
+              <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="importFromExcel(event)" class="hidden">
+            </label>
+            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i> Export Excel (พร้อมรูป)
+            </button>
+          </div>
+        </div>
+
+        <!-- FILTER & SEARCH BAR SECTION -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1"><i class="fa-solid fa-building mr-1"></i> กรองตามอาคาร (Build)</label>
+            <select id="filterBuild" onchange="filterRecords()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">ทั้งหมดทุกอาคาร</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-slate-500 mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> ค้นหาข้อมูล</label>
+            <input type="text" id="searchInput" onkeyup="filterRecords()" placeholder="พิมพ์ชื่อ UPS, S/N, หรือชื่อผู้ตรวจ..." class="w-full mini-input rounded-xl p-2 text-xs">
+          </div>
+          <div class="flex items-end">
+            <button onclick="resetFilters()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 mini-btn py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1">
+              <i class="fa-solid fa-rotate-left"></i> ล้างการกรอง
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLE SECTION -->
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 font-medium text-[11px] uppercase border-b border-slate-100">
+              <tr>
+                <th class="p-3">Build/Floor/Side</th>
+                <th class="p-3">UPS Details</th>
+                <th class="p-3">Battery</th>
+                <th class="p-3">Tech Specs</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Date / Inspector</th>
+                <th class="p-3">Picture</th>
+                <th class="p-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="inspectionTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
         </div>
       </div>
-
-      <!-- TABLE -->
-      <div class="overflow-x-auto rounded-xl border border-slate-100">
-        <table class="w-full text-left text-xs text-slate-700">
-          <thead class="bg-slate-50 text-[11px] uppercase border-b border-slate-100">
-            <tr>
-              <th class="p-3">BUILD/FLOOR</th>
-              <th class="p-3">UPS MODEL</th>
-              <th class="p-3">BATTERY</th>
-              <th class="p-3 text-center">STATUS</th>
-              <th class="p-3">INSPECTOR</th>
-              <th class="p-3 text-center">ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="upsTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-        </table>
-      </div>
-
     </div>
   </main>
 
   <script>
-    const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
-    const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
-    const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+    const SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
 
-    const UPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
-    const UPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
-    const supabaseUps = supabase.createClient(UPS_SUPABASE_URL, UPS_SUPABASE_KEY);
+    let supabaseClient = null;
+    try {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+      console.error('Supabase Init Error:', e);
+    }
 
     let rawRecords = [];
+    let filteredRecords = [];
+    let currentBase64Image = '';
 
-    async function checkAuth() {
-      const { data: { user } } = await supabaseAuth.auth.getUser();
-      if (user) {
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        fetchRecords();
-      } else { fetchRecords(); }
+    function applyModelPreset() {
+      document.getElementById('ups').value = 'SRVPM2KRIL';
+      document.getElementById('battery').value = 'SRV72RLBP-9A';
+      showToast('PRESET APPLIED', 'ตั้งค่ารุ่น SRVPM2KRIL / SRV72RLBP-9A เรียบร้อย', 'success');
     }
 
-    async function handleLogout() {
-      await supabaseAuth.auth.signOut();
-      window.location.href = 'index.html';
+    function switchTab(tab) {
+      document.getElementById('viewForm').classList.toggle('hidden', tab !== 'form');
+      document.getElementById('viewList').classList.toggle('hidden', tab !== 'list');
+      document.getElementById('tabBtnForm').className = tab === 'form' ? 'bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5';
+      document.getElementById('tabBtnList').className = tab === 'list' ? 'bg-slate-900 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5' : 'bg-slate-100 text-slate-700 mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5';
+      if (tab === 'list') fetchRecords();
     }
 
-    function toggleForm() {
-      document.getElementById('upsFormCard').classList.toggle('hidden');
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const max_size = 400; // บีบอัดรูปไม่ให้ใหญ่เกินไปสำหรับเก็บลงฐานข้อมูล
+
+            if (width > height) {
+              if (width > max_size) { height *= max_size / width; width = max_size; }
+            } else {
+              if (height > max_size) { width *= max_size / height; height = max_size; }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            currentBase64Image = canvas.toDataURL('image/jpeg', 0.6);
+            document.getElementById('imagePreview').src = currentBase64Image;
+            document.getElementById('imagePreviewContainer').classList.remove('hidden');
+          }
+          img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
     }
 
-    document.getElementById('uDate').value = new Date().toISOString().split('T')[0];
+    function removeImage() {
+      currentBase64Image = '';
+      document.getElementById('pictureInput').value = '';
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
+    }
 
-    document.getElementById('upsForm').addEventListener('submit', async (e) => {
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div class="text-base pt-0.5"><i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-400'}"></i></div><div><h4 class="text-xs font-semibold">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    document.getElementById('inspectionDate').value = todayFormatted;
+
+    function parseExcelDate(val) {
+      if (!val) return todayFormatted;
+      if (val instanceof Date) {
+        return val.toISOString().split('T')[0];
+      }
+      if (typeof val === 'number') {
+        const utc_days = Math.floor(val - 25569);
+        const utc_value = utc_days * 86400;
+        const date_info = new Date(utc_value * 1000);
+        return date_info.toISOString().split('T')[0];
+      }
+      const strVal = String(val).trim();
+      const d = new Date(strVal);
+      if (!isNaN(d.getTime())) {
+        let year = d.getFullYear();
+        if (year > 2400) year -= 543;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      return todayFormatted;
+    }
+
+    function bufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i += 8192) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+      }
+      return btoa(binary);
+    }
+
+    document.getElementById('inspectionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const payload = {
-        build: document.getElementById('uBuild').value,
-        floor: document.getElementById('uFloor').value,
-        side: document.getElementById('uSide').value,
-        ups: document.getElementById('uUps').value,
-        model_serial_no: document.getElementById('uModelSerial').value,
-        battery: document.getElementById('uBattery').value,
-        battery_model_serial_no: document.getElementById('uBatterySerial').value,
-        status: document.getElementById('uStatus').value,
-        inspector: document.getElementById('uInspector').value,
-        inspection_date: document.getElementById('uDate').value
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...`;
+
+      const inspDateVal = document.getElementById('inspectionDate').value || todayFormatted;
+      const nextPmVal = document.getElementById('nextPmDate').value || null;
+
+      const newRecord = {
+        build: document.getElementById('build').value,
+        floor: document.getElementById('floor').value,
+        side: document.getElementById('side').value,
+        ups: document.getElementById('ups').value,
+        model_serial_no: document.getElementById('modelSerial').value,
+        battery: document.getElementById('battery').value,
+        battery_model_serial_no: document.getElementById('batteryModelSerial').value,
+        capacity: document.getElementById('capacity').value,
+        input_voltage: document.getElementById('inputVoltage').value,
+        output_voltage: document.getElementById('outputVoltage').value,
+        runtime_test: document.getElementById('runtimeTest').value,
+        load_percent: document.getElementById('load').value,
+        status: document.getElementById('status').value,
+        priority: document.getElementById('priority').value,
+        inspection_date: inspDateVal,
+        next_pm_date: nextPmVal,
+        picture: currentBase64Image,
+        inspector: document.getElementById('inspector').value,
+        remark: document.getElementById('remark').value
       };
-      await supabaseUps.from('ups_inspections').insert([payload]);
-      e.target.reset();
-      toggleForm();
-      fetchRecords();
+
+      try {
+        if (!supabaseClient) throw new Error("Supabase Client ขัดข้อง");
+        const { error } = await supabaseClient.from('ups_inspections').insert([newRecord]);
+        if (error) throw error;
+
+        showToast('SUCCESS', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+        e.target.reset();
+        removeImage();
+        applyModelPreset();
+        document.getElementById('inspectionDate').value = todayFormatted;
+        switchTab('list');
+      } catch (err) {
+        showToast('ERROR', err.message || 'บันทึกไม่สำเร็จ', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลการตรวจสอบ`;
+      }
     });
 
     async function fetchRecords() {
-      const { data } = await supabaseUps.from('ups_inspections').select('*').order('created_at', { ascending: false });
-      rawRecords = data || [];
-      populateBuildFilter();
-      renderTable();
+      try {
+        if (!supabaseClient) return;
+        const { data, error } = await supabaseClient.from('ups_inspections').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        rawRecords = data || [];
+        populateBuildFilter();
+        filterRecords();
+      } catch (err) {
+        showToast('ERROR', err.message || 'ดึงข้อมูลไม่สำเร็จ', 'error');
+      }
     }
 
     function populateBuildFilter() {
       const select = document.getElementById('filterBuild');
+      const currentValue = select.value;
+      
       const builds = [...new Set(rawRecords.map(r => r.build).filter(Boolean))].sort();
       select.innerHTML = '<option value="">ทั้งหมดทุกอาคาร</option>';
-      builds.forEach(b => { select.innerHTML += `<option value="${b}">${b}</option>`; });
+      
+      builds.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        select.appendChild(opt);
+      });
+
+      select.value = currentValue;
     }
 
-    function renderTable() {
-      const build = document.getElementById('filterBuild').value;
-      const search = document.getElementById('searchUps').value.toLowerCase();
+    function filterRecords() {
+      const selectedBuild = document.getElementById('filterBuild').value;
+      const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
 
-      const filtered = rawRecords.filter(r => {
-        const matchBuild = !build || r.build === build;
-        const matchSearch = !search || [r.build, r.ups, r.model_serial_no, r.inspector, r.battery].join(' ').toLowerCase().includes(search);
+      filteredRecords = rawRecords.filter(r => {
+        const matchBuild = !selectedBuild || r.build === selectedBuild;
+        
+        const searchTarget = [
+          r.build, r.floor, r.side, r.ups, r.model_serial_no,
+          r.battery, r.battery_model_serial_no, r.inspector, r.remark
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        const matchSearch = !searchText || searchTarget.includes(searchText);
         return matchBuild && matchSearch;
       });
 
-      const tbody = document.getElementById('upsTableBody');
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">ไม่พบข้อมูลการตรวจเช็ก UPS</td></tr>`;
+      document.getElementById('recordCount').innerText = `${filteredRecords.length} / ${rawRecords.length} รายการ`;
+      renderTable();
+    }
+
+    function resetFilters() {
+      document.getElementById('filterBuild').value = '';
+      document.getElementById('searchInput').value = '';
+      filterRecords();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('inspectionTableBody');
+      tbody.innerHTML = '';
+
+      if (filteredRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(r => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-semibold text-slate-900">${r.build || '-'}<br><span class="text-[10px] font-normal text-slate-500">Fl: ${r.floor || '-'} | ${r.side || '-'}</span></td>
-          <td class="p-3"><b>${r.ups || '-'}</b><br><span class="text-[10px] text-slate-400">S/N: ${r.model_serial_no || '-'}</span></td>
-          <td class="p-3">${r.battery || '-'}<br><span class="text-[10px] text-slate-400">S/N: ${r.battery_model_serial_no || '-'}</span></td>
-          <td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${r.status==='OK'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-rose-50 text-rose-700 border-rose-200'}">${r.status || 'OK'}</span></td>
-          <td class="p-3"><b>${r.inspector || '-'}</b><br><span class="text-[10px] text-slate-400">${r.inspection_date || '-'}</span></td>
-          <td class="p-3 text-center"><button onclick="deleteRecord(${r.id})" class="text-rose-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
-      `).join('');
+      filteredRecords.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors";
+        
+        let statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (r.status === 'Warning' || r.status === 'Need Replace') statusBadge = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (r.status === 'Fault') statusBadge = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        let imgTag = '<span class="text-slate-300">-</span>';
+        if (r.picture && r.picture.length > 20) {
+          imgTag = `<img src="${r.picture}" class="w-12 h-12 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.open('${r.picture}')" title="คลิกเพื่อดูรูปใหญ่">`;
+        }
+
+        tr.innerHTML = `
+          <td class="p-3">
+            <span class="font-semibold text-slate-900 block">${r.build || '-'}</span>
+            <span class="text-[10px] text-slate-500">Floor: ${r.floor || '-'} | Side: ${r.side || '-'}</span>
+          </td>
+          <td class="p-3">
+            <span class="font-medium block">${r.ups || '-'}</span>
+            <span class="text-[10px] text-slate-400">S/N: ${r.model_serial_no || '-'}</span>
+          </td>
+          <td class="p-3">
+            <span class="block">${r.battery || '-'}</span>
+            <span class="text-[10px] text-slate-400">S/N: ${r.battery_model_serial_no || '-'}</span>
+          </td>
+          <td class="p-3 text-[10px] text-slate-600">
+            Cap: ${r.capacity || '-'} | In: ${r.input_voltage || '-'} | Out: ${r.output_voltage || '-'}<br>
+            Run: ${r.runtime_test || '-'} min | Load: ${r.load_percent || '-'}
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] border ${statusBadge}">${r.status}</span>
+            <span class="text-[10px] text-slate-400 block mt-0.5">Priority: ${r.priority}</span>
+          </td>
+          <td class="p-3 text-[11px]">
+            <span class="block font-medium">${r.inspection_date || '-'}</span>
+            <span class="text-[10px] text-slate-500">Inspector: ${r.inspector || '-'}</span>
+          </td>
+          <td class="p-3">
+            ${imgTag}
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="deleteRecord(${r.id})" class="text-rose-500 hover:text-rose-700 p-1 rounded-lg text-xs" title="Delete">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
     async function deleteRecord(id) {
       if (confirm('ยืนยันลบรายการนี้?')) {
-        await supabaseUps.from('ups_inspections').delete().eq('id', id);
+        await supabaseClient.from('ups_inspections').delete().eq('id', id);
         fetchRecords();
       }
     }
 
-    checkAuth();
+    async function exportToExcel() {
+      const recordsToExport = filteredRecords.length > 0 ? filteredRecords : rawRecords;
+      if (recordsToExport.length === 0) return showToast('EMPTY', 'ไม่มีข้อมูลให้ส่งออก', 'error');
+
+      showToast('EXPORTING', 'กำลังสร้างไฟล์ Excel พร้อมรูปภาพ...', 'success');
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('UPS_Checklist');
+
+      worksheet.columns = [
+        { header: 'Build', key: 'build', width: 15 },
+        { header: 'Floor', key: 'floor', width: 10 },
+        { header: 'Side', key: 'side', width: 15 },
+        { header: 'UPS', key: 'ups', width: 20 },
+        { header: 'Model / Serial No.', key: 'model_serial_no', width: 20 },
+        { header: 'Battery', key: 'battery', width: 20 },
+        { header: 'Battery Model / Serial No.', key: 'battery_model_serial_no', width: 22 },
+        { header: 'Capacity (VA/kVA)', key: 'capacity', width: 18 },
+        { header: 'Input Voltage (V)', key: 'input_voltage', width: 16 },
+        { header: 'Output Voltage (V)', key: 'output_voltage', width: 16 },
+        { header: 'Runtime Test (min)', key: 'runtime_test', width: 18 },
+        { header: 'Load (%)', key: 'load_percent', width: 12 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Priority', key: 'priority', width: 12 },
+        { header: 'Inspection Date', key: 'inspection_date', width: 16 },
+        { header: 'Next PM Date', key: 'next_pm_date', width: 16 },
+        { header: 'Picture', key: 'picture_placeholder', width: 15 },
+        { header: 'Inspector', key: 'inspector', width: 15 },
+        { header: 'Remark', key: 'remark', width: 25 }
+      ];
+
+      worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+      worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
+
+      for (let i = 0; i < recordsToExport.length; i++) {
+        const r = recordsToExport[i];
+        const row = worksheet.addRow({
+          build: r.build,
+          floor: r.floor,
+          side: r.side,
+          ups: r.ups,
+          model_serial_no: r.model_serial_no,
+          battery: r.battery,
+          battery_model_serial_no: r.battery_model_serial_no,
+          capacity: r.capacity,
+          input_voltage: r.input_voltage,
+          output_voltage: r.output_voltage,
+          runtime_test: r.runtime_test,
+          load_percent: r.load_percent,
+          status: r.status,
+          priority: r.priority,
+          inspection_date: r.inspection_date,
+          next_pm_date: r.next_pm_date,
+          picture_placeholder: r.picture ? '' : '-',
+          inspector: r.inspector,
+          remark: r.remark
+        });
+
+        row.height = 60;
+
+        if (r.picture && r.picture.startsWith('data:image')) {
+          try {
+            const imageId = workbook.addImage({
+              base64: r.picture,
+              extension: 'jpeg',
+            });
+
+            worksheet.addImage(imageId, {
+              tl: { col: 16, row: i + 1 },
+              ext: { width: 70, height: 75 }
+            });
+          } catch (e) {
+            console.error('Add image error:', e);
+          }
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `UPS_Inspection_${todayFormatted}.xlsx`;
+      link.click();
+    }
+
+    async function importFromExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showToast('IMPORTING', 'กำลังอ่านข้อมูลและดึงรูปภาพจาก Excel...', 'success');
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const arrayBuffer = e.target.result;
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(arrayBuffer);
+
+          const worksheet = workbook.worksheets[0];
+          if (!worksheet) throw new Error('ไม่พบข้อมูล Sheet ในไฟล์');
+
+          const imageMap = {};
+          if (worksheet.getImages) {
+            worksheet.getImages().forEach(img => {
+              const imageObj = workbook.getImage(img.imageId);
+              const rowIdx = Math.floor(img.range.tl.row) + 1;
+              
+              if (imageObj && imageObj.buffer) {
+                try {
+                  const base64Str = bufferToBase64(imageObj.buffer);
+                  const ext = imageObj.extension || 'jpeg';
+                  imageMap[rowIdx] = `data:image/${ext};base64,${base64Str}`;
+                } catch (err) {
+                  console.error('Image convert error:', err);
+                }
+              }
+            });
+          }
+
+          let headerRowIdx = -1;
+          worksheet.eachRow((row, rowNumber) => {
+            const rowValues = Array.isArray(row.values) ? row.values.join(' ').toLowerCase() : '';
+            if (headerRowIdx === -1 && (rowValues.includes('build') || rowValues.includes('ups') || rowValues.includes('serial'))) {
+              headerRowIdx = rowNumber;
+            }
+          });
+
+          if (headerRowIdx === -1) headerRowIdx = 1;
+
+          const headers = {};
+          worksheet.getRow(headerRowIdx).eachCell((cell, colNumber) => {
+            const rawVal = cell.value;
+            const strVal = (typeof rawVal === 'object' && rawVal !== null) ? (rawVal.result || rawVal.text || '') : String(rawVal || '');
+            headers[colNumber] = strVal.trim();
+          });
+
+          const recordsToInsert = [];
+
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber <= headerRowIdx) return;
+
+            const rowData = {};
+            row.eachCell((cell, colNumber) => {
+              const hName = headers[colNumber];
+              if (hName) {
+                const cVal = cell.value;
+                const finalVal = (typeof cVal === 'object' && cVal !== null) ? (cVal.result || cVal.text || '') : cVal;
+                rowData[hName] = finalVal;
+              }
+            });
+
+            const getVal = (possibleNames, defaultVal = '') => {
+              for (const name of possibleNames) {
+                const foundKey = Object.keys(rowData).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(name.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                if (foundKey && rowData[foundKey] !== undefined && rowData[foundKey] !== null) {
+                  return String(rowData[foundKey]).trim();
+                }
+              }
+              return defaultVal;
+            };
+
+            const build = getVal(['build', 'อาคาร']);
+            const upsSN = getVal(['model/serialno', 'modelserialno', 'ซีเรียลups', 'sn']);
+
+            if (!build && !upsSN) return;
+
+            const extractedImage = imageMap[rowNumber] || '';
+            const rawInspectionDate = rowData['Inspection Date'] || rowData['วันที่ตรวจ'];
+            const rawNextPmDate = rowData['Next PM Date'] || rowData['กำหนด PM'];
+
+            recordsToInsert.push({
+              build: build,
+              floor: getVal(['floor', 'ชั้น']),
+              side: getVal(['side', 'ตำแหน่ง', 'ฝั่ง']),
+              ups: getVal(['ups'], 'SRVPM2KRIL'),
+              model_serial_no: upsSN,
+              battery: getVal(['battery'], 'SRV72RLBP-9A'),
+              battery_model_serial_no: getVal(['batterymodelserialno', 'ซีเรียลแบต']),
+              capacity: getVal(['capacity', 'ความจุ']),
+              input_voltage: getVal(['inputvoltage', 'ไฟเข้า']),
+              output_voltage: getVal(['outputvoltage', 'ไฟออก']),
+              runtime_test: getVal(['runtimetest', 'เวลาทดสอบ']),
+              load_percent: getVal(['load', 'โหลด']),
+              status: getVal(['status', 'สถานะ'], 'OK'),
+              priority: getVal(['priority', 'ความสำคัญ'], 'Low'),
+              inspection_date: parseExcelDate(rawInspectionDate),
+              next_pm_date: rawNextPmDate ? parseExcelDate(rawNextPmDate) : null,
+              picture: extractedImage,
+              inspector: getVal(['inspector', 'ผู้ตรวจ']),
+              remark: getVal(['remark', 'หมายเหตุ'])
+            });
+          });
+
+          if (recordsToInsert.length === 0) {
+            showToast('EMPTY', 'ไม่พบข้อมูลแถวในตาราง Excel', 'error');
+            return;
+          }
+
+          const { error } = await supabaseClient.from('ups_inspections').insert(recordsToInsert);
+          if (error) throw error;
+
+          showToast('SUCCESS', `นำเข้าข้อมูลและรูปภาพเรียบร้อย ${recordsToInsert.length} รายการ`, 'success');
+          fetchRecords();
+        } catch (err) {
+          showToast('ERROR', err.message || 'เกิดข้อผิดพลาดในการนำเข้าไฟล์', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
   </script>
 </body>
 </html>
