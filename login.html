@@ -3,83 +3,549 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Authentication - IT Operations Portal</title>
+  <title>IT Operations & Task Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #0f172a; }
-    .login-card { background-color: #1e293b; border: 1px solid #334155; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
-    .input-field { background-color: #0f172a !important; border: 1px solid #475569 !important; color: #f8fafc !important; }
-    .input-field:focus { border-color: #3b82f6 !important; outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-btn:active { transform: translateY(0); }
+    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; color: #0f172a !important; }
+    .mini-input:focus { border-color: #0f172a !important; outline: none; box-shadow: 0 0 0 2px rgba(15,23,42,0.1); }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    .filter-btn { transition: all 0.2s ease; }
+    .filter-btn.active { background-color: #0f172a; color: #ffffff; font-weight: 600; }
+    .filter-btn:not(.active) { background-color: #ffffff; color: #64748b; border: 1px solid #cbd5e1; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+    .animate-fadeIn { animation: fadeIn 0.15s ease-out forwards; }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased text-slate-100">
+<body class="min-h-screen bg-slate-50 antialiased">
 
-  <div class="login-card p-6 md:p-8 max-w-md w-full space-y-6">
-    <!-- LOGO & HEADER -->
-    <div class="text-center space-y-2">
-      <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-lg shadow-blue-500/20">
-        <i class="fa-solid fa-microchip"></i>
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- 🔒 LOGIN PAGE -->
+  <div id="loginPage" class="max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 hidden w-full">
+    <div class="text-center space-y-3">
+      <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-sm">
+        <i class="fa-solid fa-laptop-code"></i>
       </div>
-      <h1 id="formHeaderTitle" class="text-xl font-bold tracking-tight text-white uppercase">IT OPERATIONS CENTER</h1>
-      <p id="formHeaderDesc" class="text-slate-400 text-xs">กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ</p>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">IT TRACKER</h1>
+        <p class="text-slate-500 text-xs mt-1">Sign in to manage your tasks & shifts</p>
+      </div>
     </div>
 
-    <!-- ALERT BOX -->
-    <div id="alertBox" class="hidden p-3 rounded-xl text-xs flex items-center gap-2">
-      <i id="alertIcon" class="fa-solid text-sm shrink-0"></i>
-      <span id="alertMessage">ข้อความแจ้งเตือน</span>
-    </div>
-
-    <!-- AUTH FORM -->
-    <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-      <!-- EMAIL FIELD -->
-      <div id="emailFieldGroup">
-        <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
-        <div class="relative">
-          <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="email" id="email" placeholder="name@company.com" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
-        </div>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="loginEmail" required placeholder="admin@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
       </div>
-
-      <!-- PASSWORD FIELD -->
-      <div id="passwordFieldGroup">
+      <div>
         <div class="flex justify-between items-center mb-1.5">
-          <label id="passLabel" class="block text-xs font-medium text-slate-300">Password</label>
-          <button type="button" id="forgotBtn" onclick="switchMode('forgot')" class="text-[11px] text-blue-400 hover:underline">ลืมรหัสผ่าน?</button>
+          <label class="block text-xs font-medium text-slate-600"><i class="fa-solid fa-key mr-1"></i> Password</label>
+          <button type="button" onclick="showForgotPasswordPage()" class="text-[11px] text-slate-500 hover:text-slate-900 underline">Forgot?</button>
         </div>
-        <div class="relative">
-          <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="password" id="password" placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
-        </div>
+        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
       </div>
-
-      <!-- CONFIRM PASSWORD FIELD (ซ่อนเป็นค่าเริ่มต้น) -->
-      <div id="confirmPasswordFieldGroup" class="hidden">
-        <label class="block text-xs font-medium text-slate-300 mb-1.5">Confirm Password (ยืนยันรหัสผ่าน)</label>
-        <div class="relative">
-          <i class="fa-solid fa-shield-halved absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="password" id="confirmPassword" placeholder="••••••••" class="w-full input-field pl-9 rounded-xl p-2.5 text-xs">
-        </div>
-      </div>
-
-      <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-        <i class="fa-solid fa-right-to-bracket"></i> <span id="btnSubmitText">เข้าสู่ระบบ (Log In)</span>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-to-bracket text-xs"></i> Sign In
       </button>
     </form>
+    
+    <div id="loginError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
 
-    <!-- FOOTER TOGGLE MODE -->
-    <div id="footerActionBox" class="text-center border-t border-slate-800 pt-4 space-y-2 text-xs">
-      <div id="toggleSignupBox">
-        <span class="text-slate-400">ยังไม่มีบัญชีใช่ไหม?</span>
-        <button type="button" onclick="switchMode('signup')" class="text-blue-400 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
+    <div class="text-center pt-2 border-t border-slate-100">
+      <button type="button" onclick="showRegisterPage()" class="text-xs text-slate-600 hover:text-slate-900 font-medium">
+        ยังไม่มีบัญชี? <span class="underline text-indigo-600">ลงทะเบียนที่นี่</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 📝 REGISTER PAGE (เพิ่ม Confirm Password) -->
+  <div id="registerPage" class="hidden max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 w-full">
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl mx-auto border border-indigo-100">
+        <i class="fa-solid fa-user-plus"></i>
       </div>
-      <div id="toggleLoginBox" class="hidden">
-        <span class="text-slate-400">มีบัญชีอยู่แล้ว?</span>
-        <button type="button" onclick="switchMode('login')" class="text-blue-400 font-semibold hover:underline ml-1">กลับไปเข้าสู่ระบบ</button>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">Create Account</h1>
+      <p class="text-slate-500 text-xs">สร้างบัญชีผู้ใช้ใหม่สำหรับเจ้าหน้าที่ IT</p>
+    </div>
+    <form id="registerForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="regEmail" required placeholder="user@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
       </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-lock mr-1"></i> Password (อย่างน้อย 6 ตัวอักษร)</label>
+        <input type="password" id="regPassword" required minlength="6" placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-shield-check mr-1"></i> Confirm Password</label>
+        <input type="password" id="regConfirmPassword" required minlength="6" placeholder="••••••••" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+
+      <div id="regError" class="hidden bg-rose-50 text-rose-600 border border-rose-200 p-3 rounded-xl text-xs text-center"></div>
+
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-user-check text-xs"></i> Create Account
+      </button>
+      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Back to Login
+      </button>
+    </form>
+  </div>
+
+  <!-- 🔑 FORGOT PASSWORD PAGE -->
+  <div id="forgotPasswordPage" class="hidden max-w-md mx-auto my-16 md:my-24 mini-card p-8 space-y-6 w-full">
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl mx-auto border border-amber-100">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900">Reset Password</h1>
+      <p class="text-slate-500 text-xs">ระบุอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน</p>
+    </div>
+    <form id="forgotPasswordForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1.5"><i class="fa-solid fa-envelope mr-1"></i> Email</label>
+        <input type="email" id="forgotEmail" required placeholder="user@resort.com" class="w-full mini-input rounded-xl p-3 text-sm">
+      </div>
+      <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white mini-btn py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-paper-plane text-xs"></i> Send Reset Link
+      </button>
+      <button type="button" onclick="showLoginPage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 mini-btn py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Back to Login
+      </button>
+    </form>
+  </div>
+
+  <!-- 🖥️ MAIN APPLICATION DASHBOARD -->
+  <div id="mainDashboard" class="hidden flex w-full min-h-screen">
+    
+    <!-- 📌 SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30 shadow-sm">
+      <div class="p-5 space-y-6">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <h1 class="text-xs font-bold text-slate-900 uppercase">IT OPERATIONS</h1>
+            <p class="text-[11px] text-slate-400 mt-0.5">Management Portal</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+            <a href="index.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+              <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+            </a>
+            <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+              <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+            </a>
+            <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+              <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+        <div class="flex items-center justify-between gap-2">
+          <div class="overflow-hidden">
+            <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">user@resort.com</p>
+            <span id="userRoleBadge" class="text-[10px] text-slate-400 uppercase font-semibold">STAFF</span>
+          </div>
+          <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 📱 MOBILE HEADER -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center shadow-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-microchip"></i></div>
+        <span class="text-xs font-semibold">IT TASK TRACKER</span>
+      </div>
+      <div class="flex gap-1.5 items-center">
+        <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
+        <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
+        <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+        <button onclick="handleLogout()" class="bg-rose-50 text-rose-600 text-[11px] px-2 py-1.5 rounded-lg border border-rose-200"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+
+    <!-- 🖥️ MAIN CONTENT AREA -->
+    <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1400px] mx-auto space-y-6 w-full">
+      
+      <!-- 🗓️ SHIFT SUMMARY & ACTIONS BANNER -->
+      <div class="mini-card p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h3 class="text-xs font-semibold tracking-wide text-slate-200 uppercase">
+                TODAY ON-DUTY SHIFT (<span id="todayDateStr">-</span>)
+              </h3>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-sun text-amber-400 mr-1"></i>MORNING</span>
+                <span id="shiftMorning" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-moon text-indigo-400 mr-1"></i>EVENING</span>
+                <span id="shiftEvening" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-phone-volume text-emerald-400 mr-1"></i>ON-CALL</span>
+                <span id="shiftOnCall" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/60">
+                <span class="text-slate-400 block text-[10px] font-medium"><i class="fa-solid fa-user-slash text-rose-400 mr-1"></i>LEAVE</span>
+                <span id="shiftLeave" class="text-xs font-semibold text-white truncate block">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start lg:self-center">
+            <button onclick="openShiftModal()" class="bg-slate-700 hover:bg-slate-600 text-white mini-btn text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 border border-slate-600">
+              <i class="fa-solid fa-user-pen"></i> จัดการกะปฏิบัติงาน
+            </button>
+            <button onclick="openTaskModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white mini-btn text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm font-semibold">
+              <i class="fa-solid fa-plus"></i> บันทึก Task ใหม่
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 📊 DASHBOARD ANALYTICS SECTION -->
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-indigo-600"></i> Operations Performance Analytics
+          </h3>
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
+            <button onclick="setTimeRange('today')" id="btnToday" class="filter-btn px-3 py-1 rounded-lg">วันนี้</button>
+            <button onclick="setTimeRange('month')" id="btnMonth" class="filter-btn active px-3 py-1 rounded-lg">เดือนนี้</button>
+            <button onclick="setTimeRange('all')" id="btnAll" class="filter-btn px-3 py-1 rounded-lg">ทั้งหมด</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+          <div class="mini-card p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">งานทั้งหมด</span>
+              <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-layer-group"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statTotal" class="text-2xl font-bold text-slate-900">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-emerald-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">เสร็จสิ้น (Completed)</span>
+              <div class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-sky-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">กำลังทำ (In Progress)</span>
+              <div class="w-7 h-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-spinner"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statInProgress" class="text-2xl font-bold text-sky-600">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between border-l-4 border-l-amber-500">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase">รอดำเนินการ (Pending)</span>
+              <div class="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-clock"></i></div>
+            </div>
+            <div class="mt-2"><h3 id="statPending" class="text-2xl font-bold text-amber-500">0</h3></div>
+          </div>
+
+          <div class="mini-card p-4 flex flex-col justify-between col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-300 uppercase">Completion Rate</span>
+              <div class="w-7 h-7 bg-slate-700 text-emerald-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
+            </div>
+            <div class="mt-2 flex items-baseline justify-between">
+              <h3 id="statRate" class="text-2xl font-bold text-emerald-400">0%</h3>
+            </div>
+            <div class="w-full bg-slate-700 h-1.5 rounded-full mt-1.5 overflow-hidden">
+              <div id="statRateBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="mini-card p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+              <i class="fa-solid fa-tags text-indigo-500"></i> สัดส่วนปัญหาจำแนกตาม Category
+            </h4>
+            <div id="categoryContainer" class="space-y-2.5"></div>
+          </div>
+
+          <div class="mini-card p-4 space-y-3">
+            <h4 class="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5 border-b pb-2">
+              <i class="fa-solid fa-trophy text-amber-500"></i> TOP IT PERFORMERS (ผลงานปิดเคสสำเร็จ)
+            </h4>
+            <div id="performerContainer" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN DIRECTORY CARD -->
+      <div class="mini-card p-4 md:p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-slate-400"></i> Task Directory
+            </h2>
+            <span id="taskCountBadge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-0.5 rounded-full font-medium">0 รายการ</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+              <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <div class="relative sm:col-span-2 md:col-span-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" onkeyup="filterTasks()" placeholder="ค้นหา Case ID, หัวข้อ..." class="w-full mini-input pl-8 rounded-xl p-2 text-xs">
+          </div>
+          <div>
+            <select id="filterStatus" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกสถานะ (Status) --</option>
+              <option value="Pending">Pending (รอดำเนินการ)</option>
+              <option value="In Progress">In Progress (กำลังทำ)</option>
+              <option value="Completed">Completed (เสร็จสิ้น)</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterCategory" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกหมวดหมู่ (All Categories) --</option>
+              <option value="POS">POS</option>
+              <option value="PC/ Laptop">PC/ Laptop</option>
+              <option value="Opera V.5">Opera V.5</option>
+              <option value="Opera Cloud">Opera Cloud</option>
+              <option value="Sun">Sun</option>
+              <option value="Wi-Fi">Wi-Fi</option>
+              <option value="Print">Print</option>
+              <option value="TV">TV</option>
+              <option value="CCTV">CCTV</option>
+              <option value="Phone / PABX">Phone / PABX</option>
+              <option value="Network / System">Network / System</option>
+              <option value="Sound / Audio">Sound / Audio</option>
+              <option value="General work">General work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterLocation" onchange="filterTasks()" class="w-full mini-input rounded-xl p-2 text-xs">
+              <option value="">-- ทุกสถานที่ (Location) --</option>
+              <option value="Radisson">Radisson</option>
+              <option value="Laya Suites">Laya Suites</option>
+              <option value="BB Horizon">BB Horizon</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+            <thead class="bg-slate-50 text-slate-500 font-semibold text-[11px] uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-3.5 px-4">Case ID</th>
+                <th class="py-3.5 px-4">Task & Location</th>
+                <th class="py-3.5 px-4">Personnel</th>
+                <th class="py-3.5 px-4">Category</th>
+                <th class="py-3.5 px-4 text-center">Status</th>
+                <th class="py-3.5 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="taskTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+
+        <div id="taskCardList" class="md:hidden space-y-3"></div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <p id="pageInfo" class="text-xs text-slate-500">แสดง 0 ถึง 0 จาก 0 รายการ</p>
+          <div class="flex items-center gap-1.5">
+            <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ก่อนหน้า</button>
+            <span id="pageCurrent" class="text-xs font-semibold px-2 text-slate-700">1</span>
+            <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs mini-btn disabled:opacity-40">ถัดไป</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- 🪟 MODAL: ADD / EDIT TASK -->
+  <div id="taskModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto animate-fadeIn p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="taskModalTitle" class="text-base font-semibold text-slate-900">บันทึก Task ใหม่</h3>
+        <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="taskForm" onsubmit="handleSaveTask(event)" class="space-y-4">
+        <input type="hidden" id="taskId">
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">หัวข้องาน (Task Title) *</label>
+          <input type="text" id="tTitle" required placeholder="เช่น รีเซ็ต รหัสผ่าน / เครื่องพิมพ์ขัดข้อง" class="w-full mini-input rounded-xl p-2.5 text-xs">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">สถานที่ (Location)</label>
+            <select id="tLocation" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="Radisson">Radisson</option>
+              <option value="Laya Suites">Laya Suites</option>
+              <option value="BB Horizon">BB Horizon</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">วันที่ (Date)</label>
+            <input type="date" id="tDate" required class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">ผู้แจ้งงาน</label>
+            <input type="text" id="tReporter" placeholder="Khun Somchai" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">แผนก</label>
+            <input type="text" id="tDepartment" placeholder="FO, HK" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">ผู้รับผิดชอบ</label>
+            <input type="text" id="tAssignee" placeholder="New" class="w-full mini-input rounded-xl p-2.5 text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">หมวดหมู่ (Category)</label>
+            <select id="tCategory" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="POS">POS</option>
+              <option value="PC/ Laptop">PC/ Laptop</option>
+              <option value="Opera V.5">Opera V.5</option>
+              <option value="Opera Cloud">Opera Cloud</option>
+              <option value="Sun">Sun</option>
+              <option value="Wi-Fi">Wi-Fi</option>
+              <option value="Print">Print</option>
+              <option value="TV">TV</option>
+              <option value="CCTV">CCTV</option>
+              <option value="Phone / PABX">Phone / PABX</option>
+              <option value="Network / System">Network / System</option>
+              <option value="Sound / Audio">Sound / Audio</option>
+              <option value="General work" selected>General work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">สถานะ (Status)</label>
+            <select id="tStatus" class="w-full mini-input rounded-xl p-2.5 text-xs">
+              <option value="Pending">Pending (รอดำเนินการ)</option>
+              <option value="In Progress">In Progress (กำลังทำ)</option>
+              <option value="Completed">Completed (เสร็จสิ้น)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">รายละเอียดเพิ่มเติม</label>
+          <textarea id="tDescription" rows="3" placeholder="รายละเอียดหรือแนวทางการแก้ไข..." class="w-full mini-input rounded-xl p-2.5 text-xs"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeTaskModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+          <button type="submit" id="btnSaveTask" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 🪟 MODAL: VIEW TASK DETAILS -->
+  <div id="viewModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full animate-fadeIn p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <span id="vCaseId" class="font-mono text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border font-semibold">#CASE</span>
+        <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div>
+        <h3 id="vTitle" class="text-base font-bold text-slate-900">Task Title</h3>
+        <p id="vDateLoc" class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot mr-1"></i>Location • Date</p>
+      </div>
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2 text-xs">
+        <div class="flex justify-between"><span class="text-slate-400">ผู้แจ้ง:</span> <span id="vReporter" class="font-medium text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">แผนก:</span> <span id="vDept" class="font-medium text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">ผู้รับผิดชอบ:</span> <span id="vAssignee" class="font-medium text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">หมวดหมู่:</span> <span id="vCategory" class="font-medium text-slate-800">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">สถานะ:</span> <span id="vStatus" class="font-medium text-slate-800">-</span></div>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold text-slate-700 mb-1">รายละเอียดงาน:</h4>
+        <div id="vDescription" class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 min-h-[60px] whitespace-pre-wrap">-</div>
+      </div>
+      <div class="flex justify-end pt-2">
+        <button onclick="closeViewModal()" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs mini-btn">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🪟 MODAL: SHIFT MANAGEMENT -->
+  <div id="shiftModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full animate-fadeIn p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-semibold text-slate-900">จัดการกะปฏิบัติงาน (Shift Duty)</h3>
+        <button onclick="closeShiftModal()" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="shiftForm" onsubmit="handleSaveShift(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">วันที่</label>
+          <input type="date" id="sDate" required class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">Morning Shift (08:00 - 17:00)</label>
+          <input type="text" id="sMorning" placeholder="ชื่อผู้เข้ากะเช้า" class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">Evening Shift (13:00 - 22:00)</label>
+          <input type="text" id="sEvening" placeholder="ชื่อผู้เข้ากะบ่าย" class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">Standby On-Call</label>
+          <input type="text" id="sOnCall" placeholder="ชื่อผู้ Standby" class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-600 mb-1">Leave & Day Off</label>
+          <input type="text" id="sLeave" placeholder="ชื่อผู้ลางาน" class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeShiftModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs mini-btn">ยกเลิก</button>
+          <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs mini-btn">บันทึกกะปฏิบัติงาน</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -88,193 +554,546 @@
     const SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentMode = 'login'; // login | signup | forgot | reset
+    let rawTasks = [];
+    let filteredTasks = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    let currentUser = null;
+    let currentFilterRange = 'month';
 
-    function showAlert(msg, isSuccess = false) {
-      const box = document.getElementById('alertBox');
-      const text = document.getElementById('alertMessage');
-      const icon = document.getElementById('alertIcon');
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-sm flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
 
-      text.innerText = msg;
-      box.classList.remove('hidden', 'bg-rose-500/10', 'border-rose-500/30', 'text-rose-400', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
-      icon.classList.remove('fa-circle-exclamation', 'fa-circle-check');
+    // --- AUTHENTICATION PAGE SWITCHING ---
+    function hideAllAuthPages() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('registerPage').classList.add('hidden');
+      document.getElementById('forgotPasswordPage').classList.add('hidden');
+      document.getElementById('mainDashboard').classList.add('hidden');
+    }
 
-      if (isSuccess) {
-        box.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-400');
-        icon.classList.add('fa-circle-check');
+    function showLoginPage() { hideAllAuthPages(); document.getElementById('loginPage').classList.remove('hidden'); }
+    function showRegisterPage() { hideAllAuthPages(); document.getElementById('registerPage').classList.remove('hidden'); }
+    function showForgotPasswordPage() { hideAllAuthPages(); document.getElementById('forgotPasswordPage').classList.remove('hidden'); }
+
+    async function checkAuth() {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        currentUser = user;
+        hideAllAuthPages();
+        document.getElementById('mainDashboard').classList.remove('hidden');
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        fetchTodayShift();
+        fetchTasks();
       } else {
-        box.classList.add('bg-rose-500/10', 'border', 'border-rose-500/30', 'text-rose-400');
-        icon.classList.add('fa-circle-exclamation');
+        showLoginPage();
       }
     }
 
-    function hideAlert() {
-      document.getElementById('alertBox').classList.add('hidden');
-    }
-
-    function switchMode(mode) {
-      currentMode = mode;
-      hideAlert();
-
-      const emailGroup = document.getElementById('emailFieldGroup');
-      const emailInput = document.getElementById('email');
-      const passGroup = document.getElementById('passwordFieldGroup');
-      const passInput = document.getElementById('password');
-      const confirmPassGroup = document.getElementById('confirmPasswordFieldGroup');
-      const confirmPassInput = document.getElementById('confirmPassword');
-      const passLabel = document.getElementById('passLabel');
-      const forgotBtn = document.getElementById('forgotBtn');
-      const title = document.getElementById('formHeaderTitle');
-      const desc = document.getElementById('formHeaderDesc');
-      const btnText = document.getElementById('btnSubmitText');
-      const toggleSignup = document.getElementById('toggleSignupBox');
-      const toggleLogin = document.getElementById('toggleLoginBox');
-      const footerBox = document.getElementById('footerActionBox');
-
-      // ล้างค่าในช่องกรอก
-      confirmPassInput.value = '';
-
-      if (mode === 'login') {
-        title.innerText = 'IT OPERATIONS CENTER';
-        desc.innerText = 'กรุณากรอก Email และ Password เพื่อเข้าใช้งานระบบ';
-        btnText.innerText = 'เข้าสู่ระบบ (Log In)';
-        emailGroup.classList.remove('hidden');
-        emailInput.required = true;
-        passGroup.classList.remove('hidden');
-        passInput.required = true;
-        confirmPassGroup.classList.add('hidden');
-        confirmPassInput.required = false;
-        passLabel.innerText = 'Password';
-        forgotBtn.classList.remove('hidden');
-        footerBox.classList.remove('hidden');
-        toggleSignup.classList.remove('hidden');
-        toggleLogin.classList.add('hidden');
-      } else if (mode === 'signup') {
-        title.innerText = 'CREATE NEW ACCOUNT';
-        desc.innerText = 'สมัครสมาชิกใหม่สำหรับเจ้าหน้าที่ IT';
-        btnText.innerText = 'ยืนยันการสมัครสมาชิก (Sign Up)';
-        emailGroup.classList.remove('hidden');
-        emailInput.required = true;
-        passGroup.classList.remove('hidden');
-        passInput.required = true;
-        confirmPassGroup.classList.remove('hidden');
-        confirmPassInput.required = true;
-        passLabel.innerText = 'Password';
-        forgotBtn.classList.add('hidden');
-        footerBox.classList.remove('hidden');
-        toggleSignup.classList.add('hidden');
-        toggleLogin.classList.remove('hidden');
-      } else if (mode === 'forgot') {
-        title.innerText = 'RESET PASSWORD';
-        desc.innerText = 'ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปยัง Email ของคุณ';
-        btnText.innerText = 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)';
-        emailGroup.classList.remove('hidden');
-        emailInput.required = true;
-        passGroup.classList.add('hidden');
-        passInput.required = false;
-        confirmPassGroup.classList.add('hidden');
-        confirmPassInput.required = false;
-        footerBox.classList.remove('hidden');
-        toggleSignup.classList.add('hidden');
-        toggleLogin.classList.remove('hidden');
-      } else if (mode === 'reset') {
-        title.innerText = 'SET NEW PASSWORD';
-        desc.innerText = 'กรุณากรอกรหัสผ่านใหม่ที่คุณต้องการใช้งาน';
-        btnText.innerText = 'บันทึกรหัสผ่านใหม่ (Save Password)';
-        emailGroup.classList.add('hidden');
-        emailInput.required = false;
-        passGroup.classList.remove('hidden');
-        passInput.required = true;
-        confirmPassGroup.classList.remove('hidden');
-        confirmPassInput.required = true;
-        passLabel.innerText = 'New Password';
-        forgotBtn.classList.add('hidden');
-        footerBox.classList.add('hidden');
-      }
-    }
-
-    async function handleAuthSubmit(e) {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      hideAlert();
+      const loginError = document.getElementById('loginError');
+      loginError.classList.add('hidden');
 
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      });
 
-      // 🛡️ ตรวจสอบว่า Confirm Password ตรงกันหรือไม่ (กรณี Signup หรือ Reset Password)
-      if (currentMode === 'signup' || currentMode === 'reset') {
-        if (password !== confirmPassword) {
-          showAlert('รหัสผ่านและช่องยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง', false);
-          return;
-        }
-        if (password.length < 6) {
-          showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร', false);
-          return;
-        }
+      if (error) {
+        loginError.innerText = error.message;
+        loginError.classList.remove('hidden');
+      } else {
+        checkAuth();
+      }
+    });
+
+    // 🔒 ระบบตรวจสอบ Confirm Password ในหน้าลงทะเบียน
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const regError = document.getElementById('regError');
+      regError.classList.add('hidden');
+
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+      if (password !== confirmPassword) {
+        regError.innerText = 'รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน โปรดตรวจสอบอีกครั้ง';
+        regError.classList.remove('hidden');
+        return;
       }
 
-      const btn = document.getElementById('btnSubmit');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ...`;
+      const { error } = await supabaseClient.auth.signUp({ email, password });
 
-      try {
-        if (currentMode === 'login') {
-          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          window.location.href = 'index.html';
-        } 
-        else if (currentMode === 'signup') {
-          const { error } = await supabaseClient.auth.signUp({ email, password });
-          if (error) throw error;
-          showAlert('สมัครสมาชิกสำเร็จ! โปรดเช็ก Inbox ในอีเมลของคุณ', true);
-        } 
-        else if (currentMode === 'forgot') {
-          const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + window.location.pathname,
-          });
-          if (error) throw error;
-          showAlert('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลเรียบร้อยแล้ว!', true);
-        }
-        else if (currentMode === 'reset') {
-          const { error } = await supabaseClient.auth.updateUser({ password: password });
-          if (error) throw error;
-          showAlert('อัปเดตรหัสผ่านใหม่เรียบร้อยแล้ว! กำลังพาท่านเข้าสู่ระบบ...', true);
-          setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-        }
-      } catch (err) {
-        let errorMsg = err.message || 'เกิดข้อผิดพลาดในการทำรายการ';
-        if (errorMsg.includes('Invalid login credentials')) {
-          errorMsg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง (หากยังไม่มีบัญชีให้กด สมัครสมาชิก)';
-        }
-        showAlert(errorMsg, false);
-      } finally {
-        btn.disabled = false;
-        const labelMap = { 
-          login: 'เข้าสู่ระบบ (Log In)', 
-          signup: 'ยืนยันการสมัครสมาชิก (Sign Up)', 
-          forgot: 'ส่งลิงก์ตั้งรหัสผ่านใหม่ (Reset Password)',
-          reset: 'บันทึกรหัสผ่านใหม่ (Save Password)'
-        };
-        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>${labelMap[currentMode]}</span>`;
+      if (error) {
+        regError.innerText = error.message;
+        regError.classList.remove('hidden');
+      } else {
+        showToast('SUCCESS', 'สร้างบัญชีเรียบร้อย โปรดตรวจสอบอีเมลเพื่อยืนยันตัวตน', 'success');
+        showLoginPage();
+      }
+    });
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value;
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว', 'success');
+        showLoginPage();
+      }
+    });
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      showLoginPage();
+    }
+
+    // --- SHIFT MANAGEMENT ---
+    async function fetchTodayShift() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('todayDateStr').innerText = todayStr;
+
+      const { data } = await supabaseClient.from('shifts').select('*').eq('shift_date', todayStr).maybeSingle();
+      if (data) {
+        document.getElementById('shiftMorning').innerText = data.morning_staff || '-';
+        document.getElementById('shiftEvening').innerText = data.evening_staff || '-';
+        document.getElementById('shiftOnCall').innerText = data.on_call_staff || '-';
+        document.getElementById('shiftLeave').innerText = data.leave_info || 'ไม่มี';
       }
     }
 
-    async function checkAuthStatus() {
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          switchMode('reset');
-          return;
+    function openShiftModal() {
+      document.getElementById('sDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('shiftModal').classList.remove('hidden');
+    }
+
+    function closeShiftModal() {
+      document.getElementById('shiftModal').classList.add('hidden');
+    }
+
+    async function handleSaveShift(e) {
+      e.preventDefault();
+      const payload = {
+        shift_date: document.getElementById('sDate').value,
+        morning_staff: document.getElementById('sMorning').value,
+        evening_staff: document.getElementById('sEvening').value,
+        on_call_staff: document.getElementById('sOnCall').value,
+        leave_info: document.getElementById('sLeave').value || 'ไม่มี'
+      };
+
+      const { error } = await supabaseClient.from('shifts').upsert(payload, { onConflict: 'shift_date' });
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'บันทึกตารางกะเรียบร้อยแล้ว');
+        closeShiftModal();
+        fetchTodayShift();
+      }
+    }
+
+    // --- TASK MANAGEMENT & ANALYTICS ---
+    async function fetchTasks() {
+      const { data, error } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
+      if (!error) {
+        rawTasks = data || [];
+        renderAnalytics();
+        filterTasks();
+      } else {
+        showToast('FETCH ERROR', error.message, 'error');
+      }
+    }
+
+    function setTimeRange(range) {
+      currentFilterRange = range;
+      ['btnToday', 'btnMonth', 'btnAll'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      const btnMap = { today: 'btnToday', month: 'btnMonth', all: 'btnAll' };
+      document.getElementById(btnMap[range]).classList.add('active');
+
+      renderAnalytics();
+      filterTasks();
+    }
+
+    function renderAnalytics() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const monthPrefix = todayStr.substring(0, 7);
+
+      const tasksForAnalytics = rawTasks.filter(t => {
+        const tDate = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
+        if (currentFilterRange === 'today') return tDate === todayStr;
+        if (currentFilterRange === 'month') return tDate.startsWith(monthPrefix);
+        return true;
+      });
+
+      const total = tasksForAnalytics.length;
+      const completed = tasksForAnalytics.filter(t => t.status === 'Completed').length;
+      const inProgress = tasksForAnalytics.filter(t => t.status === 'In Progress').length;
+      const pending = tasksForAnalytics.filter(t => t.status === 'Pending').length;
+
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statCompleted').innerText = completed;
+      document.getElementById('statInProgress').innerText = inProgress;
+      document.getElementById('statPending').innerText = pending;
+      document.getElementById('statRate').innerText = `${rate}%`;
+      document.getElementById('statRateBar').style.width = `${rate}%`;
+
+      renderCategories(tasksForAnalytics);
+      renderTopPerformers(tasksForAnalytics);
+    }
+
+    function renderCategories(tasks) {
+      const counts = {};
+      tasks.forEach(t => { 
+        const cat = t.category || 'General work';
+        counts[cat] = (counts[cat] || 0) + 1; 
+      });
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const container = document.getElementById('categoryContainer');
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ไม่มีข้อมูลในช่วงเวลานี้</p>`;
+        return;
+      }
+
+      const maxCount = sorted[0][1] || 1;
+      container.innerHTML = sorted.map(([cat, count]) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between font-medium">
+              <span class="text-slate-700">${cat}</span>
+              <span class="text-slate-500 font-mono">${count} เคส</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTopPerformers(tasks) {
+      const completedTasks = tasks.filter(t => t.status === 'Completed');
+      const counts = {};
+      completedTasks.forEach(t => { 
+        if (t.assignee && t.assignee !== '-') {
+          counts[t.assignee] = (counts[t.assignee] || 0) + 1; 
         }
       });
 
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      const hash = window.location.hash;
-      if (user && !hash.includes('type=recovery')) {
-        window.location.href = 'index.html';
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const container = document.getElementById('performerContainer');
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">ยังไม่มีผลงานปิดเคสสำเร็จ</p>`;
+        return;
+      }
+
+      const maxCount = sorted[0][1] || 1;
+      const rankBadges = ['bg-amber-400 text-white', 'bg-slate-300 text-slate-700', 'bg-amber-600 text-white', 'bg-slate-100 text-slate-600', 'bg-slate-100 text-slate-600'];
+
+      container.innerHTML = sorted.map(([name, count], idx) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+          <div class="flex items-center gap-2.5 text-xs">
+            <span class="w-4 h-4 rounded-full ${rankBadges[idx]} flex items-center justify-center font-bold text-[9px] shrink-0">${idx + 1}</span>
+            <div class="flex-1 space-y-1">
+              <div class="flex justify-between font-medium">
+                <span class="text-slate-800">${name}</span>
+                <span class="text-emerald-600 font-semibold font-mono">${count} เคส</span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterTasks() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const fStatus = document.getElementById('filterStatus').value;
+      const fCategory = document.getElementById('filterCategory').value;
+      const fLocation = document.getElementById('filterLocation').value;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const monthPrefix = todayStr.substring(0, 7);
+
+      filteredTasks = rawTasks.filter(t => {
+        const caseIdStr = (t.case_id || `#2026-${String(t.id).padStart(5, '0')}`).toLowerCase();
+        const titleStr = (t.title || t.task_name || '').toLowerCase();
+        const matchSearch = !search || caseIdStr.includes(search) || titleStr.includes(search);
+
+        const matchStatus = !fStatus || t.status === fStatus;
+        const matchCategory = !fCategory || t.category === fCategory;
+        const matchLocation = !fLocation || t.location === fLocation;
+
+        let matchRange = true;
+        const tDate = t.date || (t.created_at ? t.created_at.split('T')[0] : '');
+        if (currentFilterRange === 'today') matchRange = (tDate === todayStr);
+        if (currentFilterRange === 'month') matchRange = tDate.startsWith(monthPrefix);
+
+        return matchSearch && matchStatus && matchCategory && matchLocation && matchRange;
+      });
+
+      document.getElementById('taskCountBadge').innerText = `${filteredTasks.length} รายการ`;
+      currentPage = 1;
+      renderCurrentPage();
+    }
+
+    function renderCurrentPage() {
+      const total = filteredTasks.length;
+      const totalPages = Math.ceil(total / pageSize) || 1;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      const pagedData = filteredTasks.slice(start, end);
+
+      renderTable(pagedData);
+      renderCards(pagedData);
+
+      document.getElementById('pageInfo').innerText = total > 0 
+        ? `แสดง ${start + 1} ถึง ${Math.min(end, total)} จาก ${total} รายการ`
+        : 'ไม่พบรายการที่ค้นหา';
+      document.getElementById('pageCurrent').innerText = currentPage;
+      document.getElementById('btnPrev').disabled = currentPage === 1;
+      document.getElementById('btnNext').disabled = currentPage === totalPages || total === 0;
+    }
+
+    function changePage(delta) {
+      currentPage += delta;
+      renderCurrentPage();
+    }
+
+    function getStatusBadgeClass(status) {
+      if (status === 'Completed') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      if (status === 'In Progress') return 'bg-sky-50 text-sky-700 border-sky-200';
+      return 'bg-amber-50 text-amber-700 border-amber-200';
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('taskTableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">ไม่พบข้อมูล Task</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(t => {
+        const caseId = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-4 font-mono font-medium text-slate-700 text-[11px]">${caseId}</td>
+            <td class="py-3 px-4">
+              <span class="font-semibold text-slate-900 block">${t.title || t.task_name || '-'}</span>
+              <span class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot mr-1"></i>${t.location || 'Radisson'} • ${t.date || '-'}</span>
+            </td>
+            <td class="py-3 px-4 text-[11px]">
+              <span class="text-slate-700 block font-medium">${t.reporter || '-'} (Dept: ${t.department || '-'})</span>
+              <span class="text-slate-400">Assignee: ${t.assignee || '-'}</span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] border border-slate-200 font-medium">${t.category || 'General work'}</span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadgeClass(t.status)}">${t.status}</span>
+            </td>
+            <td class="py-3 px-4 text-center space-x-1">
+              ${t.status !== 'Completed' ? `<button onclick="quickCompleteTask(${t.id})" class="text-emerald-600 hover:text-emerald-800 p-1" title="Quick Complete"><i class="fa-solid fa-bolt"></i></button>` : ''}
+              <button onclick="openViewModal(${t.id})" class="text-slate-500 hover:text-slate-800 p-1" title="View Details"><i class="fa-solid fa-eye"></i></button>
+              <button onclick="openTaskModal(${t.id})" class="text-blue-500 hover:text-blue-700 p-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-600 p-1" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCards(data) {
+      const cardContainer = document.getElementById('taskCardList');
+      if (data.length === 0) {
+        cardContainer.innerHTML = `<div class="p-6 text-center text-slate-400 mini-card">ไม่พบข้อมูล Task</div>`;
+        return;
+      }
+
+      cardContainer.innerHTML = data.map(t => {
+        const caseId = t.case_id || `#2026-${String(t.id).padStart(5, '0')}`;
+        return `
+          <div class="mini-card p-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border">${caseId}</span>
+                <h4 class="font-semibold text-slate-900 text-sm mt-1">${t.title || t.task_name || '-'}</h4>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadgeClass(t.status)} shrink-0">${t.status}</span>
+            </div>
+
+            <div class="text-xs text-slate-500 space-y-0.5">
+              <p><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>${t.location || 'Radisson'} • ${t.date || '-'}</p>
+              <p><i class="fa-solid fa-user mr-1 text-slate-400"></i>${t.reporter || '-'} (${t.department || '-'}) ➔ Fixer: ${t.assignee || '-'}</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-medium border">${t.category || 'General work'}</span>
+              <div class="flex gap-2">
+                ${t.status !== 'Completed' ? `<button onclick="quickCompleteTask(${t.id})" class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-bolt mr-1"></i>Done</button>` : ''}
+                <button onclick="openViewModal(${t.id})" class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-eye"></i></button>
+                <button onclick="openTaskModal(${t.id})" class="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- QUICK ACTIONS & MODALS ---
+    async function quickCompleteTask(id) {
+      const { error } = await supabaseClient.from('tasks').update({ status: 'Completed' }).eq('id', id);
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+      } else {
+        showToast('COMPLETED', 'อัปเดตงานเป็นเสร็จสิ้นเรียบร้อยแล้ว');
+        fetchTasks();
       }
     }
 
-    checkAuthStatus();
+    function openTaskModal(id = null) {
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskId').value = '';
+      document.getElementById('tDate').value = new Date().toISOString().split('T')[0];
+
+      if (id) {
+        const item = rawTasks.find(t => t.id === id);
+        if (item) {
+          document.getElementById('taskModalTitle').innerText = 'แก้ไข Task';
+          document.getElementById('taskId').value = item.id;
+          document.getElementById('tTitle').value = item.title || item.task_name || '';
+          document.getElementById('tLocation').value = item.location || 'Radisson';
+          document.getElementById('tDate').value = item.date || new Date().toISOString().split('T')[0];
+          document.getElementById('tReporter').value = item.reporter || '';
+          document.getElementById('tDepartment').value = item.department || '';
+          document.getElementById('tAssignee').value = item.assignee || '';
+          document.getElementById('tCategory').value = item.category || 'General work';
+          document.getElementById('tStatus').value = item.status || 'Pending';
+          document.getElementById('tDescription').value = item.description || '';
+        }
+      } else {
+        document.getElementById('taskModalTitle').innerText = 'บันทึก Task ใหม่';
+      }
+      document.getElementById('taskModal').classList.remove('hidden');
+    }
+
+    function closeTaskModal() {
+      document.getElementById('taskModal').classList.add('hidden');
+    }
+
+    async function handleSaveTask(e) {
+      e.preventDefault();
+      const id = document.getElementById('taskId').value;
+      const payload = {
+        user_id: currentUser ? currentUser.id : null,
+        title: document.getElementById('tTitle').value,
+        location: document.getElementById('tLocation').value,
+        date: document.getElementById('tDate').value,
+        reporter: document.getElementById('tReporter').value,
+        department: document.getElementById('tDepartment').value,
+        assignee: document.getElementById('tAssignee').value,
+        category: document.getElementById('tCategory').value,
+        status: document.getElementById('tStatus').value,
+        description: document.getElementById('tDescription').value
+      };
+
+      let res;
+      if (id) {
+        res = await supabaseClient.from('tasks').update(payload).eq('id', id);
+      } else {
+        res = await supabaseClient.from('tasks').insert([payload]);
+      }
+
+      if (res.error) {
+        showToast('ERROR', res.error.message, 'error');
+      } else {
+        showToast('SUCCESS', 'บันทึกข้อมูลเรียบร้อยแล้ว');
+        closeTaskModal();
+        fetchTasks();
+      }
+    }
+
+    function openViewModal(id) {
+      const item = rawTasks.find(t => t.id === id);
+      if (!item) return;
+
+      document.getElementById('vCaseId').innerText = item.case_id || `#2026-${String(item.id).padStart(5, '0')}`;
+      document.getElementById('vTitle').innerText = item.title || item.task_name || '-';
+      document.getElementById('vDateLoc').innerText = `${item.location || 'Radisson'} • ${item.date || '-'}`;
+      document.getElementById('vReporter').innerText = item.reporter || '-';
+      document.getElementById('vDept').innerText = item.department || '-';
+      document.getElementById('vAssignee').innerText = item.assignee || '-';
+      document.getElementById('vCategory').innerText = item.category || 'General work';
+      document.getElementById('vStatus').innerText = item.status || 'Pending';
+      document.getElementById('vDescription').innerText = item.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+
+      document.getElementById('viewModal').classList.remove('hidden');
+    }
+
+    function closeViewModal() {
+      document.getElementById('viewModal').classList.add('hidden');
+    }
+
+    async function deleteTask(id) {
+      if (confirm('ยืนยันลบรายการ Task นี้?')) {
+        const { error } = await supabaseClient.from('tasks').delete().eq('id', id);
+        if (error) showToast('ERROR', error.message, 'error');
+        else fetchTasks();
+      }
+    }
+
+    function exportToExcel() {
+      if (filteredTasks.length === 0) {
+        showToast('EMPTY', 'ไม่มีข้อมูลสำหรับส่งออก', 'error');
+        return;
+      }
+
+      const excelData = filteredTasks.map(t => ({
+        'Case ID': t.case_id || `#2026-${String(t.id).padStart(5, '0')}`,
+        'Date': t.date || (t.created_at ? t.created_at.split('T')[0] : ''),
+        'Task Name': t.title || t.task_name || '',
+        'Location': t.location || 'Radisson',
+        'Category': t.category || 'General work',
+        'Status': t.status || 'Pending',
+        'Reporter': t.reporter || '-',
+        'Department': t.department || '-',
+        'Assignee': t.assignee || '-',
+        'Description': t.description || '-'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Tasks");
+      XLSX.writeFile(wb, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+
+    // เริ่มต้นเช็ก Auth เพื่อสลับหน้า Login / Dashboard
+    checkAuth();
   </script>
 </body>
 </html>
