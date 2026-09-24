@@ -149,6 +149,9 @@
             <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
               <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
             </a>
+            <a href="tv_check.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+              <i class="fa-solid fa-tv w-4 text-sky-500"></i> TV Firmware Check
+            </a>
           </div>
         </div>
       </div>
@@ -176,6 +179,7 @@
         <a href="index.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
         <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
         <a href="inventory.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+        <a href="tv_check.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">TV</a>
         <button onclick="handleLogout()" class="bg-rose-50 text-rose-600 text-[11px] px-2 py-1.5 rounded-lg border border-rose-200"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
@@ -1000,7 +1004,7 @@
         assignee: document.getElementById('tAssignee').value,
         category: document.getElementById('tCategory').value,
         status: document.getElementById('tStatus').value,
-        description: document.getElementById('tDescription').value
+        description: document.getElementById('description') ? document.getElementById('description').value : document.getElementById('tDescription').value
       };
 
       let res;
@@ -1073,7 +1077,6 @@
       XLSX.writeFile(wb, `IT_Tasks_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
 
-    // เริ่มต้นเช็ก Auth เพื่อสลับหน้า Login / Dashboard
     checkAuth();
   </script>
 </body>
