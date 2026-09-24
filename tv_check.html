@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV Firmware Checker - Building D</title>
+  <title>TV Firmware Checker - Building D (Cloud Sync)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -33,11 +33,11 @@
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
-          <i class="fa-solid fa-tv"></i>
+          <i class="fa-solid fa-cloud-arrow-up"></i>
         </div>
         <div>
           <h1 class="text-xs font-bold text-slate-900 leading-none">TV INSPECTOR</h1>
-          <p class="text-[11px] text-slate-400 mt-1">Building D Portal</p>
+          <p class="text-[11px] text-sky-600 font-medium mt-1"><i class="fa-solid fa-signal text-[9px]"></i> Cloud Synced</p>
         </div>
       </div>
 
@@ -50,7 +50,7 @@
           <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
         </a>
         <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
-          <i class="fa-solid fa-desktop w-4 text-amber-500"></i> Asset Inventory
+          <i class="fa-solid fa-desktop w-4 text-indigo-600"></i> Asset Inventory
         </a>
         <a href="tv_check.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
           <i class="fa-solid fa-tv w-4 text-sky-400"></i> TV Firmware Check
@@ -58,7 +58,6 @@
       </div>
     </div>
 
-    <!-- 👤 USER PROFILE & LOGOUT FOOTER -->
     <div class="p-4 border-t border-slate-100 bg-slate-50/80">
       <div class="flex items-center justify-between gap-2">
         <div class="overflow-hidden">
@@ -76,7 +75,7 @@
   <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 bg-sky-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-tv"></i></div>
-      <span class="text-xs font-semibold">TV CHECK - BUILDING D</span>
+      <span class="text-xs font-semibold">TV CHECK (CLOUD)</span>
     </div>
     <div class="flex gap-1.5 items-center">
       <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
@@ -98,14 +97,14 @@
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
             <i class="fa-solid fa-tv text-sky-600"></i> TV FIRMWARE INSPECTOR (BUILDING D)
           </h2>
-          <p class="text-slate-500 text-xs mt-0.5">List of rooms for checking TV firmware (Building D) on 23/09/26 from Room DL01 - D337</p>
+          <p class="text-slate-500 text-xs mt-0.5">ระบบบันทึกและซิงค์ข้อมูลบน Cloud (Supabase) - อาคาร D ครบ 193 ห้อง</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
             <i class="fa-solid fa-file-excel"></i> Export Excel
           </button>
-          <button onclick="resetData()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 mini-btn text-xs px-3 py-2 rounded-xl">
-            <i class="fa-solid fa-rotate-right"></i> รีเซ็ตเป็นค่าตามรูป
+          <button onclick="resetDataOnCloud()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 mini-btn text-xs px-3 py-2 rounded-xl">
+            <i class="fa-solid fa-rotate-right"></i> รีเซ็ตเป็นค่าตั้งต้น
           </button>
         </div>
       </div>
@@ -201,218 +200,230 @@
     const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
 
-    // 📌 ข้อมูลห้องพักทั้งหมดจากตารางในรูปภาพแบบ 1:1
+    const OPS_SUPABASE_URL = 'https://cnjatybztbzbouirjmya.supabase.co';
+    const OPS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuamF0eWJ6dGJ6Ym91aXJqbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNTk0NTksImV4cCI6MjEwNDYzNTQ1OX0.xwv2hopsEBz7bwFPQ4USRVPixfgY21qECnXuDeoLkmU';
+    const supabaseOps = supabase.createClient(OPS_SUPABASE_URL, OPS_SUPABASE_KEY);
+
     const initialData = [
-      {"room":"5001","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"RSVN Office"},
-      {"room":"5002","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5003","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5005","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5006","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5007","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5008","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Owner Unit"},
-      {"room":"5009","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5010","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Acc H2 Office"},
-      {"room":"5011","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5012","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5101","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5102","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5103","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5105","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5106","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5107","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5108","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5109","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5110","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5111","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5112","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"HK Store Done (23/09/2026)"},
-      {"room":"5113","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"HK Store Done (23/09/2026)"},
-      {"room":"5115","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5116","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5117","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5118","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5119","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5120","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5121","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5122","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5123","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5125","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5126","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5127","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Owner Unit"},
-      {"room":"5128","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5129","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5130","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5132","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5133","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5135","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5136","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
-      {"room":"5137","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5001","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"RSVN Office"},
+      {"room":"5002","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5003","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5005","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5006","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5007","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5008","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Owner Unit"},
+      {"room":"5009","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5010","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Acc H2 Office"},
+      {"room":"5011","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5012","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5101","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5102","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5103","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5105","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5106","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5107","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5108","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5109","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5110","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5111","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5112","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"HK Store Done (23/09/2026)"},
+      {"room":"5113","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"HK Store Done (23/09/2026)"},
+      {"room":"5115","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5116","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5117","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5118","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5119","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5120","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5121","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5122","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5123","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5125","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5126","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5127","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Owner Unit"},
+      {"room":"5128","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5129","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5130","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5132","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5133","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5135","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5136","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
+      {"room":"5137","available":"YES","firmware":true,"signal":true,"label":true,"room_num":true,"remark":"Done (23/09/2026)"},
 
-      // ชั้น 52xx
-      {"room":"5201","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5202","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5203","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5205","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5207","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5208","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5209","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5210","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5211","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5212","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5213","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5215","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5216","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5217","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5218","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5220","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5221","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5222","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Owner Unit"},
-      {"room":"5223","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5225","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5226","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5227","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5229","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5230","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5232","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5233","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5236","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5237","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      // 52xx
+      {"room":"5201","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5202","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5203","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5205","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5207","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5208","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5209","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5210","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5211","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5212","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5213","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5215","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5216","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5217","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5218","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5220","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5221","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5222","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Owner Unit"},
+      {"room":"5223","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5225","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5226","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5227","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5229","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5230","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5232","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5233","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5236","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5237","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
 
-      // ชั้น 53xx
-      {"room":"5301","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5302","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5303","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5305","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5306","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5307","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5308","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5309","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5310","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5311","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5312","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5313","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5315","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5316","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5317","available":"Not Available","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest Room"},
-      {"room":"5318","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5319","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5320","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5321","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5322","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5323","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5325","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5326","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5327","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5328","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5329","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5331","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5333","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5335","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5336","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5337","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      // 53xx
+      {"room":"5301","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5302","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5303","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5305","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5306","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5307","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5308","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5309","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5310","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5311","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5312","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5313","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5315","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5316","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5317","available":"Not Available","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest Room"},
+      {"room":"5318","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5319","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5320","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5321","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5322","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5323","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5325","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5326","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5327","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5328","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5329","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5331","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5333","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5335","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5336","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5337","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
 
-      // ชั้น 55xx
-      {"room":"5501","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5502","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5503","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH C/O 24/09/26"},
-      {"room":"5505","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5506","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5507","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5508","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5509","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5510","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5511","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5512","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5513","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5515","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5516","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5517","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5518","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5520","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5521","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5522","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5523","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5525","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5526","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5527","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5528","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5529","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5530","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5531","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5532","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
-      {"room":"5533","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5535","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5536","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5537","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      // 55xx
+      {"room":"5501","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5502","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5503","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH C/O 24/09/26"},
+      {"room":"5505","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5506","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5507","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5508","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5509","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5510","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5511","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5512","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5513","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5515","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5516","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5517","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5518","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5520","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5521","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5522","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5523","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5525","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5526","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5527","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5528","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5529","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5530","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5531","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5532","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":"Guest INH"},
+      {"room":"5533","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5535","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5536","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5537","available":"YES","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
 
-      // ชั้น 56xx
-      {"room":"5601","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5602","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5603","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5605","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5606","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5607","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5608","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5609","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5610","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5611","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5612","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5613","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5615","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5616","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5617","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5618","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5619","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5623","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5625","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5626","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5627","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5629","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5631","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5632","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5633","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5635","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5636","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5637","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      // 56xx
+      {"room":"5601","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5602","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5603","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5605","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5606","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5607","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5608","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5609","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5610","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5611","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5612","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5613","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5615","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5616","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5617","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5618","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5619","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5623","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5625","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5626","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5627","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5629","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5631","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5632","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5633","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5635","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5636","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5637","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
 
-      // ชั้น 57xx
-      {"room":"5701","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5702","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5703","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5705","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5706","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5707","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5709","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5710","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5711","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5712","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5713","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5715","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5716","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5717","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5718","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5719","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5722","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5723","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5725","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5726","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5727","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5728","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5729","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5730","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5731","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5733","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5735","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5736","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
-      {"room":"5737","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""}
+      // 57xx
+      {"room":"5701","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5702","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5703","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5705","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5706","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5707","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5709","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5710","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5711","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5712","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5713","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5715","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5716","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5717","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5718","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5719","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5722","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5723","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5725","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5726","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5727","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5728","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5729","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5730","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5731","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5733","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5735","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5736","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""},
+      {"room":"5737","available":"","firmware":false,"signal":false,"label":false,"room_num":false,"remark":""}
     ];
 
     let roomsData = [];
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-md flex items-start gap-3 toast-slide-in ${type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-slate-900 border-slate-800 text-white'}`;
+      toast.innerHTML = `<div><h4 class="text-xs font-semibold uppercase">${title}</h4><p class="text-xs opacity-90 font-normal">${message}</p></div>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
 
     async function checkAuth() {
       const { data: { user } } = await supabaseAuth.auth.getUser();
       if (user) {
         document.getElementById('userEmailDisplay').innerText = user.email;
-        initData();
+        fetchRoomsFromCloud();
       } else {
         window.location.href = 'index.html';
       }
@@ -423,54 +434,64 @@
       window.location.href = 'index.html';
     }
 
-    function initData() {
-      const saved = localStorage.getItem('tv_check_bldD_full');
-      if (saved) {
-        roomsData = JSON.parse(saved);
-      } else {
-        roomsData = JSON.parse(JSON.stringify(initialData));
+    // ☁️ ดึงข้อมูลจาก Supabase Cloud
+    async function fetchRoomsFromCloud() {
+      const { data, error } = await supabaseOps.from('tv_checks').select('*').order('room', { ascending: true });
+      if (error) {
+        showToast('ERROR', error.message, 'error');
+        return;
       }
-      saveData();
-      applyFilters();
+
+      if (!data || data.length === 0) {
+        // ถ้าคลาวด์ยังว่างเปล่า ให้ใส่ข้อมูลเริ่มต้นทั้ง 193 ห้องขึ้นคลาวด์
+        await resetDataOnCloud();
+      } else {
+        roomsData = data;
+        applyFilters();
+      }
     }
 
-    function saveData() {
-      localStorage.setItem('tv_check_bldD_full', JSON.stringify(roomsData));
-      updateStats();
+    // ☁️ อัปเดตข้อมูลขึ้น Supabase Cloud
+    async function updateCloudRoom(roomObj) {
+      const { error } = await supabaseOps.from('tv_checks').upsert(roomObj, { onConflict: 'room' });
+      if (error) showToast('SYNC FAILED', error.message, 'error');
     }
 
     function isRoomDone(item) {
-      return item.firmware && item.signal && item.label && item.roomNum;
+      return item.firmware && item.signal && item.label && item.room_num;
     }
 
-    function toggleAll(index, checkState) {
-      roomsData[index].firmware = checkState;
-      roomsData[index].signal = checkState;
-      roomsData[index].label = checkState;
-      roomsData[index].roomNum = checkState;
+    async function toggleAll(index, checkState) {
+      const item = roomsData[index];
+      item.firmware = checkState;
+      item.signal = checkState;
+      item.label = checkState;
+      item.room_num = checkState;
 
-      if (checkState && !roomsData[index].remark.includes('Done')) {
+      if (checkState && (!item.remark || !item.remark.includes('Done'))) {
         const todayStr = new Date().toLocaleDateString('th-TH');
-        roomsData[index].remark = `Done (${todayStr})`;
+        item.remark = `Done (${todayStr})`;
       }
 
-      saveData();
       applyFilters();
+      await updateCloudRoom(item);
     }
 
-    function updateCheck(index, field, value) {
-      roomsData[index][field] = value;
-      if (isRoomDone(roomsData[index]) && !roomsData[index].remark.includes('Done')) {
+    async function updateCheck(index, field, value) {
+      const item = roomsData[index];
+      item[field] = value;
+      if (isRoomDone(item) && (!item.remark || !item.remark.includes('Done'))) {
         const todayStr = new Date().toLocaleDateString('th-TH');
-        roomsData[index].remark = `Done (${todayStr})`;
+        item.remark = `Done (${todayStr})`;
       }
-      saveData();
       applyFilters();
+      await updateCloudRoom(item);
     }
 
-    function updateRemark(index, value) {
-      roomsData[index].remark = value;
-      saveData();
+    async function updateRemark(index, value) {
+      const item = roomsData[index];
+      item.remark = value;
+      await updateCloudRoom(item);
     }
 
     function updateStats() {
@@ -496,7 +517,8 @@
         let matchPrefix = true;
         if (prefixFilter !== 'ALL') matchPrefix = r.room.startsWith(prefixFilter);
 
-        const matchSearch = r.room.toLowerCase().includes(search) || r.remark.toLowerCase().includes(search);
+        const remarkText = r.remark ? r.remark.toLowerCase() : '';
+        const matchSearch = r.room.toLowerCase().includes(search) || remarkText.includes(search);
         
         let matchStatus = true;
         if (statusFilter === 'DONE') matchStatus = isRoomDone(r);
@@ -505,8 +527,8 @@
         let matchAvail = true;
         if (availFilter === 'YES') matchAvail = (r.available === 'YES');
         if (availFilter === 'NO_AVAIL') matchAvail = (r.available === 'Not Available');
-        if (availFilter === 'GUEST') matchAvail = r.remark.toLowerCase().includes('guest') || r.remark.toLowerCase().includes('inh');
-        if (availFilter === 'OWNER') matchAvail = r.remark.toLowerCase().includes('owner');
+        if (availFilter === 'GUEST') matchAvail = remarkText.includes('guest') || remarkText.includes('inh');
+        if (availFilter === 'OWNER') matchAvail = remarkText.includes('owner');
 
         return matchPrefix && matchSearch && matchStatus && matchAvail;
       });
@@ -527,19 +549,20 @@
       items.forEach((item) => {
         const originalIndex = roomsData.findIndex(r => r.room === item.room);
         const done = isRoomDone(item);
+        const remarkText = item.remark ? item.remark.toLowerCase() : '';
         
         const tr = document.createElement('tr');
         let rowBg = 'hover:bg-slate-50';
         if (done) rowBg = 'bg-emerald-50/40';
-        else if (item.remark.toLowerCase().includes('owner')) rowBg = 'bg-rose-50/50';
-        else if (item.available === 'Not Available' || item.remark.toLowerCase().includes('guest')) rowBg = 'bg-amber-50/40';
+        else if (remarkText.includes('owner')) rowBg = 'bg-rose-50/50';
+        else if (item.available === 'Not Available' || remarkText.includes('guest')) rowBg = 'bg-amber-50/40';
 
         tr.className = `${rowBg} transition-colors`;
 
         let availBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">YES</span>';
         if (item.available === 'Not Available') {
           availBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">Not Available</span>';
-        } else if (!item.available && item.remark.toLowerCase().includes('owner')) {
+        } else if (!item.available && remarkText.includes('owner')) {
           availBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">Owner Unit</span>';
         } else if (!item.available) {
           availBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">-</span>';
@@ -551,7 +574,7 @@
           <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.firmware ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'firmware', this.checked)"></td>
           <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.signal ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'signal', this.checked)"></td>
           <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.label ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'label', this.checked)"></td>
-          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.roomNum ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'roomNum', this.checked)"></td>
+          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.room_num ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'room_num', this.checked)"></td>
           <td class="p-3.5">
             <input type="text" value="${item.remark || ''}" onchange="updateRemark(${originalIndex}, this.value)" placeholder="หมายเหตุ..." class="w-full mini-input rounded-lg px-2.5 py-1 text-xs">
           </td>
@@ -572,22 +595,29 @@
         'Firmware': r.firmware ? '✔' : '',
         'Signal': r.signal ? '✔' : '',
         'Label': r.label ? '✔' : '',
-        'Room Number': r.roomNum ? '✔' : '',
-        'Remark': r.remark
+        'Room Number': r.room_num ? '✔' : '',
+        'Remark': r.remark || ''
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportRows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "TV_Firmware_Check_D");
       
-      const fileName = `TV_Firmware_Building_D_Full_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `TV_Firmware_Building_D_Cloud_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, fileName);
     }
 
-    function resetData() {
-      if (confirm('คุณต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นตามตารางรูปภาพจริงหรือไม่?')) {
-        localStorage.removeItem('tv_check_bldD_full');
-        initData();
+    async function resetDataOnCloud() {
+      if (confirm('คุณต้องการรีเซ็ตข้อมูลทั้งหมดบน Cloud กลับเป็นค่าเริ่มต้นตามตารางรูปภาพจริงหรือไม่?')) {
+        showToast('RESETTING...', 'กำลังรีเซ็ตข้อมูลบน คลาวด์...', 'info');
+        await supabaseOps.from('tv_checks').delete().neq('room', '');
+        const { error } = await supabaseOps.from('tv_checks').insert(initialData);
+        if (error) {
+          showToast('ERROR', error.message, 'error');
+        } else {
+          showToast('RESET COMPLETE', 'รีเซ็ตข้อมูลบน คลาวด์ สำเร็จเรียบร้อย', 'success');
+          fetchRoomsFromCloud();
+        }
       }
     }
 
