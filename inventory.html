@@ -54,6 +54,9 @@
           <a href="inventory.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
             <i class="fa-solid fa-desktop w-4 text-amber-400"></i> Asset Inventory
           </a>
+          <a href="tv_check.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+            <i class="fa-solid fa-tv w-4 text-sky-500"></i> TV Firmware Check
+          </a>
         </div>
       </div>
     </div>
@@ -78,6 +81,7 @@
       <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">Tasks</a>
       <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">UPS</a>
       <a href="inventory.html" class="bg-slate-900 text-white text-[11px] px-2.5 py-1.5 rounded-lg">Assets</a>
+      <a href="tv_check.html" class="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg">TV</a>
     </div>
   </div>
 
@@ -176,7 +180,6 @@
     async function fetchRecords() {
       try {
         if (!supabaseClient) return;
-        // ดึงจากตาราง inventory โดยเรียงตามชื่อในคอลัมน์ name
         const { data, error } = await supabaseClient.from('inventory').select('*').order('name', { ascending: true });
         if (error) throw error;
         rawInventory = data || [];
@@ -239,10 +242,8 @@
       userKeys.forEach(key => {
         const user = groupedUsers[key];
         
-        // Filter Dept
         if (selectedDept && user.dept !== selectedDept) return;
 
-        // Filter Search Text
         if (search) {
           const itemSearchStr = user.items.map(i => `${i.model} ${i.serial_number} ${i.type}`).join(' ').toLowerCase();
           const userSearchStr = `${user.owner_name} ${user.dept} ${user.position}`.toLowerCase();
@@ -251,7 +252,6 @@
 
         countMatches++;
 
-        // Build HTML for items under this user
         const itemsListHTML = user.items.map(item => `
           <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1">
             <div class="flex items-center justify-between">
@@ -269,7 +269,6 @@
         const cardHTML = `
           <div class="mini-card p-4 space-y-3 flex flex-col justify-between hover:shadow-md transition-shadow">
             <div>
-              <!-- CARD HEADER: USER INFO -->
               <div class="flex items-start justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm">
@@ -285,7 +284,6 @@
                 </span>
               </div>
 
-              <!-- CARD BODY: ITEMS HELD -->
               <div class="mt-3 space-y-2">
                 ${itemsListHTML}
               </div>
@@ -301,7 +299,6 @@
       }
     }
 
-    // Initial Fetch
     fetchRecords();
   </script>
 </body>
