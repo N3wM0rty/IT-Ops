@@ -8,109 +8,184 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #0f172a; }
-    .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-    .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: #059669; cursor: pointer; }
+    body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .mini-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .mini-btn { transition: all 0.2s ease; font-weight: 500; }
+    .mini-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .mini-input { background-color: #ffffff !important; border: 1px solid #cbd5e1 !important; }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
+    .sidebar-link:not(.active):hover { background-color: #f1f5f9; color: #0f172a; }
+    .custom-checkbox { width: 1.2rem; height: 1.2rem; accent-color: #059669; cursor: pointer; }
+    
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast-slide-in { animation: slideInRight 0.3s ease-out forwards; }
   </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen flex bg-slate-50 antialiased">
 
-  <!-- HEADER & NAVBAR -->
-  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- 📌 SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
+    <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-xl font-bold">
+        <div class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center text-lg font-bold">
           <i class="fa-solid fa-tv"></i>
         </div>
         <div>
-          <h1 class="text-lg font-bold leading-tight">TV Firmware & Signal Inspector</h1>
-          <p class="text-xs text-slate-400">Building D (DL01 - D337)</p>
+          <h1 class="text-xs font-bold text-slate-900 leading-none">TV INSPECTOR</h1>
+          <p class="text-[11px] text-slate-400 mt-1">Building D Portal</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-file-excel"></i> Export Excel
-        </button>
-        <button onclick="resetData()" class="bg-rose-900/40 hover:bg-rose-800/60 text-rose-300 border border-rose-700/50 text-xs px-3 py-2 rounded-xl font-medium transition">
-          <i class="fa-solid fa-rotate-right"></i> รีเซ็ต
+
+      <div class="space-y-1">
+        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">APPLICATIONS</p>
+        <a href="index.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-list-check w-4"></i> IT Task & Shift
+        </a>
+        <a href="ups.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-car-battery w-4 text-emerald-600"></i> UPS Inspector
+        </a>
+        <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600">
+          <i class="fa-solid fa-desktop w-4 text-indigo-600"></i> Asset Inventory
+        </a>
+        <a href="tv_check.html" class="sidebar-link active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-tv w-4 text-sky-400"></i> TV Firmware Check
+        </a>
+      </div>
+    </div>
+
+    <!-- 👤 USER PROFILE & LOGOUT FOOTER -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/80">
+      <div class="flex items-center justify-between gap-2">
+        <div class="overflow-hidden">
+          <p id="userEmailDisplay" class="text-xs font-medium text-slate-800 truncate">it@layaresortphuket.com</p>
+          <span class="text-[10px] text-sky-600 bg-sky-50 font-semibold px-2 py-0.5 rounded uppercase">STAFF</span>
+        </div>
+        <button onclick="handleLogout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 p-2 rounded-xl text-xs mini-btn shrink-0" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
         </button>
       </div>
     </div>
-  </header>
+  </aside>
 
-  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+  <!-- 📱 MOBILE HEADER -->
+  <div class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 p-3 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-sky-600 text-white rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-tv"></i></div>
+      <span class="text-xs font-semibold">TV CHECK - BLD D</span>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      <a href="index.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">Tasks</a>
+      <a href="ups.html" class="bg-slate-100 text-slate-700 text-[11px] px-2 py-1 rounded-lg">UPS</a>
+      <a href="tv_check.html" class="bg-sky-600 text-white text-[11px] px-2 py-1 rounded-lg">TV</a>
+      <button onclick="handleLogout()" class="text-rose-600 p-1 text-xs ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
 
-    <!-- DASHBOARD STATS -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
-        <p class="text-xs font-semibold text-slate-500">จำนวนห้องทั้งหมด</p>
-        <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
-        <p class="text-xs font-semibold text-emerald-600">ตรวจเสร็จสิ้น (Done)</p>
-        <p id="statDone" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
-        <p class="text-xs font-semibold text-amber-600">คงเหลือ (Pending)</p>
-        <p id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
-        <p class="text-xs font-semibold text-indigo-600">ความคืบหน้า (Progress)</p>
-        <p id="statProgress" class="text-2xl font-bold text-indigo-600 mt-1">0%</p>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
-          <div id="progressBar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 0%"></div>
+  <!-- 🖥️ MAIN CONTENT -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-6xl mx-auto space-y-6 w-full">
+
+    <div class="mini-card p-6 md:p-8 space-y-6">
+      
+      <!-- HEADER TITLE & ACTIONS -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
+            <i class="fa-solid fa-tv text-sky-600"></i> TV FIRMWARE & SIGNAL INSPECTOR
+          </h2>
+          <p class="text-slate-500 text-xs mt-0.5">ระบบบันทึกและตรวจสอบสถานะ TV Firmware อาคาร D (Room DL01 - D337)</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="exportToExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 mini-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-file-excel"></i> Export Excel
+          </button>
+          <button onclick="resetData()" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 mini-btn text-xs px-3 py-2 rounded-xl">
+            <i class="fa-solid fa-rotate-right"></i> รีเซ็ต
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- FILTER & SEARCH BAR -->
-    <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow flex flex-col md:flex-row gap-3 justify-between items-center">
-      <div class="relative w-full md:w-80">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="ค้นหาเลขห้อง (เช่น 5002, D101)..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <!-- STATS OVERVIEW -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+          <div><p class="text-xs font-medium text-slate-500">จำนวนห้องทั้งหมด</p><p id="statTotal" class="text-2xl font-bold text-slate-900 mt-0.5">0</p></div>
+          <div class="w-10 h-10 bg-slate-200/60 text-slate-600 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-building"></i></div>
+        </div>
+        <div class="p-4 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-center justify-between">
+          <div><p class="text-xs font-medium text-emerald-700">ตรวจเสร็จสิ้น (Done)</p><p id="statDone" class="text-2xl font-bold text-emerald-600 mt-0.5">0</p></div>
+          <div class="w-10 h-10 bg-emerald-100/80 text-emerald-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+        <div class="p-4 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-center justify-between">
+          <div><p class="text-xs font-medium text-amber-700">คงเหลือ (Pending)</p><p id="statPending" class="text-2xl font-bold text-amber-600 mt-0.5">0</p></div>
+          <div class="w-10 h-10 bg-amber-100/80 text-amber-700 rounded-xl flex items-center justify-center text-sm"><i class="fa-solid fa-hourglass-half"></i></div>
+        </div>
+        <div class="p-4 bg-sky-50/60 border border-sky-100 rounded-2xl flex items-center justify-between">
+          <div class="w-full">
+            <div class="flex justify-between items-center"><p class="text-xs font-medium text-sky-700">ความคืบหน้า</p><span id="statProgress" class="text-xs font-bold text-sky-700">0%</span></div>
+            <div class="w-full bg-sky-200/50 h-2 rounded-full mt-2 overflow-hidden">
+              <div id="progressBar" class="bg-sky-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-2 w-full md:w-auto">
-        <select id="filterStatus" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
-          <option value="ALL">สถานะการตรวจ: ทั้งหมด</option>
-          <option value="DONE">เสร็จแล้ว (Done)</option>
-          <option value="PENDING">ยังไม่เสร็จ (Pending)</option>
-        </select>
-        <select id="filterAvailable" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
-          <option value="ALL">ห้องพัก: ทั้งหมด</option>
-          <option value="YES">Available (YES)</option>
-          <option value="GUEST">Guest INH</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- ROOM CHECKLIST TABLE -->
-    <div class="bg-white rounded-2xl border border-slate-200 card-shadow overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-slate-900 text-slate-300 uppercase tracking-wider font-semibold text-[11px]">
-              <th class="p-3.5 pl-5">Room</th>
-              <th class="p-3.5">Availability</th>
+      <!-- FILTER & SEARCH -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">ค้นหาเลขห้อง / หมายเหตุ</label>
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="ค้นหา เช่น 5002, D101, Office..." class="w-full mini-input rounded-xl p-2 text-xs">
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">สถานะการตรวจ</label>
+          <select id="filterStatus" onchange="applyFilters()" class="w-full mini-input rounded-xl p-2 text-xs">
+            <option value="ALL">ทั้งหมดทุกสถานะ</option>
+            <option value="DONE">เสร็จแล้ว (Done)</option>
+            <option value="PENDING">ยังไม่เสร็จ (Pending)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-medium text-slate-500 mb-1 block">ประเภทห้องพัก</label>
+          <select id="filterAvailable" onchange="applyFilters()" class="w-full mini-input rounded-xl p-2 text-xs">
+            <option value="ALL">ทั้งหมด</option>
+            <option value="YES">Available (YES)</option>
+            <option value="GUEST">Guest In House</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+          <thead class="bg-slate-900 text-slate-200 font-medium text-[11px] uppercase tracking-wider">
+            <tr>
+              <th class="p-3.5">ROOM</th>
+              <th class="p-3.5">Available</th>
               <th class="p-3.5 text-center">Firmware</th>
               <th class="p-3.5 text-center">Signal</th>
               <th class="p-3.5 text-center">Label</th>
               <th class="p-3.5 text-center">Room No.</th>
               <th class="p-3.5">Remark / Status</th>
-              <th class="p-3.5 text-center pr-5">Quick Action</th>
+              <th class="p-3.5 text-center">Quick Action</th>
             </tr>
           </thead>
-          <tbody id="roomTableBody" class="divide-y divide-slate-100 bg-white">
-            <!-- Table rows populated dynamically -->
-          </tbody>
+          <tbody id="roomTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
         </table>
       </div>
+
     </div>
 
   </main>
 
   <script>
-    // ข้อมูลเริ่มต้นที่ถอดจากไฟล์ Excel
+    const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
+    const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
+    const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+
+    // 📌 ข้อมูลห้องพักเริ่มต้นจากไฟล์ Excel
     const initialData = [
       {"room":"5001","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"RSVN Office"},
       {"room":"5002","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
@@ -231,6 +306,21 @@
 
     let roomsData = [];
 
+    async function checkAuth() {
+      const { data: { user } } = await supabaseAuth.auth.getUser();
+      if (user) {
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        initData();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+
+    async function handleLogout() {
+      await supabaseAuth.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
     function initData() {
       const saved = localStorage.getItem('tv_check_data');
       if (saved) {
@@ -330,12 +420,12 @@
         const done = isRoomDone(item);
         
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-50/80 transition-colors ${done ? 'bg-emerald-50/30' : ''}`;
+        tr.className = `hover:bg-slate-50 transition-colors ${done ? 'bg-emerald-50/40' : ''}`;
 
         tr.innerHTML = `
-          <td class="p-3.5 pl-5 font-bold text-slate-800 text-sm">${item.room}</td>
+          <td class="p-3.5 font-bold text-slate-800 text-sm">${item.room}</td>
           <td class="p-3.5">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold ${item.available === 'YES' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${item.available === 'YES' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
               ${item.available || 'N/A'}
             </span>
           </td>
@@ -344,10 +434,10 @@
           <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.label ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'label', this.checked)"></td>
           <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.roomNum ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'roomNum', this.checked)"></td>
           <td class="p-3.5">
-            <input type="text" value="${item.remark || ''}" onchange="updateRemark(${originalIndex}, this.value)" placeholder="หมายเหตุ..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-indigo-500">
+            <input type="text" value="${item.remark || ''}" onchange="updateRemark(${originalIndex}, this.value)" placeholder="หมายเหตุ..." class="w-full mini-input rounded-lg px-2.5 py-1 text-xs">
           </td>
-          <td class="p-3.5 text-center pr-5">
-            <button onclick="toggleAll(${originalIndex}, ${!done})" class="text-[11px] font-medium px-2.5 py-1 rounded-lg border ${done ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'} transition">
+          <td class="p-3.5 text-center">
+            <button onclick="toggleAll(${originalIndex}, ${!done})" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg border ${done ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'} transition">
               ${done ? 'ยกเลิกทั้งหมด' : 'ติ๊กถูกทั้งหมด'}
             </button>
           </td>
@@ -382,7 +472,7 @@
       }
     }
 
-    initData();
+    checkAuth();
   </script>
 </body>
 </html>
