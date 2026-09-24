@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Firmware Checker - Building D</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; color: #0f172a; }
+    .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: #059669; cursor: pointer; }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- HEADER & NAVBAR -->
+  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-xl font-bold">
+          <i class="fa-solid fa-tv"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">TV Firmware & Signal Inspector</h1>
+          <p class="text-xs text-slate-400">Building D (DL01 - D337)</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </button>
+        <button onclick="resetData()" class="bg-rose-900/40 hover:bg-rose-800/60 text-rose-300 border border-rose-700/50 text-xs px-3 py-2 rounded-xl font-medium transition">
+          <i class="fa-solid fa-rotate-right"></i> รีเซ็ต
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+
+    <!-- DASHBOARD STATS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+        <p class="text-xs font-semibold text-slate-500">จำนวนห้องทั้งหมด</p>
+        <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+        <p class="text-xs font-semibold text-emerald-600">ตรวจเสร็จสิ้น (Done)</p>
+        <p id="statDone" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+        <p class="text-xs font-semibold text-amber-600">คงเหลือ (Pending)</p>
+        <p id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+        <p class="text-xs font-semibold text-indigo-600">ความคืบหน้า (Progress)</p>
+        <p id="statProgress" class="text-2xl font-bold text-indigo-600 mt-1">0%</p>
+        <div class="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+          <div id="progressBar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER & SEARCH BAR -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow flex flex-col md:flex-row gap-3 justify-between items-center">
+      <div class="relative w-full md:w-80">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="ค้นหาเลขห้อง (เช่น 5002, D101)..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+      <div class="flex flex-wrap gap-2 w-full md:w-auto">
+        <select id="filterStatus" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
+          <option value="ALL">สถานะการตรวจ: ทั้งหมด</option>
+          <option value="DONE">เสร็จแล้ว (Done)</option>
+          <option value="PENDING">ยังไม่เสร็จ (Pending)</option>
+        </select>
+        <select id="filterAvailable" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none">
+          <option value="ALL">ห้องพัก: ทั้งหมด</option>
+          <option value="YES">Available (YES)</option>
+          <option value="GUEST">Guest INH</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ROOM CHECKLIST TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-900 text-slate-300 uppercase tracking-wider font-semibold text-[11px]">
+              <th class="p-3.5 pl-5">Room</th>
+              <th class="p-3.5">Availability</th>
+              <th class="p-3.5 text-center">Firmware</th>
+              <th class="p-3.5 text-center">Signal</th>
+              <th class="p-3.5 text-center">Label</th>
+              <th class="p-3.5 text-center">Room No.</th>
+              <th class="p-3.5">Remark / Status</th>
+              <th class="p-3.5 text-center pr-5">Quick Action</th>
+            </tr>
+          </thead>
+          <tbody id="roomTableBody" class="divide-y divide-slate-100 bg-white">
+            <!-- Table rows populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ข้อมูลเริ่มต้นที่ถอดจากไฟล์ Excel
+    const initialData = [
+      {"room":"5001","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"RSVN Office"},
+      {"room":"5002","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5003","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5005","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5006","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5007","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5008","available":"","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Owner Unit"},
+      {"room":"5009","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5010","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Acc H2 Office"},
+      {"room":"5011","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5012","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5101","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5102","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5103","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5105","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5106","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5107","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5108","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5109","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5110","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5111","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5112","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5112A","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5114","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5115","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5116","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5117","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5118","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5119","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5120","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5121","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5122","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5123","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5124","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5125","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5126","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5127","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5128","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5129","available":"YES","firmware":true,"signal":true,"label":true,"roomNum":true,"remark":"Done (23/09/2026)"},
+      {"room":"5130","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"HK Store Done (23/09/2026)"},
+      {"room":"5131","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH C/O 24/09/26"},
+      {"room":"5132","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
+      {"room":"5133","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":"Guest INH"},
+      {"room":"D201","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D202","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D203","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D205","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D206","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D207","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D208","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D209","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D210","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D211","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D212","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D212A","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D214","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D215","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D216","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D217","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D218","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D219","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D220","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D221","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D222","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D223","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D224","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D225","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D226","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D227","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D228","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D229","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D230","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D231","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D232","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D233","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D234","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D235","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D236","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D237","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D301","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D302","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D303","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D305","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D306","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D307","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D308","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D309","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D310","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D311","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D312","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D312A","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D314","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D315","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D316","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D317","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D318","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D319","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D320","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D321","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D322","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D323","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D324","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D325","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D326","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D327","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D328","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D329","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D330","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D331","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D332","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D333","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D334","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D335","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D336","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""},
+      {"room":"D337","available":"YES","firmware":false,"signal":false,"label":false,"roomNum":false,"remark":""}
+    ];
+
+    let roomsData = [];
+
+    function initData() {
+      const saved = localStorage.getItem('tv_check_data');
+      if (saved) {
+        roomsData = JSON.parse(saved);
+      } else {
+        roomsData = JSON.parse(JSON.stringify(initialData));
+      }
+      applyFilters();
+    }
+
+    function saveData() {
+      localStorage.setItem('tv_check_data', JSON.stringify(roomsData));
+      updateStats();
+    }
+
+    function isRoomDone(item) {
+      return item.firmware && item.signal && item.label && item.roomNum;
+    }
+
+    function toggleAll(index, checkState) {
+      roomsData[index].firmware = checkState;
+      roomsData[index].signal = checkState;
+      roomsData[index].label = checkState;
+      roomsData[index].roomNum = checkState;
+
+      if (checkState && !roomsData[index].remark.includes('Done')) {
+        const todayStr = new Date().toLocaleDateString('th-TH');
+        roomsData[index].remark = `Done (${todayStr})`;
+      }
+
+      saveData();
+      applyFilters();
+    }
+
+    function updateCheck(index, field, value) {
+      roomsData[index][field] = value;
+      if (isRoomDone(roomsData[index]) && !roomsData[index].remark.includes('Done')) {
+        const todayStr = new Date().toLocaleDateString('th-TH');
+        roomsData[index].remark = `Done (${todayStr})`;
+      }
+      saveData();
+      applyFilters();
+    }
+
+    function updateRemark(index, value) {
+      roomsData[index].remark = value;
+      saveData();
+    }
+
+    function updateStats() {
+      const total = roomsData.length;
+      const done = roomsData.filter(r => isRoomDone(r)).length;
+      const pending = total - done;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statDone').innerText = done;
+      document.getElementById('statPending').innerText = pending;
+      document.getElementById('statProgress').innerText = `${pct}%`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('filterStatus').value;
+      const availFilter = document.getElementById('filterAvailable').value;
+
+      const filtered = roomsData.filter(r => {
+        const matchSearch = r.room.toLowerCase().includes(search) || r.remark.toLowerCase().includes(search);
+        
+        let matchStatus = true;
+        if (statusFilter === 'DONE') matchStatus = isRoomDone(r);
+        if (statusFilter === 'PENDING') matchStatus = !isRoomDone(r);
+
+        let matchAvail = true;
+        if (availFilter === 'YES') matchAvail = (r.available === 'YES');
+        if (availFilter === 'GUEST') matchAvail = r.remark.includes('Guest');
+
+        return matchSearch && matchStatus && matchAvail;
+      });
+
+      renderTable(filtered);
+      updateStats();
+    }
+
+    function renderTable(items) {
+      const tbody = document.getElementById('roomTableBody');
+      tbody.innerHTML = '';
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">ไม่พบข้อมูลห้องพักที่ค้นหา</td></tr>`;
+        return;
+      }
+
+      items.forEach((item) => {
+        const originalIndex = roomsData.findIndex(r => r.room === item.room);
+        const done = isRoomDone(item);
+        
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-slate-50/80 transition-colors ${done ? 'bg-emerald-50/30' : ''}`;
+
+        tr.innerHTML = `
+          <td class="p-3.5 pl-5 font-bold text-slate-800 text-sm">${item.room}</td>
+          <td class="p-3.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold ${item.available === 'YES' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+              ${item.available || 'N/A'}
+            </span>
+          </td>
+          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.firmware ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'firmware', this.checked)"></td>
+          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.signal ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'signal', this.checked)"></td>
+          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.label ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'label', this.checked)"></td>
+          <td class="p-3.5 text-center"><input type="checkbox" class="custom-checkbox" ${item.roomNum ? 'checked' : ''} onchange="updateCheck(${originalIndex}, 'roomNum', this.checked)"></td>
+          <td class="p-3.5">
+            <input type="text" value="${item.remark || ''}" onchange="updateRemark(${originalIndex}, this.value)" placeholder="หมายเหตุ..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-indigo-500">
+          </td>
+          <td class="p-3.5 text-center pr-5">
+            <button onclick="toggleAll(${originalIndex}, ${!done})" class="text-[11px] font-medium px-2.5 py-1 rounded-lg border ${done ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'} transition">
+              ${done ? 'ยกเลิกทั้งหมด' : 'ติ๊กถูกทั้งหมด'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportToExcel() {
+      const exportRows = roomsData.map(r => ({
+        'ROOM': r.room,
+        'Available': r.available,
+        'Firmware': r.firmware ? '✔' : '',
+        'Signal': r.signal ? '✔' : '',
+        'Label': r.label ? '✔' : '',
+        'Room Number': r.roomNum ? '✔' : '',
+        'Remark': r.remark
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "TV_Firmware_Check");
+      
+      const fileName = `TV_Firmware_Building_D_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    }
+
+    function resetData() {
+      if (confirm('คุณต้องการรีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นจากไฟล์ Excel หรือไม่?')) {
+        localStorage.removeItem('tv_check_data');
+        initData();
+      }
+    }
+
+    initData();
+  </script>
+</body>
+</html>
