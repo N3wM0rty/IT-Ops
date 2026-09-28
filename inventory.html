@@ -41,7 +41,7 @@
   <!-- 🔔 TOAST CONTAINER -->
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- 📌 SIDEBAR NAVIGATION -->
+  <!-- 📌 MAIN APPLICATION SIDEBAR NAVIGATION (UNCHANGED) -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen sticky top-0 self-start z-30">
     <div class="p-5 space-y-6">
       <div class="flex items-center gap-3">
@@ -100,8 +100,8 @@
     </div>
   </div>
 
-  <!-- 🖥️ MAIN CONTENT -->
-  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1600px] mx-auto space-y-6 w-full min-w-0">
+  <!-- 🖥️ MAIN CONTENT AREA -->
+  <main class="flex-1 p-4 md:p-8 mt-12 md:mt-0 max-w-[1650px] mx-auto space-y-6 w-full min-w-0">
     
     <!-- PAGE HEADER & PRIMARY ACTIONS -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
@@ -213,70 +213,100 @@
 
     </div>
 
-    <!-- 🎯 4-TAB NAVIGATION (HORIZONTAL / MOBILE SCROLLABLE) -->
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-      <button onclick="selectCategoryTab('ALL')" id="tabCategoryALL" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-fast whitespace-nowrap bg-slate-900 text-white shadow-sm flex items-center gap-2 border border-slate-800">
-        <span>ALL ASSETS</span>
-        <span id="tabCountALL" class="bg-slate-800 text-slate-200 text-[10px] px-2 py-0.5 rounded-md">0</span>
-      </button>
+    <!-- ========================================================================= -->
+    <!-- 🗂️ TWO-COLUMN LAYOUT: VERTICAL TAB NAV (LEFT) + ASSET DIRECTORY (RIGHT) -->
+    <!-- ========================================================================= -->
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
-      <button onclick="selectCategoryTab('EMPLOYEE')" id="tabCategoryEMPLOYEE" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
-        <span>EMPLOYEE</span>
-        <span id="tabCountEMPLOYEE" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
-      </button>
+      <!-- 👈 LEFT: VERTICAL ASSET VIEW NAVIGATION PANEL (~240px) -->
+      <nav class="w-full lg:w-60 shrink-0 bg-white border border-slate-200 rounded-2xl p-3 shadow-sm space-y-1">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">ASSET VIEW</p>
 
-      <button onclick="selectCategoryTab('SHARED')" id="tabCategorySHARED" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
-        <span>SHARED / PUBLIC</span>
-        <span id="tabCountSHARED" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
-      </button>
+        <!-- Vertical Tabs List (Scrolls Horizontally on Mobile) -->
+        <div class="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar">
+          
+          <button onclick="selectCategoryTab('ALL')" id="vtabCategoryALL" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-fast bg-slate-900 text-white shadow-sm shrink-0 lg:shrink">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-layer-group w-4 text-center"></i>
+              <span>ALL ASSETS</span>
+            </div>
+            <span id="vtabCountALL" class="bg-slate-800 text-slate-200 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2">0</span>
+          </button>
 
-      <button onclick="selectCategoryTab('AVAILABLE')" id="tabCategoryAVAILABLE" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
-        <span>AVAILABLE / UNASSIGNED</span>
-        <span id="tabCountAVAILABLE" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
-      </button>
+          <button onclick="selectCategoryTab('EMPLOYEE')" id="vtabCategoryEMPLOYEE" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-fast text-slate-700 hover:bg-slate-100 shrink-0 lg:shrink">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-user w-4 text-center text-indigo-500"></i>
+              <span>EMPLOYEE</span>
+            </div>
+            <span id="vtabCountEMPLOYEE" class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2">0</span>
+          </button>
+
+          <button onclick="selectCategoryTab('SHARED')" id="vtabCategorySHARED" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-fast text-slate-700 hover:bg-slate-100 shrink-0 lg:shrink">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-desktop w-4 text-center text-sky-500"></i>
+              <span>SHARED / PUBLIC</span>
+            </div>
+            <span id="vtabCountSHARED" class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2">0</span>
+          </button>
+
+          <button onclick="selectCategoryTab('AVAILABLE')" id="vtabCategoryAVAILABLE" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-fast text-slate-700 hover:bg-slate-100 shrink-0 lg:shrink">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-box-open w-4 text-center text-amber-500"></i>
+              <span>AVAILABLE / UNASSIGNED</span>
+            </div>
+            <span id="vtabCountAVAILABLE" class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2">0</span>
+          </button>
+
+        </div>
+      </nav>
+
+      <!-- 👉 RIGHT: ASSET CONTENT & DIRECTORY CARDS -->
+      <div class="flex-1 w-full min-w-0 space-y-6">
+
+        <!-- TIMESTAMP & REFRESH BAR -->
+        <div class="flex justify-between items-center px-1 text-xs text-slate-500">
+          <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
+          <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm text-xs">
+            <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
+          </button>
+        </div>
+
+        <!-- 1. EMPLOYEE SECTION -->
+        <section id="sectionEmployee" class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-user text-indigo-600"></i> EMPLOYEE ASSETS
+            </h3>
+            <span id="employeeSectionBadge" class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">0 Assets</span>
+          </div>
+          <div id="employeeDirectoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
+        </section>
+
+        <!-- 2. SHARED / PUBLIC SECTION -->
+        <section id="sectionShared" class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-display text-sky-600"></i> SHARED & PUBLIC ASSETS
+            </h3>
+            <span id="sharedSectionBadge" class="text-[11px] font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-md border border-sky-100">0 Assets</span>
+          </div>
+          <div id="sharedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
+        </section>
+
+        <!-- 3. AVAILABLE / UNASSIGNED SECTION -->
+        <section id="sectionAvailable" class="space-y-4 pb-8">
+          <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-boxes-packing text-amber-600"></i> AVAILABLE / UNASSIGNED ASSETS
+            </h3>
+            <span id="availableSectionBadge" class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-100">0 Assets</span>
+          </div>
+          <div id="availableUnassignedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+      </div>
+
     </div>
-
-    <!-- TIMESTAMP & REFRESH BAR -->
-    <div class="flex justify-between items-center px-1 text-xs text-slate-500">
-      <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
-      <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm text-xs">
-        <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
-      </button>
-    </div>
-
-    <!-- ================================================== -->
-    <!-- DYNAMIC SECTION CONTAINER (3-COLUMN CSS GRID) -->
-    <!-- ================================================== -->
-    
-    <!-- 1. EMPLOYEE SECTION -->
-    <section id="sectionEmployee" class="space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-user text-indigo-600"></i> EMPLOYEE ASSETS
-        </h3>
-      </div>
-      <div id="employeeDirectoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
-    </section>
-
-    <!-- 2. SHARED / PUBLIC SECTION -->
-    <section id="sectionShared" class="space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-display text-sky-600"></i> SHARED & PUBLIC ASSETS
-        </h3>
-      </div>
-      <div id="sharedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
-    </section>
-
-    <!-- 3. AVAILABLE / UNASSIGNED SECTION -->
-    <section id="sectionAvailable" class="space-y-4 pb-8">
-      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-boxes-packing text-amber-600"></i> AVAILABLE / UNASSIGNED ASSETS
-        </h3>
-      </div>
-      <div id="availableUnassignedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    </section>
 
   </main>
 
@@ -521,24 +551,24 @@
       filterInventoryRecords();
     }
 
-    // 🎯 TAB NAVIGATION SELECTOR
+    // 🎯 VERTICAL TAB NAVIGATION SELECTOR
     function selectCategoryTab(tabKey) {
       activeCategoryTab = tabKey;
 
       ['ALL', 'EMPLOYEE', 'SHARED', 'AVAILABLE'].forEach(key => {
-        const btn = document.getElementById(`tabCategory${key}`);
-        const countSpan = document.getElementById(`tabCount${key}`);
+        const btn = document.getElementById(`vtabCategory${key}`);
+        const countSpan = document.getElementById(`vtabCount${key}`);
         
         if (key === tabKey) {
-          btn.className = 'tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-fast whitespace-nowrap bg-slate-900 text-white shadow-sm flex items-center gap-2 border border-slate-800';
-          countSpan.className = 'bg-slate-800 text-slate-200 text-[10px] px-2 py-0.5 rounded-md';
+          btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-fast bg-slate-900 text-white shadow-sm shrink-0 lg:shrink';
+          countSpan.className = 'bg-slate-800 text-slate-200 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2';
         } else {
-          btn.className = 'tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2';
-          countSpan.className = 'bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md';
+          btn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-fast text-slate-700 hover:bg-slate-100 shrink-0 lg:shrink';
+          countSpan.className = 'bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md ml-2';
         }
       });
 
-      // Show/Hide Sections based on Tab Selection
+      // Show/Hide Sections based on Vertical Tab Selection
       document.getElementById('sectionEmployee').style.display = (tabKey === 'ALL' || tabKey === 'EMPLOYEE') ? 'block' : 'none';
       document.getElementById('sectionShared').style.display = (tabKey === 'ALL' || tabKey === 'SHARED') ? 'block' : 'none';
       document.getElementById('sectionAvailable').style.display = (tabKey === 'ALL' || tabKey === 'AVAILABLE') ? 'block' : 'none';
@@ -572,15 +602,21 @@
       document.getElementById('statSpare').innerText = rawInventoryRecords.filter(r => r.status === 'SPARE').length;
       document.getElementById('statRepair').innerText = rawInventoryRecords.filter(r => r.status === 'REPAIR').length;
 
-      // Update Tab Counts
+      // Calculate Tier Counts
       const empCount = filtered.filter(r => isHasAssignedEmployee(r)).length;
       const sharedCount = filtered.filter(r => isSharedOrPublicAsset(r)).length;
       const availCount = filtered.filter(r => !isHasAssignedEmployee(r) && !isSharedOrPublicAsset(r)).length;
 
-      document.getElementById('tabCountALL').innerText = filtered.length;
-      document.getElementById('tabCountEMPLOYEE').innerText = empCount;
-      document.getElementById('tabCountSHARED').innerText = sharedCount;
-      document.getElementById('tabCountAVAILABLE').innerText = availCount;
+      // Update Vertical Tab Counts
+      document.getElementById('vtabCountALL').innerText = filtered.length;
+      document.getElementById('vtabCountEMPLOYEE').innerText = empCount;
+      document.getElementById('vtabCountSHARED').innerText = sharedCount;
+      document.getElementById('vtabCountAVAILABLE').innerText = availCount;
+
+      // Update Section Header Badges
+      document.getElementById('employeeSectionBadge').innerText = `${empCount} Assets`;
+      document.getElementById('sharedSectionBadge').innerText = `${sharedCount} Assets`;
+      document.getElementById('availableSectionBadge').innerText = `${availCount} Assets`;
 
       renderThreeTierArchitecture(filtered);
     }
