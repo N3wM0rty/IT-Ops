@@ -13,7 +13,6 @@
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; color: #0f172a; }
     
-    /* Subtle Animations & Transitions (150ms-200ms) */
     .transition-fast { transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); }
     .sidebar-link { transition: all 150ms ease; }
     .sidebar-link.active { background-color: #0f172a; color: #ffffff; }
@@ -28,9 +27,15 @@
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 200ms ease-out forwards; }
 
-    /* Popover Menu Alignment */
+    /* Popover Menu */
     .action-popover { display: none; }
     .action-popover.active { display: block; }
+
+    /* Masonry column break fix */
+    .masonry-item {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased overflow-x-hidden">
@@ -125,10 +130,8 @@
         </div>
       </div>
 
-      <!-- 1. DASHBOARD SUMMARY CARDS (CLICKABLE) -->
+      <!-- DASHBOARD SUMMARY CARDS -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        
-        <!-- ALL -->
         <div onclick="setFilterStatus('ALL')" id="cardStatALL" class="p-4 bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 rounded-2xl cursor-pointer transition-fast flex items-center justify-between group">
           <div>
             <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">ALL ASSETS</p>
@@ -139,7 +142,6 @@
           </div>
         </div>
 
-        <!-- IN USE -->
         <div onclick="setFilterStatus('IN USE')" id="cardStatIN_USE" class="p-4 bg-emerald-50/50 hover:bg-emerald-50 border-2 border-emerald-100/80 rounded-2xl cursor-pointer transition-fast flex items-center justify-between group">
           <div>
             <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">IN USE</p>
@@ -150,7 +152,6 @@
           </div>
         </div>
 
-        <!-- SPARE -->
         <div onclick="setFilterStatus('SPARE')" id="cardStatSPARE" class="p-4 bg-blue-50/50 hover:bg-blue-50 border-2 border-blue-100/80 rounded-2xl cursor-pointer transition-fast flex items-center justify-between group">
           <div>
             <p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">SPARE</p>
@@ -161,7 +162,6 @@
           </div>
         </div>
 
-        <!-- REPAIR -->
         <div onclick="setFilterStatus('REPAIR')" id="cardStatREPAIR" class="p-4 bg-amber-50/50 hover:bg-amber-50 border-2 border-amber-100/80 rounded-2xl cursor-pointer transition-fast flex items-center justify-between group">
           <div>
             <p class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">REPAIR</p>
@@ -171,27 +171,22 @@
             <i class="fa-solid fa-wrench"></i>
           </div>
         </div>
-
       </div>
 
-      <!-- 5 & 6. REALTIME SEARCH & MULTI-FILTER ROW -->
+      <!-- SEARCH & MULTI-FILTER ROW -->
       <div class="space-y-3 pt-2">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          
-          <!-- SEARCH BOX -->
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input type="text" id="searchInventoryInput" oninput="filterInventoryRecords()" placeholder="Search employee, asset, serial number, IP address..." class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 shadow-sm transition-fast">
           </div>
 
-          <!-- DEPARTMENT FILTER -->
           <div>
             <select id="filterDepartment" onchange="filterInventoryRecords()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none focus:border-slate-400 shadow-sm transition-fast">
               <option value="ALL">All Departments</option>
             </select>
           </div>
 
-          <!-- STATUS FILTER -->
           <div>
             <select id="filterStatusSelect" onchange="filterInventoryRecords()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none focus:border-slate-400 shadow-sm transition-fast">
               <option value="ALL">All Status</option>
@@ -202,13 +197,12 @@
             </select>
           </div>
 
-          <!-- ASSET TYPE FILTER -->
           <div>
             <select id="filterType" onchange="filterInventoryRecords()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-700 focus:outline-none focus:border-slate-400 shadow-sm transition-fast">
               <option value="ALL">All Asset Types</option>
+              <option value="Laptop">Laptop</option>
               <option value="Mini PC">Mini PC</option>
               <option value="Desktop">Desktop</option>
-              <option value="Laptop">Laptop</option>
               <option value="iMac">iMac</option>
               <option value="Printer">Printer</option>
               <option value="Monitor">Monitor</option>
@@ -216,40 +210,77 @@
               <option value="Other">Other</option>
             </select>
           </div>
-
         </div>
       </div>
 
     </div>
 
-    <!-- 10. SECTION HEADER: USER ASSET DIRECTORY & LAST UPDATED -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-      <div class="flex items-center gap-2.5">
-        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-users text-slate-500"></i> User Asset Directory
-        </h3>
-        <span id="directoryUserCount" class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Users</span>
+    <!-- 1. SECTION: USER ASSETS -->
+    <div class="space-y-4 pt-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+        <div class="flex items-center gap-2.5">
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-user-gear text-indigo-600"></i> 👤 USER ASSETS
+          </h3>
+          <span id="directoryUserCount" class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Users</span>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs text-slate-500">
+          <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
+          <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
+          </button>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3 text-xs text-slate-500">
-        <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
-        <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm">
-          <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
-        </button>
+      <div id="userDirectoryGrid" class="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
+        <!-- JS Render User Cards -->
       </div>
     </div>
 
-    <!-- 2 & 3. USER ASSET DIRECTORY (RESPONSIVE MASONRY CSS GRID: AUTO HEIGHT) -->
-    <div id="userDirectoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
-      <!-- JS Render User Cards -->
+    <!-- 2. SECTION: SHARED & PUBLIC ASSETS -->
+    <div class="space-y-4 pt-6 border-t border-slate-200/80">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-display text-sky-600"></i> 🖥 SHARED & PUBLIC ASSETS
+          </h3>
+          <p class="text-slate-500 text-xs mt-0.5">Assets assigned to public areas, shared kiosks, or department locations</p>
+        </div>
+        <span id="sharedAssetCountBadge" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs font-bold px-3 py-1 rounded-xl shadow-sm">
+          0 Locations / Assets
+        </span>
+      </div>
+
+      <div id="sharedAssetsGrid" class="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
+        <!-- JS Render Shared/Public Location Cards -->
+      </div>
+    </div>
+
+    <!-- 3. SECTION: UNASSIGNED ASSETS -->
+    <div id="unassignedSectionContainer" class="space-y-4 pt-6 border-t border-slate-200/80">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> ⚠ UNASSIGNED ASSETS
+          </h3>
+          <p class="text-slate-500 text-xs mt-0.5">Assets currently without an assigned user, location, or responsible owner</p>
+        </div>
+        <span id="unassignedAssetCountBadge" class="bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-xl shadow-sm">
+          0 Assets
+        </span>
+      </div>
+
+      <div id="unassignedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- JS Render Unassigned Assets -->
+      </div>
     </div>
 
   </main>
 
-  <!-- 8. ADD / EDIT ASSET MODAL -->
+  <!-- ADD / EDIT ASSET MODAL -->
   <div id="assetModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden space-y-5 p-6 max-h-[90vh] flex flex-col">
-      
       <div class="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
         <h3 id="modalTitle" class="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
           <i class="fa-solid fa-plus-circle text-indigo-600"></i> Add New Asset
@@ -263,14 +294,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Asset Name / Model Title *</label>
-            <input type="text" id="formName" required placeholder="e.g. Dell OptiPlex Micro 7010" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <input type="text" id="formName" required placeholder="e.g. Dell Latitude 5540" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Asset Type *</label>
             <select id="formType" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+              <option value="Laptop">Laptop</option>
               <option value="Mini PC">Mini PC</option>
               <option value="Desktop">Desktop</option>
-              <option value="Laptop">Laptop</option>
               <option value="iMac">iMac</option>
               <option value="Printer">Printer</option>
               <option value="Monitor">Monitor</option>
@@ -294,29 +325,29 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Serial Number *</label>
-            <input type="text" id="formSerial" required placeholder="e.g. 6469C04" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <input type="text" id="formSerial" required placeholder="e.g. 6F29PX3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">IP Address</label>
-            <input type="text" id="formIp" placeholder="e.g. 10.79.34.89" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <input type="text" id="formIp" placeholder="e.g. 10.79.34.80" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Department *</label>
-            <input type="text" id="formDepartment" required placeholder="e.g. HK / IT / EN" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <input type="text" id="formDepartment" required placeholder="e.g. FO / HK / IT / EN" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Location</label>
-            <input type="text" id="formLocation" placeholder="e.g. Linen Room / Server Room" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <input type="text" id="formLocation" placeholder="e.g. Lobby Phase 2 / Server Room" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Assigned To (Employee Name)</label>
-            <input type="text" id="formAssignedTo" placeholder="Leave empty for Unassigned" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <label class="block font-semibold text-slate-700 mb-1">Assigned To (Employee / Shared Location)</label>
+            <input type="text" id="formAssignedTo" placeholder="e.g. Name OR Lobby PC / FO - Lobby" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Status *</label>
@@ -334,23 +365,20 @@
           <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl transition-fast font-medium">Save Asset</button>
         </div>
       </form>
-
     </div>
   </div>
 
-  <!-- 7. ACTION POPOVER / MODAL FOR DETAIL & ACTIONS -->
+  <!-- DETAIL MODAL -->
   <div id="assetDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 overflow-hidden space-y-4 p-6">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-          <i class="fa-solid fa-circle-info text-indigo-600"></i> Asset Quick Details
+          <i class="fa-solid fa-circle-info text-indigo-600"></i> Asset Details
         </h3>
         <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <div id="detailModalContent" class="space-y-3 text-xs">
-        <!-- JS Render Details -->
-      </div>
+      <div id="detailModalContent" class="space-y-3 text-xs"></div>
 
       <div class="flex justify-end pt-3 border-t border-slate-100">
         <button onclick="closeDetailModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-1.5 rounded-xl transition-fast font-medium">Close</button>
@@ -359,7 +387,6 @@
   </div>
 
   <script>
-    // 🗄️ SUPABASE CONFIGURATION
     const AUTH_SUPABASE_URL = 'https://mpvyalurrgrymbvbmwcj.supabase.co';
     const AUTH_SUPABASE_KEY = 'sb_publishable_2sxnepbtIji-OK0ddOnQFA_cCin-yLu';
     const supabaseAuth = supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
@@ -370,9 +397,7 @@
 
     let rawInventoryRecords = [];
     let activeStatusFilter = 'ALL';
-    let activePopoverId = null;
 
-    // Toast Notification
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -397,7 +422,6 @@
       window.location.href = 'index.html';
     }
 
-    // Normalizing status terminology
     function normalizeStatus(status) {
       if (!status) return 'IN USE';
       const s = status.toString().trim().toUpperCase();
@@ -408,15 +432,35 @@
       return 'IN USE';
     }
 
+    // SHARED / PUBLIC IDENTIFIER LOGIC
+    function isSharedOrPublicAsset(item) {
+      const name = (item.name || '').trim();
+      const nameUpper = name.toUpperCase();
+      const locUpper = (item.location || '').toUpperCase();
+      const deptUpper = (item.department || '').toUpperCase();
+
+      // Case 1: Name is "-" or explicitly contains public keywords
+      if (name === '-' || nameUpper === 'N/A' || nameUpper === 'PUBLIC' || nameUpper === 'SHARED') return true;
+
+      const publicKeywords = ['LOBBY', 'GUEST', 'BUSINESS CENTER', 'KIOSK', 'MEETING', 'COMMON', 'PUBLIC', 'SHARED', 'COUNTER', 'RECEPTION'];
+      return publicKeywords.some(kw => nameUpper.includes(kw) || locUpper.includes(kw));
+    }
+
+    function isUnassignedAsset(item) {
+      const name = (item.name || '').trim();
+      const nameUpper = name.toUpperCase();
+      return !name || nameUpper === 'UNASSIGNED' || nameUpper === 'TBA' || nameUpper === 'SPARE';
+    }
+
     async function fetchInventoryRecords() {
       const { data, error } = await supabaseOps.from('inventory').select('*').order('id', { ascending: true });
       if (!error && data) {
         rawInventoryRecords = data.map(r => ({
           ...r,
           status: normalizeStatus(r.status),
-          type: r.type || 'Mini PC',
+          type: r.type || 'Laptop',
           name: r.name || '',
-          department: r.department || 'GENERAL',
+          department: r.department || 'General',
           position: r.position || 'Staff',
           location: r.location || 'Resort',
           model: r.model || 'Standard Device',
@@ -453,12 +497,10 @@
       select.value = currentVal || 'ALL';
     }
 
-    // 1. Dashboard Summary Card Filter Click
     function setFilterStatus(status) {
       activeStatusFilter = status;
       document.getElementById('filterStatusSelect').value = status;
       
-      // Update Card Visual Highlight
       ['ALL', 'IN_USE', 'SPARE', 'REPAIR'].forEach(key => {
         const el = document.getElementById(`cardStat${key}`);
         if (!el) return;
@@ -492,95 +534,136 @@
         return matchSearch && matchDept && matchStatus && matchType;
       });
 
-      // Update Summary Counts
       document.getElementById('statTotalItems').innerText = rawInventoryRecords.length;
       document.getElementById('statInUse').innerText = rawInventoryRecords.filter(r => r.status === 'IN USE').length;
       document.getElementById('statSpare').innerText = rawInventoryRecords.filter(r => r.status === 'SPARE').length;
       document.getElementById('statRepair').innerText = rawInventoryRecords.filter(r => r.status === 'REPAIR').length;
 
-      renderUserDirectoryGrid(filtered);
+      renderThreeTierInventory(filtered);
     }
 
-    // 2 & 3. USER ASSET DIRECTORY (MASONRY GRID & AUTO HEIGHT CARDS)
-    function renderUserDirectoryGrid(records) {
-      const container = document.getElementById('userDirectoryGrid');
-      if (!container) return;
+    // 🎯 RENDER THREE-TIER ARCHITECTURE
+    function renderThreeTierInventory(records) {
+      const userContainer = document.getElementById('userDirectoryGrid');
+      const sharedContainer = document.getElementById('sharedAssetsGrid');
+      const unassignedContainer = document.getElementById('unassignedAssetsGrid');
 
-      if (records.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
-            <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto text-lg"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <p class="text-xs font-semibold text-slate-700">No matching assets found</p>
-            <p class="text-[11px] text-slate-400">Try adjusting your filters or search keywords</p>
-          </div>
-        `;
-        document.getElementById('directoryUserCount').innerText = '0 Users';
-        return;
-      }
+      const userRecords = [];
+      const sharedRecords = [];
+      const unassignedRecords = [];
 
-      // Group Assets by User
+      records.forEach(r => {
+        if (isUnassignedAsset(r)) {
+          unassignedRecords.push(r);
+        } else if (isSharedOrPublicAsset(r)) {
+          sharedRecords.push(r);
+        } else {
+          userRecords.push(r);
+        }
+      });
+
+      // --- 1. RENDER USER ASSETS ---
       const userGroupMap = {};
-
-      records.forEach(item => {
-        const userName = item.name && item.name.trim() !== '' ? item.name.trim() : 'UNASSIGNED_GROUP';
-        if (!userGroupMap[userName]) {
-          userGroupMap[userName] = {
-            userName: userName,
+      userRecords.forEach(item => {
+        const uName = item.name.trim();
+        if (!userGroupMap[uName]) {
+          userGroupMap[uName] = {
+            userName: uName,
             department: item.department || 'General',
             position: item.position || 'Staff',
-            location: item.location || 'Main Building',
             assets: []
           };
         }
-        userGroupMap[userName].assets.push(item);
+        userGroupMap[uName].assets.push(item);
       });
 
       const userGroups = Object.values(userGroupMap);
       document.getElementById('directoryUserCount').innerText = `${userGroups.length} ${userGroups.length === 1 ? 'User' : 'Users'}`;
 
-      container.innerHTML = userGroups.map(u => {
-        const isUnassigned = u.userName === 'UNASSIGNED_GROUP';
-        
-        // 4. UNASSIGNED ASSET HEADER
-        const displayName = isUnassigned ? 'Unassigned' : u.userName;
-        const displaySub = isUnassigned ? `${u.department} • ${u.location}` : `${u.department} • ${u.position}`;
-        
-        // User Initial Avatar
-        const initials = isUnassigned ? 'UN' : u.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        const avatarBg = isUnassigned ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-900 text-white';
+      if (userGroups.length === 0) {
+        userContainer.innerHTML = `<div class="masonry-item bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No user assets match filter.</div>`;
+      } else {
+        userContainer.innerHTML = userGroups.map(u => {
+          const initials = u.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          return `
+            <div class="masonry-item bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-fast overflow-hidden mb-5">
+              <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                  <div class="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                    ${initials}
+                  </div>
+                  <div class="overflow-hidden">
+                    <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${u.userName}</h4>
+                    <p class="text-[10px] text-slate-500 truncate mt-0.5">${u.department} • ${u.position}</p>
+                  </div>
+                </div>
+                <span class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
+                  ${u.assets.length} ${u.assets.length === 1 ? 'Asset' : 'Assets'}
+                </span>
+              </div>
+              <div class="p-2.5 space-y-2">
+                ${u.assets.map(asset => renderCompactAssetCard(asset)).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
 
-        return `
-          <!-- USER CARD (Auto Height - No Empty Space) -->
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-fast overflow-hidden flex flex-col">
-            
-            <!-- CARD HEADER -->
-            <div class="p-4 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-9 h-9 rounded-xl ${avatarBg} border flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                  ${initials}
+      // --- 2. RENDER SHARED & PUBLIC ASSETS ---
+      const sharedGroupMap = {};
+      sharedRecords.forEach(item => {
+        const locName = (item.name && item.name !== '-') ? item.name : `${item.department} - ${item.location}`;
+        if (!sharedGroupMap[locName]) {
+          sharedGroupMap[locName] = {
+            locationTitle: locName,
+            department: item.department || 'Public',
+            assets: []
+          };
+        }
+        sharedGroupMap[locName].assets.push(item);
+      });
+
+      const sharedGroups = Object.values(sharedGroupMap);
+      document.getElementById('sharedAssetCountBadge').innerText = `${sharedGroups.length} Locations (${sharedRecords.length} Assets)`;
+
+      if (sharedGroups.length === 0) {
+        sharedContainer.innerHTML = `<div class="masonry-item bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No shared or public assets match filter.</div>`;
+      } else {
+        sharedContainer.innerHTML = sharedGroups.map(s => `
+          <div class="masonry-item bg-white rounded-2xl border border-sky-200/80 shadow-sm hover:shadow-md transition-fast overflow-hidden mb-5">
+            <div class="p-3.5 bg-sky-50/50 border-b border-sky-100 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5 overflow-hidden">
+                <div class="w-8 h-8 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                  <i class="fa-solid fa-display text-xs"></i>
                 </div>
                 <div class="overflow-hidden">
-                  <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${displayName}</h4>
-                  <p class="text-[11px] text-slate-500 truncate mt-0.5">${displaySub}</p>
+                  <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${s.locationTitle}</h4>
+                  <p class="text-[10px] text-sky-700 font-medium truncate mt-0.5">Public / Shared</p>
                 </div>
               </div>
-              <span class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg shrink-0 shadow-sm">
-                ${u.assets.length} ${u.assets.length === 1 ? 'Asset' : 'Assets'}
+              <span class="bg-white border border-sky-200 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
+                ${s.assets.length} ${s.assets.length === 1 ? 'Asset' : 'Assets'}
               </span>
             </div>
-
-            <!-- COMPACT ASSETS LIST -->
-            <div class="p-3 space-y-2.5">
-              ${u.assets.map(asset => renderAssetItemCard(asset)).join('')}
+            <div class="p-2.5 space-y-2">
+              ${s.assets.map(asset => renderCompactAssetCard(asset, 'SHARED')).join('')}
             </div>
-
           </div>
-        `;
-      }).join('');
+        `).join('');
+      }
+
+      // --- 3. RENDER UNASSIGNED ASSETS ---
+      document.getElementById('unassignedAssetCountBadge').innerText = `${unassignedRecords.length} Assets`;
+
+      if (unassignedRecords.length === 0) {
+        unassignedContainer.innerHTML = `<div class="col-span-full bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No unassigned assets.</div>`;
+      } else {
+        unassignedContainer.innerHTML = unassignedRecords.map(asset => renderCompactAssetCard(asset, 'UNASSIGNED')).join('');
+      }
     }
 
-    // 3. COMPACT ASSET ITEM CARD DESIGN
-    function renderAssetItemCard(asset) {
+    // COMPACT ASSET CARD TEMPLATE
+    function renderCompactAssetCard(asset, context = 'USER') {
       let statusBadgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
       let statusDot = 'bg-emerald-500';
 
@@ -595,25 +678,24 @@
         statusDot = 'bg-slate-400';
       }
 
+      let subMetaText = asset.location || 'Resort';
+      if (context === 'UNASSIGNED') subMetaText = 'No Owner';
+      if (context === 'SHARED') subMetaText = asset.department || 'Shared Location';
+
       return `
-        <div class="bg-slate-50/60 hover:bg-slate-50 border border-slate-200/80 rounded-xl p-3 transition-fast space-y-2 relative group">
+        <div class="bg-slate-50/70 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition-fast space-y-1.5 relative group">
           
-          <!-- TOP ROW: NAME & STATUS & MENU -->
           <div class="flex items-start justify-between gap-2">
-            <div class="overflow-hidden pr-6">
+            <div class="overflow-hidden pr-5">
               <h5 class="text-xs font-bold text-slate-900 truncate leading-snug">${asset.model || asset.name}</h5>
-              <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200 shrink-0">${asset.type}</span>
-              </div>
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-white px-1.5 py-0.2 rounded border border-slate-200 inline-block mt-0.5">${asset.type}</span>
             </div>
 
-            <!-- 7. ACTION POPOVER BUTTON (⋮) -->
-            <div class="absolute right-2 top-2">
-              <button onclick="toggleActionPopover(event, ${asset.id})" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-fast" title="Actions">
+            <div class="absolute right-1.5 top-1.5">
+              <button onclick="toggleActionPopover(event, ${asset.id})" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200/60 transition-fast" title="Actions">
                 <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
               </button>
 
-              <!-- DROPDOWN POPOVER -->
               <div id="popover-${asset.id}" class="action-popover absolute right-0 top-6 w-44 bg-white rounded-xl shadow-lg border border-slate-200 z-20 py-1.5 text-xs text-slate-700">
                 <button onclick="viewAssetDetails(${asset.id})" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-eye text-slate-400 w-4"></i> View Details</button>
                 <button onclick="editAsset(${asset.id})" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center gap-2"><i class="fa-solid fa-pen text-slate-400 w-4"></i> Edit Asset</button>
@@ -624,20 +706,19 @@
             </div>
           </div>
 
-          <!-- METADATA ROW -->
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-200/50">
+          <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-500 pt-0.5">
             <div>
-              <span class="text-[9px] font-medium text-slate-400 uppercase block">Serial Number</span>
+              <span class="text-[8px] font-bold text-slate-400 uppercase block">Serial Number</span>
               <span class="font-mono font-medium text-slate-700 truncate block">${asset.serial_number || 'N/A'}</span>
             </div>
             <div>
-              <span class="text-[9px] font-medium text-slate-400 uppercase block">IP Address</span>
+              <span class="text-[8px] font-bold text-slate-400 uppercase block">IP Address</span>
               <span class="font-mono font-medium text-indigo-600 truncate block">${asset.ip || '-'}</span>
             </div>
           </div>
 
-          <!-- STATUS BADGE ROW -->
-          <div class="flex justify-end pt-1">
+          <div class="flex items-center justify-between pt-1 border-t border-slate-200/50 text-[10px]">
+            <span class="text-slate-400 truncate">${subMetaText}</span>
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${statusBadgeStyle}">
               <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span> ${asset.status}
             </span>
@@ -647,26 +728,19 @@
       `;
     }
 
-    // Toggle Action Popover Menu
     function toggleActionPopover(event, id) {
       event.stopPropagation();
       const popover = document.getElementById(`popover-${id}`);
       const isVisible = popover.classList.contains('active');
-      
-      // Close all active popovers first
       document.querySelectorAll('.action-popover').forEach(p => p.classList.remove('active'));
-
-      if (!isVisible) {
-        popover.classList.add('active');
-      }
+      if (!isVisible) popover.classList.add('active');
     }
 
-    // Close Popovers on global click
     document.addEventListener('click', () => {
       document.querySelectorAll('.action-popover').forEach(p => p.classList.remove('active'));
     });
 
-    // 8. ADD & EDIT MODAL CONTROLS
+    // MODAL HANDLERS
     function openAddModal() {
       document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-plus-circle text-indigo-600"></i> Add New Asset`;
       document.getElementById('assetModalForm').reset();
@@ -685,7 +759,7 @@
       document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-600"></i> Edit Asset (#${asset.id})`;
       document.getElementById('formAssetId').value = asset.id;
       document.getElementById('formName').value = asset.model || asset.name;
-      document.getElementById('formType').value = asset.type || 'Mini PC';
+      document.getElementById('formType').value = asset.type || 'Laptop';
       document.getElementById('formBrand').value = asset.brand || '';
       document.getElementById('formModel').value = asset.cpu || asset.model || '';
       document.getElementById('formSerial').value = asset.serial_number || '';
@@ -727,7 +801,7 @@
       fetchInventoryRecords();
     });
 
-    // POPOVER ACTION HANDLERS
+    // POPOVER ACTIONS
     function viewAssetDetails(id) {
       const asset = rawInventoryRecords.find(r => r.id === id);
       if (!asset) return;
@@ -740,7 +814,7 @@
             <span class="text-indigo-600 font-mono">${asset.type}</span>
           </div>
           <div class="grid grid-cols-2 gap-2 text-slate-600">
-            <div><strong>Assigned:</strong> ${asset.name || 'Unassigned'}</div>
+            <div><strong>Assigned To:</strong> ${asset.name || 'Unassigned'}</div>
             <div><strong>Department:</strong> ${asset.department}</div>
             <div><strong>Serial No:</strong> <span class="font-mono">${asset.serial_number}</span></div>
             <div><strong>IP Address:</strong> <span class="font-mono">${asset.ip}</span></div>
@@ -757,7 +831,7 @@
     }
 
     async function transferAsset(id) {
-      const newOwner = prompt('Enter New Employee Name to Transfer Asset:');
+      const newOwner = prompt('Enter New Employee Name or Location to Transfer Asset:');
       if (newOwner !== null && newOwner.trim() !== '') {
         await supabaseOps.from('inventory').update({ name: newOwner.trim() }).eq('id', id);
         showToast('TRANSFERRED', `Asset assigned to ${newOwner}`);
@@ -781,7 +855,7 @@
       alert(`🖨️ Printing Asset Label:\n\nAsset ID: #${asset.id}\nS/N: ${asset.serial_number}\nModel: ${asset.model}\nDept: ${asset.department}`);
     }
 
-    // 9. IMPORT CSV FUNCTIONALITY
+    // IMPORT CSV
     function handleCSVImport(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -803,7 +877,7 @@
             newItems.push({
               name: cols[0] || 'Unassigned',
               model: cols[1] || 'Imported Device',
-              type: cols[2] || 'Mini PC',
+              type: cols[2] || 'Laptop',
               department: cols[3] || 'IT',
               serial_number: cols[4] || 'N/A',
               ip: cols[5] || '-',
@@ -831,7 +905,7 @@
 
       worksheet.columns = [
         { header: 'No.', key: 'id', width: 8 },
-        { header: 'Assigned User', key: 'name', width: 22 },
+        { header: 'Assigned User / Location', key: 'name', width: 22 },
         { header: 'Position', key: 'position', width: 20 },
         { header: 'Department', key: 'department', width: 15 },
         { header: 'Asset Model', key: 'model', width: 25 },
@@ -853,7 +927,6 @@
       link.click();
     }
 
-    // INITIAL LOAD
     checkAuth();
   </script>
 </body>
