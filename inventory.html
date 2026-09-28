@@ -24,18 +24,16 @@
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+    /* Hide scrollbar for Tab Navigation on Mobile */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .toast-slide-in { animation: slideInRight 200ms ease-out forwards; }
 
     /* Popover Menu */
     .action-popover { display: none; }
     .action-popover.active { display: block; }
-
-    /* Masonry column break fix */
-    .masonry-item {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
   </style>
 </head>
 <body class="min-h-screen flex bg-slate-50 antialiased overflow-x-hidden">
@@ -113,7 +111,7 @@
           <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
             <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> IT ASSET INVENTORY MANAGEMENT
           </h2>
-          <p class="text-slate-500 text-xs mt-1">Enterprise Asset Directory & Hardware Lifecycle Tracking (Database: IT_Ops)</p>
+          <p class="text-slate-500 text-xs mt-1">Enterprise Asset Directory & Lifecycle Management System</p>
         </div>
         
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -215,66 +213,70 @@
 
     </div>
 
-    <!-- 1. SECTION: USER ASSETS -->
-    <div class="space-y-4 pt-2">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-        <div class="flex items-center gap-2.5">
-          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-user-gear text-indigo-600"></i> 👤 USER ASSETS
-          </h3>
-          <span id="directoryUserCount" class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Users</span>
-        </div>
+    <!-- 🎯 4-TAB NAVIGATION (HORIZONTAL / MOBILE SCROLLABLE) -->
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+      <button onclick="selectCategoryTab('ALL')" id="tabCategoryALL" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-fast whitespace-nowrap bg-slate-900 text-white shadow-sm flex items-center gap-2 border border-slate-800">
+        <span>ALL ASSETS</span>
+        <span id="tabCountALL" class="bg-slate-800 text-slate-200 text-[10px] px-2 py-0.5 rounded-md">0</span>
+      </button>
 
-        <div class="flex items-center gap-3 text-xs text-slate-500">
-          <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
-          <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
-          </button>
-        </div>
-      </div>
+      <button onclick="selectCategoryTab('EMPLOYEE')" id="tabCategoryEMPLOYEE" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
+        <span>EMPLOYEE</span>
+        <span id="tabCountEMPLOYEE" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
+      </button>
 
-      <div id="userDirectoryGrid" class="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
-        <!-- JS Render User Cards -->
-      </div>
+      <button onclick="selectCategoryTab('SHARED')" id="tabCategorySHARED" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
+        <span>SHARED / PUBLIC</span>
+        <span id="tabCountSHARED" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
+      </button>
+
+      <button onclick="selectCategoryTab('AVAILABLE')" id="tabCategoryAVAILABLE" class="tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2">
+        <span>AVAILABLE / UNASSIGNED</span>
+        <span id="tabCountAVAILABLE" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md">0</span>
+      </button>
     </div>
 
-    <!-- 2. SECTION: SHARED & PUBLIC ASSETS -->
-    <div class="space-y-4 pt-6 border-t border-slate-200/80">
-      <div class="flex items-center justify-between px-1">
-        <div>
-          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-display text-sky-600"></i> 🖥 SHARED & PUBLIC ASSETS
-          </h3>
-          <p class="text-slate-500 text-xs mt-0.5">Assets assigned to public areas, shared kiosks, or department locations</p>
-        </div>
-        <span id="sharedAssetCountBadge" class="bg-sky-50 border border-sky-200 text-sky-800 text-xs font-bold px-3 py-1 rounded-xl shadow-sm">
-          0 Locations / Assets
-        </span>
-      </div>
-
-      <div id="sharedAssetsGrid" class="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
-        <!-- JS Render Shared/Public Location Cards -->
-      </div>
+    <!-- TIMESTAMP & REFRESH BAR -->
+    <div class="flex justify-between items-center px-1 text-xs text-slate-500">
+      <span id="lastUpdatedDisplay" class="font-mono text-[11px]">Last updated: 28 Sep 2026, 09:32</span>
+      <button onclick="refreshData()" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg transition-fast font-medium flex items-center gap-1.5 shadow-sm text-xs">
+        <i class="fa-solid fa-rotate-right text-[10px]" id="refreshIcon"></i> Refresh
+      </button>
     </div>
 
-    <!-- 3. SECTION: UNASSIGNED ASSETS -->
-    <div id="unassignedSectionContainer" class="space-y-4 pt-6 border-t border-slate-200/80">
-      <div class="flex items-center justify-between px-1">
-        <div>
-          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> ⚠ UNASSIGNED ASSETS
-          </h3>
-          <p class="text-slate-500 text-xs mt-0.5">Assets currently without an assigned user, location, or responsible owner</p>
-        </div>
-        <span id="unassignedAssetCountBadge" class="bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-xl shadow-sm">
-          0 Assets
-        </span>
+    <!-- ================================================== -->
+    <!-- DYNAMIC SECTION CONTAINER (3-COLUMN CSS GRID) -->
+    <!-- ================================================== -->
+    
+    <!-- 1. EMPLOYEE SECTION -->
+    <section id="sectionEmployee" class="space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-user text-indigo-600"></i> EMPLOYEE ASSETS
+        </h3>
       </div>
+      <div id="employeeDirectoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
+    </section>
 
-      <div id="unassignedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- JS Render Unassigned Assets -->
+    <!-- 2. SHARED / PUBLIC SECTION -->
+    <section id="sectionShared" class="space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-display text-sky-600"></i> SHARED & PUBLIC ASSETS
+        </h3>
       </div>
-    </div>
+      <div id="sharedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start"></div>
+    </section>
+
+    <!-- 3. AVAILABLE / UNASSIGNED SECTION -->
+    <section id="sectionAvailable" class="space-y-4 pb-8">
+      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-boxes-packing text-amber-600"></i> AVAILABLE / UNASSIGNED ASSETS
+        </h3>
+      </div>
+      <div id="availableUnassignedAssetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
 
   </main>
 
@@ -346,8 +348,8 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Assigned To (Employee / Shared Location)</label>
-            <input type="text" id="formAssignedTo" placeholder="e.g. Name OR Lobby PC / FO - Lobby" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
+            <label class="block font-semibold text-slate-700 mb-1">Assigned To (Employee / Location)</label>
+            <input type="text" id="formAssignedTo" placeholder="e.g. Chaloemphon OR FO - Lobby" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:bg-white focus:outline-none focus:border-slate-400">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Status *</label>
@@ -397,6 +399,7 @@
 
     let rawInventoryRecords = [];
     let activeStatusFilter = 'ALL';
+    let activeCategoryTab = 'ALL';
 
     function showToast(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -429,27 +432,31 @@
       if (s === 'SPARE' || s === 'AVAILABLE') return 'SPARE';
       if (s === 'REPAIR' || s === 'MAINTENANCE' || s === 'FAULT') return 'REPAIR';
       if (s === 'RETIRED' || s === 'DISPOSED') return 'RETIRED';
+      if (s === 'UNASSIGNED') return 'UNASSIGNED';
       return 'IN USE';
     }
 
-    // SHARED / PUBLIC IDENTIFIER LOGIC
+    // CLASSIFICATION LOGIC
     function isSharedOrPublicAsset(item) {
+      if (item.status === 'SPARE') return false;
+
       const name = (item.name || '').trim();
       const nameUpper = name.toUpperCase();
       const locUpper = (item.location || '').toUpperCase();
-      const deptUpper = (item.department || '').toUpperCase();
 
-      // Case 1: Name is "-" or explicitly contains public keywords
       if (name === '-' || nameUpper === 'N/A' || nameUpper === 'PUBLIC' || nameUpper === 'SHARED') return true;
 
-      const publicKeywords = ['LOBBY', 'GUEST', 'BUSINESS CENTER', 'KIOSK', 'MEETING', 'COMMON', 'PUBLIC', 'SHARED', 'COUNTER', 'RECEPTION'];
+      const publicKeywords = ['LOBBY', 'GUEST', 'BUSINESS CENTER', 'KIOSK', 'MEETING', 'COMMON', 'PUBLIC', 'SHARED', 'COUNTER', 'RECEPTION', 'FO -'];
       return publicKeywords.some(kw => nameUpper.includes(kw) || locUpper.includes(kw));
     }
 
-    function isUnassignedAsset(item) {
+    function isHasAssignedEmployee(item) {
+      if (item.status === 'SPARE') return false;
+      if (isSharedOrPublicAsset(item)) return false;
+
       const name = (item.name || '').trim();
       const nameUpper = name.toUpperCase();
-      return !name || nameUpper === 'UNASSIGNED' || nameUpper === 'TBA' || nameUpper === 'SPARE';
+      return name.length > 0 && nameUpper !== 'UNASSIGNED' && nameUpper !== 'TBA' && nameUpper !== '-' && nameUpper !== 'N/A';
     }
 
     async function fetchInventoryRecords() {
@@ -514,6 +521,31 @@
       filterInventoryRecords();
     }
 
+    // 🎯 TAB NAVIGATION SELECTOR
+    function selectCategoryTab(tabKey) {
+      activeCategoryTab = tabKey;
+
+      ['ALL', 'EMPLOYEE', 'SHARED', 'AVAILABLE'].forEach(key => {
+        const btn = document.getElementById(`tabCategory${key}`);
+        const countSpan = document.getElementById(`tabCount${key}`);
+        
+        if (key === tabKey) {
+          btn.className = 'tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-fast whitespace-nowrap bg-slate-900 text-white shadow-sm flex items-center gap-2 border border-slate-800';
+          countSpan.className = 'bg-slate-800 text-slate-200 text-[10px] px-2 py-0.5 rounded-md';
+        } else {
+          btn.className = 'tab-nav-btn px-4 py-2.5 rounded-xl text-xs font-medium transition-fast whitespace-nowrap bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center gap-2';
+          countSpan.className = 'bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md';
+        }
+      });
+
+      // Show/Hide Sections based on Tab Selection
+      document.getElementById('sectionEmployee').style.display = (tabKey === 'ALL' || tabKey === 'EMPLOYEE') ? 'block' : 'none';
+      document.getElementById('sectionShared').style.display = (tabKey === 'ALL' || tabKey === 'SHARED') ? 'block' : 'none';
+      document.getElementById('sectionAvailable').style.display = (tabKey === 'ALL' || tabKey === 'AVAILABLE') ? 'block' : 'none';
+
+      filterInventoryRecords();
+    }
+
     function filterInventoryRecords() {
       const search = document.getElementById('searchInventoryInput').value.toLowerCase().trim();
       const dept = document.getElementById('filterDepartment').value;
@@ -534,136 +566,149 @@
         return matchSearch && matchDept && matchStatus && matchType;
       });
 
+      // Update Summary Cards Counts
       document.getElementById('statTotalItems').innerText = rawInventoryRecords.length;
       document.getElementById('statInUse').innerText = rawInventoryRecords.filter(r => r.status === 'IN USE').length;
       document.getElementById('statSpare').innerText = rawInventoryRecords.filter(r => r.status === 'SPARE').length;
       document.getElementById('statRepair').innerText = rawInventoryRecords.filter(r => r.status === 'REPAIR').length;
 
-      renderThreeTierInventory(filtered);
+      // Update Tab Counts
+      const empCount = filtered.filter(r => isHasAssignedEmployee(r)).length;
+      const sharedCount = filtered.filter(r => isSharedOrPublicAsset(r)).length;
+      const availCount = filtered.filter(r => !isHasAssignedEmployee(r) && !isSharedOrPublicAsset(r)).length;
+
+      document.getElementById('tabCountALL').innerText = filtered.length;
+      document.getElementById('tabCountEMPLOYEE').innerText = empCount;
+      document.getElementById('tabCountSHARED').innerText = sharedCount;
+      document.getElementById('tabCountAVAILABLE').innerText = availCount;
+
+      renderThreeTierArchitecture(filtered);
     }
 
-    // 🎯 RENDER THREE-TIER ARCHITECTURE
-    function renderThreeTierInventory(records) {
-      const userContainer = document.getElementById('userDirectoryGrid');
+    // RENDER 3 SECTIONS WITH 3-COLUMN CSS GRID
+    function renderThreeTierArchitecture(records) {
+      const employeeContainer = document.getElementById('employeeDirectoryGrid');
       const sharedContainer = document.getElementById('sharedAssetsGrid');
-      const unassignedContainer = document.getElementById('unassignedAssetsGrid');
+      const availableUnassignedContainer = document.getElementById('availableUnassignedAssetsGrid');
 
-      const userRecords = [];
+      const employeeRecords = [];
       const sharedRecords = [];
-      const unassignedRecords = [];
+      const availableUnassignedRecords = [];
 
       records.forEach(r => {
-        if (isUnassignedAsset(r)) {
-          unassignedRecords.push(r);
+        if (isHasAssignedEmployee(r)) {
+          employeeRecords.push(r);
         } else if (isSharedOrPublicAsset(r)) {
           sharedRecords.push(r);
         } else {
-          userRecords.push(r);
+          availableUnassignedRecords.push(r);
         }
       });
 
-      // --- 1. RENDER USER ASSETS ---
-      const userGroupMap = {};
-      userRecords.forEach(item => {
-        const uName = item.name.trim();
-        if (!userGroupMap[uName]) {
-          userGroupMap[uName] = {
-            userName: uName,
-            department: item.department || 'General',
-            position: item.position || 'Staff',
-            assets: []
-          };
+      // --- 1. EMPLOYEE ASSETS ---
+      if (activeCategoryTab === 'ALL' || activeCategoryTab === 'EMPLOYEE') {
+        const employeeGroupMap = {};
+        employeeRecords.forEach(item => {
+          const uName = item.name.trim();
+          if (!employeeGroupMap[uName]) {
+            employeeGroupMap[uName] = {
+              userName: uName,
+              department: item.department || 'General',
+              position: item.position || 'Staff',
+              assets: []
+            };
+          }
+          employeeGroupMap[uName].assets.push(item);
+        });
+
+        const employeeGroups = Object.values(employeeGroupMap);
+
+        if (employeeGroups.length === 0) {
+          employeeContainer.innerHTML = `<div class="col-span-full bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No employee assets matching current filters.</div>`;
+        } else {
+          employeeContainer.innerHTML = employeeGroups.map(u => {
+            const initials = u.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            return `
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-fast overflow-hidden">
+                <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                      ${initials}
+                    </div>
+                    <div class="overflow-hidden">
+                      <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${u.userName}</h4>
+                      <p class="text-[10px] text-slate-500 truncate mt-0.5">${u.department} • ${u.position}</p>
+                    </div>
+                  </div>
+                  <span class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
+                    ${u.assets.length} ${u.assets.length === 1 ? 'Asset' : 'Assets'}
+                  </span>
+                </div>
+                <div class="p-2.5 space-y-2">
+                  ${u.assets.map(asset => renderCompactAssetCard(asset)).join('')}
+                </div>
+              </div>
+            `;
+          }).join('');
         }
-        userGroupMap[uName].assets.push(item);
-      });
+      }
 
-      const userGroups = Object.values(userGroupMap);
-      document.getElementById('directoryUserCount').innerText = `${userGroups.length} ${userGroups.length === 1 ? 'User' : 'Users'}`;
+      // --- 2. SHARED & PUBLIC ASSETS ---
+      if (activeCategoryTab === 'ALL' || activeCategoryTab === 'SHARED') {
+        const sharedGroupMap = {};
+        sharedRecords.forEach(item => {
+          const locName = (item.name && item.name !== '-') ? item.name : `${item.department} - ${item.location}`;
+          if (!sharedGroupMap[locName]) {
+            sharedGroupMap[locName] = {
+              locationTitle: locName,
+              department: item.department || 'Public',
+              assets: []
+            };
+          }
+          sharedGroupMap[locName].assets.push(item);
+        });
 
-      if (userGroups.length === 0) {
-        userContainer.innerHTML = `<div class="masonry-item bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No user assets match filter.</div>`;
-      } else {
-        userContainer.innerHTML = userGroups.map(u => {
-          const initials = u.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-          return `
-            <div class="masonry-item bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-fast overflow-hidden mb-5">
-              <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between gap-3">
+        const sharedGroups = Object.values(sharedGroupMap);
+
+        if (sharedGroups.length === 0) {
+          sharedContainer.innerHTML = `<div class="col-span-full bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No shared or public assets matching current filters.</div>`;
+        } else {
+          sharedContainer.innerHTML = sharedGroups.map(s => `
+            <div class="bg-white rounded-2xl border border-sky-200/80 shadow-sm hover:shadow-md transition-fast overflow-hidden">
+              <div class="p-3.5 bg-sky-50/50 border-b border-sky-100 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 overflow-hidden">
-                  <div class="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-                    ${initials}
+                  <div class="w-8 h-8 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                    <i class="fa-solid fa-display text-xs"></i>
                   </div>
                   <div class="overflow-hidden">
-                    <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${u.userName}</h4>
-                    <p class="text-[10px] text-slate-500 truncate mt-0.5">${u.department} • ${u.position}</p>
+                    <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${s.locationTitle}</h4>
+                    <p class="text-[10px] text-sky-700 font-medium truncate mt-0.5">Public / Shared</p>
                   </div>
                 </div>
-                <span class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
-                  ${u.assets.length} ${u.assets.length === 1 ? 'Asset' : 'Assets'}
+                <span class="bg-white border border-sky-200 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
+                  ${s.assets.length} ${s.assets.length === 1 ? 'Asset' : 'Assets'}
                 </span>
               </div>
               <div class="p-2.5 space-y-2">
-                ${u.assets.map(asset => renderCompactAssetCard(asset)).join('')}
+                ${s.assets.map(asset => renderCompactAssetCard(asset)).join('')}
               </div>
             </div>
-          `;
-        }).join('');
-      }
-
-      // --- 2. RENDER SHARED & PUBLIC ASSETS ---
-      const sharedGroupMap = {};
-      sharedRecords.forEach(item => {
-        const locName = (item.name && item.name !== '-') ? item.name : `${item.department} - ${item.location}`;
-        if (!sharedGroupMap[locName]) {
-          sharedGroupMap[locName] = {
-            locationTitle: locName,
-            department: item.department || 'Public',
-            assets: []
-          };
+          `).join('');
         }
-        sharedGroupMap[locName].assets.push(item);
-      });
-
-      const sharedGroups = Object.values(sharedGroupMap);
-      document.getElementById('sharedAssetCountBadge').innerText = `${sharedGroups.length} Locations (${sharedRecords.length} Assets)`;
-
-      if (sharedGroups.length === 0) {
-        sharedContainer.innerHTML = `<div class="masonry-item bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No shared or public assets match filter.</div>`;
-      } else {
-        sharedContainer.innerHTML = sharedGroups.map(s => `
-          <div class="masonry-item bg-white rounded-2xl border border-sky-200/80 shadow-sm hover:shadow-md transition-fast overflow-hidden mb-5">
-            <div class="p-3.5 bg-sky-50/50 border-b border-sky-100 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2.5 overflow-hidden">
-                <div class="w-8 h-8 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-                  <i class="fa-solid fa-display text-xs"></i>
-                </div>
-                <div class="overflow-hidden">
-                  <h4 class="text-xs font-bold text-slate-900 truncate leading-tight">${s.locationTitle}</h4>
-                  <p class="text-[10px] text-sky-700 font-medium truncate mt-0.5">Public / Shared</p>
-                </div>
-              </div>
-              <span class="bg-white border border-sky-200 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 shadow-sm">
-                ${s.assets.length} ${s.assets.length === 1 ? 'Asset' : 'Assets'}
-              </span>
-            </div>
-            <div class="p-2.5 space-y-2">
-              ${s.assets.map(asset => renderCompactAssetCard(asset, 'SHARED')).join('')}
-            </div>
-          </div>
-        `).join('');
       }
 
-      // --- 3. RENDER UNASSIGNED ASSETS ---
-      document.getElementById('unassignedAssetCountBadge').innerText = `${unassignedRecords.length} Assets`;
-
-      if (unassignedRecords.length === 0) {
-        unassignedContainer.innerHTML = `<div class="col-span-full bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No unassigned assets.</div>`;
-      } else {
-        unassignedContainer.innerHTML = unassignedRecords.map(asset => renderCompactAssetCard(asset, 'UNASSIGNED')).join('');
+      // --- 3. AVAILABLE / UNASSIGNED ASSETS ---
+      if (activeCategoryTab === 'ALL' || activeCategoryTab === 'AVAILABLE') {
+        if (availableUnassignedRecords.length === 0) {
+          availableUnassignedContainer.innerHTML = `<div class="col-span-full bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">No unassigned or spare assets available. All assets currently have an owner or location.</div>`;
+        } else {
+          availableUnassignedContainer.innerHTML = availableUnassignedRecords.map(asset => renderCompactAssetCard(asset)).join('');
+        }
       }
     }
 
     // COMPACT ASSET CARD TEMPLATE
-    function renderCompactAssetCard(asset, context = 'USER') {
+    function renderCompactAssetCard(asset) {
       let statusBadgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
       let statusDot = 'bg-emerald-500';
 
@@ -676,14 +721,13 @@
       } else if (asset.status === 'RETIRED') {
         statusBadgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
         statusDot = 'bg-slate-400';
+      } else if (asset.status === 'UNASSIGNED') {
+        statusBadgeStyle = 'bg-amber-50 text-amber-800 border-amber-200';
+        statusDot = 'bg-amber-500';
       }
 
-      let subMetaText = asset.location || 'Resort';
-      if (context === 'UNASSIGNED') subMetaText = 'No Owner';
-      if (context === 'SHARED') subMetaText = asset.department || 'Shared Location';
-
       return `
-        <div class="bg-slate-50/70 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition-fast space-y-1.5 relative group">
+        <div class="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 transition-fast space-y-2 relative group">
           
           <div class="flex items-start justify-between gap-2">
             <div class="overflow-hidden pr-5">
@@ -717,8 +761,7 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-1 border-t border-slate-200/50 text-[10px]">
-            <span class="text-slate-400 truncate">${subMetaText}</span>
+          <div class="flex items-center justify-end pt-1 border-t border-slate-200/50">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${statusBadgeStyle}">
               <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span> ${asset.status}
             </span>
